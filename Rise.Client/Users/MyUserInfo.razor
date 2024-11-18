@@ -1,0 +1,64 @@
+@page "/MyInfo"
+@using Microsoft.Extensions.Localization
+@using Rise.Shared.Users
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components
+@attribute [Authorize(Roles = "User")]
+@inject IStringLocalizer<MyUserInfo> Localizer
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>@Localizer["MyInfo"]</PageTitle>
+
+<h2>@Localizer["Title"]</h2>
+
+@if (_isLoading)
+    {
+        <div class="loading-container" style="background-color: transparent;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else
+    {
+    <h4>@Localizer["LastName"]</h4> 
+    <div>@_userDetails.LastName</div>
+    <h4>@Localizer["FirstName"]</h4> 
+    <div>@_userDetails.FirstName</div>
+    <h4>@Localizer["Email"]</h4> 
+    <div>@_userDetails.Email</div>
+    <h4>@Localizer["PhoneNumber"]</h4> 
+    <div>@_userDetails.PhoneNumber</div>
+    <h4>@Localizer["BirthDate"]</h4> 
+    <div>@_userDetails.BirthDate.ToString("dd-MM-yyyy")</div>
+    <h4>@Localizer["Address"]</h4> 
+    <div>
+        @_userDetails.Address.Street @_userDetails.Address.HouseNumber
+        @(_userDetails.Address.Bus != null ? $"{Localizer["Bus"]} {_userDetails.Address.Bus}" : "")
+    </div>
+    }
+
+@code {
+    private UserDto.UserDetails? _userDetails;
+    private string? userIdAuth0;
+
+    private bool _isLoading = false;
+
+    [Inject] public required IUserService UserService { get; set; }
+    
+     protected override async Task OnInitializedAsync()
+    {
+         _isLoading = true;
+
+        // Get the current user's authentication state        
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();        
+        userIdAuth0 = authState.User.Claims.FirstOrDefault(c => c.Type == "sub").Value;        
+        if (!string.IsNullOrEmpty(userIdAuth0))        
+        {            
+            _userDetails = await UserService.GetUserDetailsByIdAsync(userIdAuth0);        
+            }
+
+        
+        _isLoading = false;
+    }
+}

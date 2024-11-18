@@ -83,6 +83,7 @@ public class UserDto
         public AddressDto.GetAdress Address { get; init; }
         public ImmutableList<RoleDto> Roles { get; init; } = ImmutableList<RoleDto>.Empty;
         public DateTime BirthDate { get; init; } = DateTime.Now;
+        public string PhoneNumber { get; init; }
 
         // Parameterless constructor for deserialization
         public UserDetails() { }
@@ -98,6 +99,31 @@ public class UserDto
             Roles = roles ?? ImmutableList<RoleDto>.Empty;
             BirthDate = birthDate ?? DateTime.Now;
         }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UserDetails"/> class including phoneNumber.
+        /// </summary>
+        /// <param name="id">The user ID.</param>
+        /// <param name="firstName">The first name of the user.</param>
+        /// <param name="lastName">The last name of the user.</param>
+        /// <param name="email">The email address of the user.</param>
+        /// <param name="phoneNumber">The phone number of the user.</param>
+        /// <param name="address">The address of the user.</param>
+        /// <param name="roles">The roles assigned to the user.</param>
+        /// <param name="birthDate">The birth date of the user.</param>
+                public UserDetails(string id, string firstName, string lastName, string email, string phoneNumber,
+            AddressDto.GetAdress address, ImmutableList<RoleDto>? roles = null, DateTime? birthDate = null)
+        {
+            Id = id;
+            FirstName = firstName;
+            LastName = lastName;
+            Email = email;
+            Address = address;
+            Roles = roles ?? ImmutableList<RoleDto>.Empty;
+            BirthDate = birthDate ?? DateTime.Now;
+            PhoneNumber = phoneNumber;
+        }
+
     }
 
     /// <summary>

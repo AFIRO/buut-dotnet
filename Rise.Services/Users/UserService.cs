@@ -267,6 +267,7 @@ public class UserService : IUserService
                 user.FirstName,
                 user.LastName,
                 user.Email,
+                user.PhoneNumber,
                 ExtractAdress(user),
                 ExtractRoles(user),
                 user.BirthDate
