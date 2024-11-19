@@ -99,6 +99,8 @@ builder.Services.AddScoped<IAuth0UserService, Auth0UserService>();
 builder.Services.AddScoped<IValidationService, ValidationService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 
+builder.Services.AddHostedService<DailyTaskService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
