@@ -43,6 +43,12 @@ builder.Services.AddHttpClient<IBookingService, BookingService>(client =>
     client.BaseAddress = new Uri($"{builder.HostEnvironment.BaseAddress}api/");
 }).AddHttpMessageHandler<CustomAuthorizationMessageHandler>();
 
+builder.Services.AddHttpClient<IBoatService, Rise.Client.Boats.BoatService>(client =>
+{
+    Console.WriteLine("BoatService constructor httpclient");
+    client.BaseAddress = new Uri($"{builder.HostEnvironment.BaseAddress}api/");
+}).AddHttpMessageHandler<CustomAuthorizationMessageHandler>();
+
 var host = builder.Build();
 
 

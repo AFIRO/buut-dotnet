@@ -1,0 +1,62 @@
+@page "/boats"
+@using Microsoft.Extensions.Localization
+@attribute [Authorize(Roles = "Admin")]
+@inject IStringLocalizer<Boat> Localizer
+
+<div class="text-white">
+    <h1 class="text-white">@Localizer["Title"]</h1>
+
+    @if (_boats == null)
+    {
+        <div class="loading-container" style="background-color: transparent;">
+            <div class="spinner-border text-primary" role="status">
+                <span>@Localizer["Loading"]</span>
+            </div>
+        </div>
+    }
+    else if (!_boats.Any())
+    {
+         <div class="error-container" style="background-color: transparent;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">@Localizer["NoBoatsFound"]</span>
+            </div>
+        </div>       
+    }
+    else
+    { 
+      <div class="card">
+            <div class="table-responsive">
+                <table class="table align-items-center mb-0">
+                    <thead>
+                        <tr>
+                            <th class="text-uppercase text-secondary fs-6 text-xxs font-weight-bolder opacity-7">@Localizer["Name"]</th>
+                            <th class="text-uppercase text-secondary fs-6 text-xxs font-weight-bolder opacity-7 ps-2 text-center">@Localizer["CountBookings"]</th>
+                            <th class="text-uppercase text-secondary fs-6 text-xxs font-weight-bolder opacity-7 ps-2 text-center">@Localizer["Comments"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var boat in _boats)
+                        {
+                            <tr >
+                                <td class="p-4">                                    
+                                            <h6 class="mb-0 text-m">@boat.name</h6>                                            
+                                </td>
+                                <td class="p-4 text-center">                                   
+                                    <p class="text-m text-secondary mb-0">@boat.countBookings</p>                                        
+                                </td>            
+                                <td class="p-4  text-center">
+                                    <p class="text-m text-secondary mb-0">@boat.listComments</p>   
+                                </td >         
+                                
+                            </tr>
+                        }
+                    </tbody>
+            </table>
+        </div>
+    </div>
+    }            
+</div>
+
+
+
+

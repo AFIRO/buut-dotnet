@@ -9,6 +9,7 @@ using Rise.Shared.Bookings;
 using Rise.Shared.Enums;
 using Rise.Services.Users;
 using Rise.Shared.Services;
+using Rise.Shared.Boats;
 
 namespace Rise.Services.Bookings;
 

@@ -46,4 +46,7 @@
   <data name="MyBookings" xml:space="preserve">
     <value>Mijn boekingen</value>
   </data>
+  <data name="Boats" xml:space="preserve">
+    <value>Boten</value>
+  </data>
 </root>
