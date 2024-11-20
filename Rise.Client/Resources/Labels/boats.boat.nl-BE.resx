@@ -35,5 +35,17 @@
     </data>
     <data name="Comments" xml:space="preserve">
         <value>Opmerkingen</value>
-    </data>      
+    </data>     
+     <data name="AddBoat" xml:space="preserve">
+        <value>Voeg boot toe</value>
+    </data> 
+    <data name="EnterBoatName" xml:space="preserve">
+        <value>Vul de naam van de boot in</value>
+    </data> 
+    <data name="Submit" xml:space="preserve">
+        <value>Bevestig</value>
+    </data> 
+    <data name="Cancel" xml:space="preserve">
+        <value>Annuleer</value>
+    </data>  
 </root>

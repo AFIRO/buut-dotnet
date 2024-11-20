@@ -1,5 +1,7 @@
 @page "/boats"
 @using Microsoft.Extensions.Localization
+@using System.ComponentModel.DataAnnotations
+@using Rise.Shared.Boats
 @attribute [Authorize(Roles = "Admin")]
 @inject IStringLocalizer<Boat> Localizer
 
@@ -39,7 +41,7 @@
                         {
                             <tr >
                                 <td class="p-4">                                    
-                                            <h6 class="mb-0 text-m">@boat.name</h6>                                            
+                                    <h6 class="mb-0 text-m">@boat.name</h6>                                            
                                 </td>
                                 <td class="p-4 text-center">                                   
                                     <p class="text-m text-secondary mb-0">@boat.countBookings</p>                                        
@@ -54,8 +56,124 @@
             </table>
         </div>
     </div>
-    }            
+    }       
+        @if (!formIsShown)
+        {
+             
+                <button class="btn btn-primary mt-2"
+                        @onclick="ShowForm">
+                    @Localizer["AddBoat"]
+                </button>
+            
+        }
+        else
+        {
+        <EditForm EditContext="editContext" OnSubmit="Confirm">
+    <DataAnnotationsValidator />
+
+    <div class="mt-2 d-flex align-items-center gap-2">
+        <div class="col-auto">
+            <InputText class="form-control mb-2" @bind-Value="equipmentModel.Name" id="inlineFormInput" placeholder="@Localizer["EnterBoatName"]" />
+            
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-success mb-2">
+                @Localizer["Submit"]
+            </button>
+        </div>
+        <div class="col-auto">
+            <button type="button" class="btn btn-danger mb-2" @onclick="Cancel">
+                @Localizer["Cancel"]
+            </button>
+        </div>
+    </div>
+    <div class="mt-2 d-flex align-items-center gap-2">
+        <ValidationMessage For="() => equipmentModel.Name" />
+    </div>
+</EditForm>
+        }   
+    
+
+  
 </div>
+
+@code {
+    private bool formIsShown = false;
+    private EquipmentModel equipmentModel = new EquipmentModel();
+    private IEnumerable<BoatDto.ViewBoat>? _boats;
+    private EditContext editContext;
+    private ValidationMessageStore validationMessageStore;
+
+    [Inject] public required IBoatService BoatService { get; set; }
+
+    public class EquipmentModel
+    {
+        [Required(ErrorMessage = "Name is required.")]
+        public string Name { get; set; } = string.Empty;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _boats = await BoatService.GetAllAsync();
+         editContext = new EditContext(equipmentModel);
+         validationMessageStore = new ValidationMessageStore(editContext);
+    }
+
+    private void ShowForm()
+    {
+        
+        formIsShown = true;
+    }
+
+    private async Task Confirm()
+     {        
+        
+            ClearValidationMessages();
+
+            if (!editContext.Validate()) // Handmatige validatie
+        {
+            return; // Stop de submit als de validatie niet slaagt
+        }
+
+            try
+            {                
+                var newBoat = new BoatDto.NewBoat { name = equipmentModel.Name };
+                var response = await BoatService.CreateBoatAsync(newBoat);
+                _boats = await BoatService.GetAllAsync();
+                formIsShown = false;
+            }
+            catch (Exception e)
+            {
+                
+                AddValidationError(nameof(equipmentModel.Name), e.Message);
+            }
+        
+    }
+
+    private void Cancel()
+    {
+        ClearValidationMessages();
+        equipmentModel.Name = string.Empty;
+        formIsShown = false;
+    }
+
+    // Voeg validatiefout toe voor een specifiek veld
+    private void AddValidationError(string field, string errorMessage)
+    {
+        var fieldIdentifier = new FieldIdentifier(equipmentModel, field);
+        validationMessageStore.Add(fieldIdentifier, errorMessage);
+
+        editContext.NotifyValidationStateChanged();
+    }
+
+    private void ClearValidationMessages()
+{
+    validationMessageStore.Clear(); // Wis alle validatieberichten
+    Console.WriteLine("Validation messages cleared");
+    editContext.NotifyValidationStateChanged(); // Meld dat de validatiestatus is bijgewerkt
+}
+
+}
 
 
 

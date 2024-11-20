@@ -24,7 +24,6 @@ public class BookingController : ControllerBase
     /// Initializes a new instance of the <see cref="BookingController"/> class with the specified booking service.
     /// </summary>
     /// <param name="bookingService">The booking service that handles booking operations.</param>
-
     public BookingController(IBookingService bookingService, IOptions<BookingSettings> options)
     {
         _bookingService = bookingService;

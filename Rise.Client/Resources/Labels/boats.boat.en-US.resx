@@ -36,4 +36,16 @@
     <data name="Comments" xml:space="preserve">
         <value>Comments</value>
     </data>      
+    <data name="AddBoat" xml:space="preserve">
+        <value>Add Boat</value>
+    </data> 
+    <data name="EnterBoatName" xml:space="preserve">
+        <value>Enter boat name</value>
+    </data> 
+    <data name="Submit" xml:space="preserve">
+        <value>Submit</value>
+    </data> 
+    <data name="Cancel" xml:space="preserve">
+        <value>Cancel</value>
+    </data> 
 </root>

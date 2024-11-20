@@ -8,4 +8,6 @@ public interface IValidationService
     Task<bool> BookingExists(DateTime bookingDate);
     Task<bool> CheckUserMaxBookings(string userId);
     Task<bool> ValidateBookingAsync(string userId, BookingDto.UpdateBooking booking);
+    Task<bool> BoatExists(string boatName);
+
 }

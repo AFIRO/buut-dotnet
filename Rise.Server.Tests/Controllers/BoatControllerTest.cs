@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using Rise.Client.Boats;
 using Rise.Shared.Boats;
 using Shouldly;
 
@@ -46,4 +47,47 @@ public class BoatControllerTest
         okResult.StatusCode.ShouldBe(StatusCodes.Status200OK);
         okResult.Value.ShouldBe(boats);
     }  
+
+    [Fact]
+    public async Task Post_ValidNewBooking_ReturnsCreatedActionResult()
+    {
+        //Arrange
+        var newBoat = new BoatDto.NewBoat{name = "New Boat"};
+        var createdBoat = new BoatDto.ViewBoat{name = "New Boat", countBookings = 0, listComments = null};
+        _mockBoatService.Setup(service => service.CreateBoatAsync(newBoat)).ReturnsAsync(createdBoat);
+
+        //Act
+        var result = await _controller.Post(newBoat);
+
+        //Assert
+        var createdResult = result as CreatedAtActionResult;
+        createdResult.StatusCode.ShouldBe(StatusCodes.Status201Created);
+        createdResult.Value.ShouldBe(createdBoat);        
+    }
+
+    [Fact]
+    public async Task Post_NewBookingIsNull_ReturnsBadRequest()
+    {   
+        //Act
+        var result = await _controller.Post(null);
+
+        //Assert
+        var createdResult = result as BadRequestObjectResult;
+        createdResult.StatusCode.ShouldBe(StatusCodes.Status400BadRequest);
+    }
+
+    [Fact]
+    public async Task Post_ServiceThrowsException_ReturnsInternalServerError()
+    {   
+        //Arrange
+        var newBoat = new BoatDto.NewBoat{name = "New Boat"};
+        _mockBoatService.Setup(service => service.CreateBoatAsync(newBoat)).ThrowsAsync(new InvalidOperationException());
+
+        //Act
+        var result = await _controller.Post(newBoat);
+
+        //Assert
+        var createdResult = result as ObjectResult;
+        createdResult.StatusCode.ShouldBe(StatusCodes.Status500InternalServerError);
+    }
 }

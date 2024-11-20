@@ -1,3 +1,4 @@
+using System.Net.Http.Json;
 using System.Text.Json;
 using Rise.Shared.Boats;
 using Rise.Shared.Bookings;
@@ -17,6 +18,20 @@ public class BoatService : IBoatService
             PropertyNameCaseInsensitive = true
         };        
         Console.WriteLine("BoatService is aangemaakt");
+    }
+
+    public async Task<BoatDto.ViewBoat> CreateBoatAsync(BoatDto.NewBoat boat)
+    {
+        var response = await _httpClient.PostAsJsonAsync("boat", boat);
+
+        if(!response.IsSuccessStatusCode)
+        {
+             var errorMessage = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException(errorMessage);
+        }
+
+        var boatResponse = await response.Content.ReadFromJsonAsync<BoatDto.ViewBoat>(_jsonSerializerOptions);
+        return boatResponse;
     }
 
     public async Task<IEnumerable<BoatDto.ViewBoat>?> GetAllAsync()

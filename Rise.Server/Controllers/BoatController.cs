@@ -30,4 +30,22 @@ public class BoatController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
         }
     }
+
+    [HttpPost]
+    public async Task<ActionResult> Post([FromBody] BoatDto.NewBoat? boat)
+    {
+        if (boat == null)
+        {
+            return BadRequest("Boat details can't be null");
+        }
+        try
+        {
+            var createdBoat = await _boatService.CreateBoatAsync(boat);
+            return CreatedAtAction(null, null, createdBoat);
+        }
+        catch (Exception e)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
+        }
+    }
 }
