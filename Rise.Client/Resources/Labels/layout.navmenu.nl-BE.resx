@@ -40,4 +40,7 @@
   <data name="MakeBooking" xml:space="preserve">
     <value>Boek nu</value>
   </data>
+  <data name="Boats" xml:space="preserve">
+    <value>Boten</value>
+  </data>
 </root>

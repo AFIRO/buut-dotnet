@@ -11,6 +11,7 @@ using Rise.Client.Auth;
 using UserService = Rise.Client.Users.UserService;
 using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor.Services;
+using Rise.Shared.Boats;
 
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -40,6 +41,18 @@ builder.Services.AddHttpClient<IUserService, UserService>(client =>
 
 builder.Services.AddHttpClient<IBookingService, BookingService>(client =>
 {
+    client.BaseAddress = new Uri($"{builder.HostEnvironment.BaseAddress}api/");
+}).AddHttpMessageHandler<CustomAuthorizationMessageHandler>();
+
+builder.Services.AddHttpClient<IEquipmentService<BoatDto.ViewBoat, BoatDto.NewBoat>, Rise.Client.Boats.BoatService>(client =>
+{
+    Console.WriteLine("BoatService constructor httpclient");
+    client.BaseAddress = new Uri($"{builder.HostEnvironment.BaseAddress}api/");
+}).AddHttpMessageHandler<CustomAuthorizationMessageHandler>();
+
+builder.Services.AddHttpClient<IEquipmentService<BatteryDto.ViewBattery, BatteryDto.NewBattery>, Rise.Client.Batteries.BatteryService>(client =>
+{
+    Console.WriteLine("BoatService constructor httpclient");
     client.BaseAddress = new Uri($"{builder.HostEnvironment.BaseAddress}api/");
 }).AddHttpMessageHandler<CustomAuthorizationMessageHandler>();
 

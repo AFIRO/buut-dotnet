@@ -64,4 +64,14 @@ public class ValidationService : IValidationService
         
         return await _dbContext.Bookings.Where(x => x.IsDeleted == false && x.UserId == userId).CountAsync() > 0;
     }
+    public async Task<bool> BoatExists(string boatName)
+    {
+        return await _dbContext.Boats.AnyAsync(boat => !boat.IsDeleted && boat.Name == boatName);
+    }
+
+    public async Task<bool> BatteryExists(string name)
+    {
+        return await _dbContext.Batteries.AnyAsync(battery => !battery.IsDeleted && battery.Name == name);
+    }
+
 }
