@@ -10,13 +10,13 @@ namespace Rise.Client.Tests
 {
     public class BoatsTest : TestContext
     {
-        private Mock<IBoatService> _boatServiceMock;
+        private Mock<IEquipmentService<BoatDto.ViewBoat, BoatDto.NewBoat>> _boatServiceMock;
         private Mock<IStringLocalizer<Boats.Boat>> _localizerMock;
 
         public BoatsTest()
         {
             // Maak een mock van IBoatService met Moq
-            _boatServiceMock = new Mock<IBoatService>();
+            _boatServiceMock = new Mock<IEquipmentService<BoatDto.ViewBoat, BoatDto.NewBoat>>();
             _localizerMock = new Mock<IStringLocalizer<Boats.Boat>>();
 
             // Voeg de mock toe aan de dependency injection container
@@ -73,7 +73,7 @@ namespace Rise.Client.Tests
             var component = RenderComponent<Boats.Boat>();
 
             // Simuleer wachten tot de data geladen is
-            await Task.Delay(500); // In real apps, use async lifecycle methods to wait.
+            await Task.Delay(500); 
 
             // Assert
             var headerItems = component.FindAll("th");
@@ -99,7 +99,7 @@ namespace Rise.Client.Tests
             var component = RenderComponent<Boats.Boat>();
 
             // Simuleer wachten tot de data geladen is
-            await Task.Delay(500); // In real apps, use async lifecycle methods to wait.
+            await Task.Delay(500); 
 
             // Assert
             var boatItems = component.FindAll("tr");
@@ -173,7 +173,7 @@ namespace Rise.Client.Tests
             // Arrange
             var boats = new List<BoatDto.ViewBoat>();
             _boatServiceMock.Setup(service => service.GetAllAsync()).ReturnsAsync(boats);
-            _boatServiceMock.Setup(service => service.CreateBoatAsync(It.IsAny<BoatDto.NewBoat>()))
+            _boatServiceMock.Setup(service => service.CreateAsync(It.IsAny<BoatDto.NewBoat>()))
                 .ReturnsAsync((BoatDto.NewBoat newBoat) => new BoatDto.ViewBoat { name = newBoat.name })
                 .Callback<BoatDto.NewBoat>(b => boats.Add(new BoatDto.ViewBoat { name = b.name }));
 
@@ -198,7 +198,7 @@ namespace Rise.Client.Tests
                 new BoatDto.ViewBoat { name = "Existing Boat" }
             };
             _boatServiceMock.Setup(service => service.GetAllAsync()).ReturnsAsync(boats);
-            _boatServiceMock.Setup(service => service.CreateBoatAsync(It.Is<BoatDto.NewBoat>(b => b.name == "Existing Boat")))
+            _boatServiceMock.Setup(service => service.CreateAsync(It.Is<BoatDto.NewBoat>(b => b.name == "Existing Boat")))
                 .ThrowsAsync(new Exception("Boat already exists."));
 
             // Act

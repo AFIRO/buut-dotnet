@@ -9,5 +9,5 @@ public interface IValidationService
     Task<bool> CheckUserMaxBookings(string userId);
     Task<bool> ValidateBookingAsync(string userId, BookingDto.UpdateBooking booking);
     Task<bool> BoatExists(string boatName);
-
+    Task<bool> BatteryExists(string name);
 }

@@ -13,6 +13,8 @@ using Rise.Server.Settings;
 using Rise.Services.Bookings;
 using Rise.Shared.Bookings;
 using Rise.Shared.Services;
+using AngleSharp.Text;
+using Rise.Shared.Boats;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -91,7 +93,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
-builder.Services.AddScoped<IBoatService, BoatService>();
+builder.Services.AddScoped<IEquipmentService<BoatDto.ViewBoat, BoatDto.NewBoat>, BoatService>();
+builder.Services.AddScoped<IEquipmentService<BatteryDto.ViewBattery, BatteryDto.NewBattery>, BatteryService>();
 builder.Services.AddScoped<IAuth0UserService, Auth0UserService>();
 builder.Services.AddScoped<IValidationService, ValidationService>();
 

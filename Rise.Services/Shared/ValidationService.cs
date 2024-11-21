@@ -59,5 +59,9 @@ public class ValidationService : IValidationService
         return await _dbContext.Boats.AnyAsync(boat => !boat.IsDeleted && boat.Name == boatName);
     }
 
-    
+    public async Task<bool> BatteryExists(string name)
+    {
+        return await _dbContext.Batteries.AnyAsync(battery => !battery.IsDeleted && battery.Name == name);
+    }
+
 }

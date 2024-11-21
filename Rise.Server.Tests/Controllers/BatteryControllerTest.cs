@@ -2,30 +2,30 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using Rise.Shared.Boats;
+using Rise.Shared.Bookings;
 using Shouldly;
 
-public class BoatControllerTest
+public class BatteryControllerTest
 {
-    private readonly Mock<IEquipmentService<BoatDto.ViewBoat, BoatDto.NewBoat>> _mockBoatService;
-    private readonly BoatController _controller;
+    private readonly Mock<IEquipmentService<BatteryDto.ViewBattery, BatteryDto.NewBattery>> _mockBatteryService;
+    private readonly BatteryController _controller;
 
-    public BoatControllerTest()
+    public BatteryControllerTest()
     {
-        _mockBoatService = new Mock<IEquipmentService<BoatDto.ViewBoat, BoatDto.NewBoat>>();        
-        _controller = new BoatController(_mockBoatService.Object);
+        _mockBatteryService = new Mock<IEquipmentService<BatteryDto.ViewBattery, BatteryDto.NewBattery>>();        
+        _controller = new BatteryController(_mockBatteryService.Object);
        
     }
 
     [Fact]
-    public async Task GetAllBoats_WhenAdmin_ReturnsOkResult()
+    public async Task GetAllBatterys_WhenAdmin_ReturnsOkResult()
     {
-        var boats = new List<BoatDto.ViewBoat>
+        var Batterys = new List<BatteryDto.ViewBattery>
         {
-            new BoatDto.ViewBoat { name = "First Test Boat"},
-            new BoatDto.ViewBoat { name = "Seoncd Test Boat"}
+            new BatteryDto.ViewBattery { name = "First Test Battery"},
+            new BatteryDto.ViewBattery { name = "Seoncd Test Battery"}
         };
-        _mockBoatService.Setup(service => service.GetAllAsync()).ReturnsAsync(boats);
+        _mockBatteryService.Setup(service => service.GetAllAsync()).ReturnsAsync(Batterys);
 
          var admin = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
             {
@@ -39,29 +39,29 @@ public class BoatControllerTest
             HttpContext = new DefaultHttpContext { User = admin }
         };
 
-        var result = await _controller.GetAllBoats();
+        var result = await _controller.GetAllBatteries();
 
         var okResult = result.Result as OkObjectResult;
         okResult.ShouldNotBeNull();
         okResult.StatusCode.ShouldBe(StatusCodes.Status200OK);
-        okResult.Value.ShouldBe(boats);
-    }  
+        okResult.Value.ShouldBe(Batterys);
+    }    
 
     [Fact]
     public async Task Post_ValidNewBooking_ReturnsCreatedActionResult()
     {
         //Arrange
-        var newBoat = new BoatDto.NewBoat{name = "New Boat"};
-        var createdBoat = new BoatDto.ViewBoat{name = "New Boat", countBookings = 0, listComments = null};
-        _mockBoatService.Setup(service => service.CreateAsync(newBoat)).ReturnsAsync(createdBoat);
+        var newBattery = new BatteryDto.NewBattery{name = "New Battery"};
+        var createdBattery = new BatteryDto.ViewBattery{name = "New Battery", countBookings = 0, listComments = null};
+        _mockBatteryService.Setup(service => service.CreateAsync(newBattery)).ReturnsAsync(createdBattery);
 
         //Act
-        var result = await _controller.Post(newBoat);
+        var result = await _controller.Post(newBattery);
 
         //Assert
         var createdResult = result as CreatedAtActionResult;
         createdResult.StatusCode.ShouldBe(StatusCodes.Status201Created);
-        createdResult.Value.ShouldBe(createdBoat);        
+        createdResult.Value.ShouldBe(createdBattery);        
     }
 
     [Fact]
@@ -79,11 +79,11 @@ public class BoatControllerTest
     public async Task Post_ServiceThrowsException_ReturnsInternalServerError()
     {   
         //Arrange
-        var newBoat = new BoatDto.NewBoat{name = "New Boat"};
-        _mockBoatService.Setup(service => service.CreateAsync(newBoat)).ThrowsAsync(new InvalidOperationException());
+        var newBattery = new BatteryDto.NewBattery{name = "New Battery"};
+        _mockBatteryService.Setup(service => service.CreateAsync(newBattery)).ThrowsAsync(new InvalidOperationException());
 
         //Act
-        var result = await _controller.Post(newBoat);
+        var result = await _controller.Post(newBattery);
 
         //Assert
         var createdResult = result as ObjectResult;

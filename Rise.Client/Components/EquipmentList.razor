@@ -1,0 +1,165 @@
+@typeparam TView
+@typeparam TNew
+
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.Extensions.Localization
+
+<div class="text-white">
+    <h1 class="text-white">@Localizer["Title"]</h1>
+
+    @if (_items == null)
+    {
+        <div class="loading-container" style="background-color: transparent;">
+            <div class="spinner-border text-primary" role="status">
+                <span>@Localizer["Loading"]</span>
+            </div>
+        </div>
+    }
+    else if (!_items.Any())
+    {
+        <div class="error-container" style="background-color: transparent;">
+            <span>@Localizer["NoItems"]</span>
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table align-items-center mb-0">
+                    <thead>
+                        <tr>
+                            <th class="text-uppercase text-secondary fs-6 text-xxs font-weight-bolder opacity-7">@Localizer["Name"]</th>
+                            <th class="text-uppercase text-secondary fs-6 text-xxs font-weight-bolder opacity-7 ps-2 text-center">@Localizer["CountBookings"]</th>
+                            <th class="text-uppercase text-secondary fs-6 text-xxs font-weight-bolder opacity-7 ps-2 text-center">@Localizer["Comments"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in _items)
+                        {
+                            <tr>
+                                <td class="py-3 px-4">
+                                    <h6 class="mb-0 text-m">@GetName(item)</h6>
+                                </td>
+                                <td class="py-3 px-4 text-center">
+                                    <p class="text-m text-secondary mb-0">@GetCount(item)</p>
+                                </td>
+                                <td class="py-3 px-4 text-center">
+                                    <p class="text-m text-secondary mb-0">@GetComments(item)</p>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    @if (!formIsShown)
+    {
+        <button class="btn btn-primary mt-2" @onclick="ShowForm">@Localizer["Add"]</button>
+    }
+    else
+    {
+        <EditForm EditContext="editContext" OnSubmit="Confirm">
+            <DataAnnotationsValidator />
+
+            <div class="mt-2 d-flex align-items-center gap-2">
+                <InputText class="form-control mb-2" @bind-Value="equipmentModel.Name" placeholder="Enter Name" />
+                <button type="submit" class="btn btn-success mb-2">@Localizer["Submit"]</button>
+                <button type="button" class="btn btn-danger mb-2" @onclick="Cancel">@Localizer["Cancel"]</button>
+            </div>
+            <ValidationMessage For="() => equipmentModel.Name" />
+        </EditForm>
+    }
+</div>
+
+@code {
+    [Parameter] public required string Title { get; set; }
+    [Parameter] public required string NameHeader { get; set; }
+    [Parameter] public required string CountHeader { get; set; }
+    [Parameter] public required string CommentsHeader { get; set; }
+    [Parameter] public required Func<TView, string> GetName { get; set; }
+    [Parameter] public required Func<TView, int> GetCount { get; set; }
+    [Parameter] public required Func<TView, List<string>> GetComments { get; set; }
+    [Parameter] public required IEquipmentService<TView, TNew> Service { get; set; }
+    [Parameter] public required IStringLocalizer Localizer {get; set;}
+
+    private bool formIsShown = false;
+    private EquipmentModel equipmentModel = new();
+    private IEnumerable<TView>? _items;
+    private EditContext editContext;
+    private ValidationMessageStore validationMessageStore;
+
+    public class EquipmentModel
+    {
+        [Required(ErrorMessage = "Name is required.")]
+        public string Name { get; set; } = string.Empty;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _items = await Service.GetAllAsync();
+        editContext = new EditContext(equipmentModel);
+        validationMessageStore = new ValidationMessageStore(editContext);
+    }
+
+    private void ShowForm()
+    {
+        formIsShown = true;
+    }
+
+    private async Task Confirm()
+    {
+        ClearValidationMessages();
+
+        if (!editContext.Validate())
+        {
+            return;
+        }
+
+        try
+        {
+            var newItem = CreateNewItem(equipmentModel.Name);
+            await Service.CreateAsync(newItem);
+            _items = await Service.GetAllAsync();
+            formIsShown = false;
+        }
+        catch (Exception e)
+        {
+            AddValidationError(nameof(equipmentModel.Name), e.Message);
+        }
+    }
+
+    private TNew CreateNewItem(string name)
+    {       
+        var newItem = (TNew)Activator.CreateInstance(typeof(TNew))!;
+        var nameProperty = typeof(TNew).GetProperty("name");
+        if (nameProperty != null && nameProperty.CanWrite)
+    {
+        nameProperty.SetValue(newItem, name);
+    }
+
+    return newItem;
+    }
+
+    private void Cancel()
+    {
+        ClearValidationMessages();
+        equipmentModel.Name = string.Empty;
+        formIsShown = false;
+    }
+
+    private void AddValidationError(string field, string errorMessage)
+    {
+        var fieldIdentifier = new FieldIdentifier(equipmentModel, field);
+        validationMessageStore.Add(fieldIdentifier, errorMessage);
+        editContext.NotifyValidationStateChanged();
+    }
+
+    private void ClearValidationMessages()
+    {
+        validationMessageStore.Clear();
+        editContext.NotifyValidationStateChanged();
+    }
+}

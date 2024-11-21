@@ -1,16 +1,14 @@
-@page "/boats"
-@using Rise.Shared.Boats
+@page "/batteries"
 @using Rise.Shared.Bookings
 @attribute [Authorize(Roles = "Admin")]
-@inject IEquipmentService<BoatDto.ViewBoat, BoatDto.NewBoat> BoatService
+@inject IEquipmentService<BatteryDto.ViewBattery, BatteryDto.NewBattery> BatteryService
 @using Microsoft.Extensions.Localization
-@inject IStringLocalizer<Boat> Localizer
+@inject IStringLocalizer<Battery> Localizer
 
-<EquipmentList TView="BoatDto.ViewBoat"
-               TNew="BoatDto.NewBoat"
-               Service="BoatService"
+<EquipmentList TView="BatteryDto.ViewBattery"
+               TNew="BatteryDto.NewBattery"
+               Service="BatteryService"
                GetName="battery => battery.name"
                GetCount="battery => battery.countBookings"
                GetComments="battery => battery.listComments"
                Localizer="Localizer"  />
-

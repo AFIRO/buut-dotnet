@@ -7,13 +7,15 @@ using Rise.Domain.Bookings;
 using Microsoft.IdentityModel.Tokens;
 using Rise.Shared.Services;
 
-public class BoatService : IBoatService
+public class BoatService : IEquipmentService<BoatDto.ViewBoat, BoatDto.NewBoat>
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly IValidationService _validationService;
 
+   
     public BoatService(ApplicationDbContext dbContext, IValidationService validationService)
     {
+        
         _validationService = validationService;
         _dbContext = dbContext;        
     }
@@ -25,7 +27,7 @@ public class BoatService : IBoatService
               
     }    
     
-    public async Task<BoatDto.ViewBoat> CreateBoatAsync(BoatDto.NewBoat boat)
+    public async Task<BoatDto.ViewBoat> CreateAsync(BoatDto.NewBoat boat)
     {
         if (await _validationService.BoatExists(boat.name))
         {

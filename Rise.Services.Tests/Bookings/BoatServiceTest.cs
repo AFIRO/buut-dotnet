@@ -52,14 +52,14 @@ public class BoatServiceTest
     #region CreateBoatAsync
 
     [Fact]
-    public async Task CreateBoatAsync_WithValidName_ShouldCreateBoat()
+    public async Task CreateAsync_WithValidName_ShouldCreateBoat()
     {
         //Arrange
         var newBoat = new BoatDto.NewBoat{name = "NewBoat"};
         _validationServiceMock.Setup(service => service.BoatExists(newBoat.name)).ReturnsAsync(false);
 
         //Act
-        var result = await _boatService.CreateBoatAsync(newBoat);
+        var result = await _boatService.CreateAsync(newBoat);
 
         //Assert
         Assert.Equal(newBoat.name, result.name);
@@ -67,14 +67,14 @@ public class BoatServiceTest
     }
 
     [Fact]
-    public async Task CreateBoatAsync_BoatAlreadyExists_ShouldThrowException()
+    public async Task CreateAsync_BoatAlreadyExists_ShouldThrowException()
     {
         //Arrange
         var newBoat = new BoatDto.NewBoat{name = "NewBoat"};
         _validationServiceMock.Setup(service => service.BoatExists(newBoat.name)).ReturnsAsync(true);
 
         //Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => _boatService.CreateBoatAsync(newBoat));       
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _boatService.CreateAsync(newBoat));       
 
     }
 
