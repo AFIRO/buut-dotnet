@@ -39,7 +39,7 @@
                                                     <MudTd DataLabel="Date" class="datarow-style">@context.bookingDate.ToString("d")</MudTd>
                                                     <MudTd DataLabel="TimeSlot" class="datarow-style">@(TimeSlotEnumExtensions.GetStartHour(context.timeSlot))@Localizer["TimeNotation"] - @(TimeSlotEnumExtensions.GetEndHour(context.timeSlot))@Localizer["TimeNotation"]</MudTd>
                                                     <MudTd DataLabel="Boat" class="datarow-style">@(!string.IsNullOrEmpty(context.boat.name) ? context.boat.name : "Still needs to be defined")</MudTd>
-                                                    <MudTd DataLabel="Battery" class="datarow-style">@(!string.IsNullOrEmpty(context.battery.name) ? context.boat.name : "Still needs to be defined")</MudTd>
+                                                    <MudTd DataLabel="Battery" class="datarow-style">@(!string.IsNullOrEmpty(context.battery.name) ? context.battery.name : "Still needs to be defined")</MudTd>
                                                     <MudTd class="datarow-style">
                                                         <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="() => DeleteBooking(context.bookingId)" Disabled="@(context.bookingDate.Date <= DateTime.Today.AddDays(2))">@Localizer["FutureBookingTblCancel"]</MudButton>
                                                     </MudTd>

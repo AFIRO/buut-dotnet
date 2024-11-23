@@ -18,6 +18,7 @@ using Rise.Shared.Services;
 using Rise.Services.Notifications;
 using Rise.Shared.Notifications;
 using AngleSharp.Text;
+using Rise.Domain.Bookings;
 using Rise.Shared.Boats;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -102,6 +103,8 @@ builder.Services.AddScoped<IEquipmentService<BatteryDto.ViewBattery, BatteryDto.
 builder.Services.AddScoped<IAuth0UserService, Auth0UserService>();
 builder.Services.AddScoped<IValidationService, ValidationService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<BookingAllocator>();
+builder.Services.AddScoped<BookingAllocationService>();
 
 builder.Services.AddHostedService<DailyTaskService>();
 
