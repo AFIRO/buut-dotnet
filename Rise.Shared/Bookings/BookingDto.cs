@@ -14,6 +14,7 @@ public class BookingDto
 
     public class ViewBooking
     {
+        public string userId { get; set; } = default!;
         public string bookingId { get; set; } = default!;
         public DateTime bookingDate { get; set; } = DateTime.Now;
         public BoatDto.ViewBoat boat { get; set; } = new();

@@ -19,6 +19,7 @@ using Rise.Services.Notifications;
 using Rise.Shared.Notifications;
 using Rise.Services.Events;
 using Rise.Services.Events.User;
+using Rise.Services.Events.Booking;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -109,8 +110,17 @@ builder.Services.AddSingleton<IEventDispatcher, EventDispatcher>();
 // Register open generic handlers
 builder.Services.AddScoped(typeof(IEventHandler<>), typeof(GenericEventHandler<>));
 
-// Register specific event handlers
+// Register specific User event handlers
 builder.Services.AddScoped<IEventHandler<UserRegisteredEvent>, NotifyAdminsOnUserRegistrationHandler>();
+builder.Services.AddScoped<IEventHandler<UserDeletedEvent>, NotifyAdminsOnUserDeletionHandler>();
+builder.Services.AddScoped<IEventHandler<UserUpdatedEvent>, NotifyAdminsOnUserUpdateHandler>();
+builder.Services.AddScoped<IEventHandler<UserValidationEvent>, NotifyUserOnUserValidationHandler>();
+builder.Services.AddScoped<IEventHandler<UserRoleUpdatedEvent>, NotifyUserOnNewRolesAssignedHandler>();
+
+// Register specific Booking event handlers
+builder.Services.AddScoped<IEventHandler<BookingCreatedEvent>, NotifyOnBookingCreatedHandler>();
+builder.Services.AddScoped<IEventHandler<BookingUpdatedEvent>, NotifyOnBookingUpdatedHandler>();
+builder.Services.AddScoped<IEventHandler<BookingDeletedEvent>, NotifyOnBookingDeletedHandler>();
 
 
 var app = builder.Build();

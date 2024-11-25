@@ -122,16 +122,34 @@ public class Auth0UserService : IAuth0UserService
 
     public async Task<bool> UpdateUserAuth0(UserDto.UpdateUser user)
     {
-        // Create the UserUpdateRequest and set properties
-        var userUpdateRequest = new UserUpdateRequest
-        {
-            Email = !string.IsNullOrWhiteSpace(user.Email) ? user.Email : null,
-            FirstName = !string.IsNullOrWhiteSpace(user.FirstName) ? user.FirstName : null,
-            LastName = !string.IsNullOrWhiteSpace(user.LastName) ? user.LastName : null,
-            Password = !string.IsNullOrWhiteSpace(user.Password) ? user.Password : null,
-            Blocked = false,
-            EmailVerified = false,
-        };
+        // // Create the UserUpdateRequest and set properties
+        // var userUpdateRequest = new UserUpdateRequest
+        // {
+        //     Email = !string.IsNullOrWhiteSpace(user.Email) ? user.Email : null,
+        //     FirstName = !string.IsNullOrWhiteSpace(user.FirstName) ? user.FirstName : null,
+        //     LastName = !string.IsNullOrWhiteSpace(user.LastName) ? user.LastName : null,
+        //     Password = !string.IsNullOrWhiteSpace(user.Password) ? user.Password : null,
+        //     Blocked = false,
+        //     EmailVerified = false,
+        // };
+        // Create the UserUpdateRequest and set properties only when they are provided
+        var userUpdateRequest = new UserUpdateRequest();
+
+        if (!string.IsNullOrWhiteSpace(user.Email))
+            userUpdateRequest.Email = user.Email;
+
+        if (!string.IsNullOrWhiteSpace(user.FirstName))
+            userUpdateRequest.FirstName = user.FirstName;
+
+        if (!string.IsNullOrWhiteSpace(user.LastName))
+            userUpdateRequest.LastName = user.LastName;
+
+        if (!string.IsNullOrWhiteSpace(user.Password))
+            userUpdateRequest.Password = user.Password;
+
+        // Fields like Blocked and EmailVerified are explicitly se
+        userUpdateRequest.Blocked = false;
+        userUpdateRequest.EmailVerified = false;
         try
         {
             var response = await _managementApiClient.Users.UpdateAsync(user.Id, userUpdateRequest);

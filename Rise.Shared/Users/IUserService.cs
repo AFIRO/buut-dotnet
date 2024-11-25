@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace Rise.Shared.Users;
 
 public interface IUserService
@@ -10,6 +12,7 @@ public interface IUserService
     Task<bool> UpdateUserAsync(UserDto.UpdateUser userDetails);
     Task<bool> SoftDeleteUserAsync(string id);
     Task<IEnumerable<UserDto.Auth0User>> GetAuth0Users();
+    Task<bool> UpdateUserRolesAsync(string userId, ImmutableList<RoleDto> newRoles);
     Task<bool> IsEmailTakenAsync(string email);
 
 }

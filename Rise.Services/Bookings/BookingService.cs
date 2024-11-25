@@ -46,7 +46,7 @@ public class BookingService : IBookingService
             .Where(x => x.IsDeleted == false)
             .ToListAsync();
 
-        if (query == null)
+        if (query is null)
         {
             return null;
         }
@@ -132,9 +132,9 @@ public class BookingService : IBookingService
             entity.BookingDate = booking.bookingDate.Value;
         }
 
-//         /*entity.Boat = booking.boat ?? entity.Boat;
-//         entity.Battery = booking.battery ?? entity.Battery;
-//
+        //         /*entity.Boat = booking.boat ?? entity.Boat;
+        //         entity.Battery = booking.battery ?? entity.Battery;
+        //
         _dbContext.Bookings.Update(entity);
         int response = await _dbContext.SaveChangesAsync();
 
@@ -251,6 +251,7 @@ public class BookingService : IBookingService
 
         return new BookingDto.ViewBooking()
         {
+            userId = booking.UserId,
             bookingId = booking.Id,
             bookingDate = booking.BookingDate,
             battery = battery,
@@ -375,14 +376,14 @@ public class BookingService : IBookingService
     private async Task ValidateUser(string userId)
     {
         CheckUserIdNullOrWhiteSpace(userId);
-        
+
         bool userExists = await _validationService.CheckUserExistsAsync(userId);
         if (!userExists)
         {
             throw new UserNotFoundException("User with given id was not found.");
         }
     }
-    
+
     private static void CheckUserIdNullOrWhiteSpace(string userId)
     {
         if (string.IsNullOrWhiteSpace(userId))

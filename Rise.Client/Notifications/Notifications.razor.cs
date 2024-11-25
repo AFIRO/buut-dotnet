@@ -44,6 +44,7 @@ public partial class Notifications
         {
             notifications = await NotificationService.GetAllUserNotifications(userIdAuth0, language);
             notificationCount = await NotificationService.GetUnreadUserNotificationsCount(userIdAuth0);
+            NotificationState.UpdateNotificationCount(notificationCount.Count);
         }
     }
 

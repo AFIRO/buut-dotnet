@@ -230,6 +230,61 @@ public class UserService : IUserService
     }
 
     /// <summary>
+    /// Updates the roles of a user.
+    /// </summary>
+    /// <param name="userId">The ID of the user to update roles for.</param>
+    /// <param name="newRoles">The new roles to assign to the user.</param>
+    /// <returns>A boolean indicating whether the update was successful.</returns>
+    public async Task<bool> UpdateUserRolesAsync(string userId, ImmutableList<RoleDto> newRoles)
+    {
+        var user = await _dbContext.Users
+            .Include(u => u.Roles)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user is null)
+        {
+            return false; // User not found
+        }
+
+        bool rolesWereCleared = false;
+
+        // If the existing roles include "Pending", clear roles first
+        if (user.Roles.Any(r => r.Name == RolesEnum.Pending))
+        {
+            user.Roles.Clear();
+            rolesWereCleared = true;
+        }
+
+        bool anyValidRolesAdded = false;
+
+        // Add new roles
+        foreach (var newRole in newRoles)
+        {
+            var roleEntity = await _dbContext.Roles.FirstOrDefaultAsync(r => r.Name == newRole.Name);
+            if (roleEntity is not null)
+            {
+                // Avoid duplicating roles
+                if (!user.Roles.Contains(roleEntity))
+                {
+                    user.Roles.Add(roleEntity);
+                    anyValidRolesAdded = true;
+                }
+            }
+        }
+
+        // If no valid roles were added and roles were not cleared, return false
+        if (!anyValidRolesAdded && !rolesWereCleared)
+        {
+            return false;
+        }
+
+        // Save changes
+        _dbContext.Users.Update(user);
+        return await _dbContext.SaveChangesAsync() > 0;
+    }
+
+
+    /// <summary>
     /// Retrieves a list of Auth0 users.
     /// </summary>
     /// <returns>A collection of Auth0User DTOs.</returns>
