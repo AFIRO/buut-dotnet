@@ -122,16 +122,34 @@ public class Auth0UserService : IAuth0UserService
 
     public async Task<bool> UpdateUserAuth0(UserDto.UpdateUser user)
     {
-        // Create the UserUpdateRequest and set properties
-        var userUpdateRequest = new UserUpdateRequest
-        {
-            Email = !string.IsNullOrWhiteSpace(user.Email) ? user.Email : null,
-            FirstName = !string.IsNullOrWhiteSpace(user.FirstName) ? user.FirstName : null,
-            LastName = !string.IsNullOrWhiteSpace(user.LastName) ? user.LastName : null,
-            Password = !string.IsNullOrWhiteSpace(user.Password) ? user.Password : null,
-            Blocked = false,
-            EmailVerified = false,
-        };
+        // // Create the UserUpdateRequest and set properties
+        // var userUpdateRequest = new UserUpdateRequest
+        // {
+        //     Email = !string.IsNullOrWhiteSpace(user.Email) ? user.Email : null,
+        //     FirstName = !string.IsNullOrWhiteSpace(user.FirstName) ? user.FirstName : null,
+        //     LastName = !string.IsNullOrWhiteSpace(user.LastName) ? user.LastName : null,
+        //     Password = !string.IsNullOrWhiteSpace(user.Password) ? user.Password : null,
+        //     Blocked = false,
+        //     EmailVerified = false,
+        // };
+        // Create the UserUpdateRequest and set properties only when they are provided
+        var userUpdateRequest = new UserUpdateRequest();
+
+        if (!string.IsNullOrWhiteSpace(user.Email))
+            userUpdateRequest.Email = user.Email;
+
+        if (!string.IsNullOrWhiteSpace(user.FirstName))
+            userUpdateRequest.FirstName = user.FirstName;
+
+        if (!string.IsNullOrWhiteSpace(user.LastName))
+            userUpdateRequest.LastName = user.LastName;
+
+        if (!string.IsNullOrWhiteSpace(user.Password))
+            userUpdateRequest.Password = user.Password;
+
+        // Fields like Blocked and EmailVerified are explicitly se
+        userUpdateRequest.Blocked = false;
+        userUpdateRequest.EmailVerified = false;
         try
         {
             var response = await _managementApiClient.Users.UpdateAsync(user.Id, userUpdateRequest);
@@ -196,6 +214,43 @@ public class Auth0UserService : IAuth0UserService
         }
     }
 
+    /// <summary>
+    /// Soft deletes a user in Auth0 by updating the user's app_metadata.
+    /// </summary>
+    /// <param name="userId">The ID of the user to be soft deleted.</param>
+    /// <returns>True if the user was successfully soft deleted, otherwise false.</returns>
+    public async Task<bool> SoftDeleteAuth0UserAsync(string userId)
+    {
+        try
+        {
+            // Retrieve the existing user to ensure it exists in Auth0
+            var user = await _managementApiClient.Users.GetAsync(userId) ?? throw new Exception($"User with ID {userId} not found in Auth0.");
+
+            // Update the app_metadata to mark the user as soft deleted
+            var userUpdateRequest = new UserUpdateRequest
+            {
+                AppMetadata = new Dictionary<string, object>
+            {
+                { "softDeleted", true }
+            }
+            };
+
+            var response = await _managementApiClient.Users.UpdateAsync(userId, userUpdateRequest);
+
+            // Return true if the update was successful
+            return response != null;
+        }
+        catch (ApiException ex)
+        {
+            throw new ExternalServiceException("Failed to soft delete user in Auth0.", ex);
+        }
+        catch (Exception ex)
+        {
+            throw new ExternalServiceException("Unexpected error occurred during soft delete.", ex);
+        }
+    }
+
+
     public async Task<bool> IsEmailTakenAsync(String email)
     {
         try
@@ -237,5 +292,4 @@ public class Auth0UserService : IAuth0UserService
             throw new ExternalServiceException("Unexpected error occurred while fetching roles", ex);
         }
     }
-
 }

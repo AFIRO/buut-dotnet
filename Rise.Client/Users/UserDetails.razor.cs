@@ -97,4 +97,6 @@ public partial class UserDetails
         }
         _isLoading = false;
     }
+
+    
 }

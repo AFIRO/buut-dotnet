@@ -8,4 +8,5 @@ public interface IAuth0UserService
     Task<bool> UpdateUserAuth0(UserDto.UpdateUser user);
     Task<bool> AssignRoleToUser(UserDto.UpdateUser user);
     Task<bool> IsEmailTakenAsync(String email);
+    Task<bool> SoftDeleteAuth0UserAsync(string userid);
 }

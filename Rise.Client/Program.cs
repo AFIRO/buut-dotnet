@@ -1,15 +1,16 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.AspNetCore.Components.Web;
-using System.Globalization;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
 using Rise.Client;
-using Rise.Shared.Users;
-using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
-using Rise.Client.Bookings;
-using Rise.Shared.Bookings;
+using Rise.Client.Users;
 using Rise.Client.Auth;
-using UserService = Rise.Client.Users.UserService;
-using Microsoft.AspNetCore.Components.Authorization;
+using Rise.Client.Bookings;
+using Rise.Client.Notifications;
+using Rise.Shared.Users;
+using Rise.Shared.Bookings;
+using Rise.Shared.Notifications;
 using MudBlazor.Services;
 
 
@@ -33,6 +34,8 @@ builder.Services.AddLocalization(Options => Options.ResourcesPath = "Resources.L
 // Register CustomAuthorizationMessageHandler for requests that need authorization
 builder.Services.AddScoped<CustomAuthorizationMessageHandler>();
 
+builder.Services.AddScoped<NotificationStateService>();
+
 builder.Services.AddHttpClient<IUserService, UserService>(client =>
 {
     client.BaseAddress = new Uri($"{builder.HostEnvironment.BaseAddress}api/");
@@ -43,6 +46,10 @@ builder.Services.AddHttpClient<IBookingService, BookingService>(client =>
     client.BaseAddress = new Uri($"{builder.HostEnvironment.BaseAddress}api/");
 }).AddHttpMessageHandler<CustomAuthorizationMessageHandler>();
 
+builder.Services.AddHttpClient<INotificationService, NotificationService>(client =>
+{
+    client.BaseAddress = new Uri($"{builder.HostEnvironment.BaseAddress}api/");
+}).AddHttpMessageHandler<CustomAuthorizationMessageHandler>();
 var host = builder.Build();
 
 

@@ -33,46 +33,58 @@
     <data name="CancelBookingNo" xml:space="preserve">
         <value>Nee</value>
     </data>
-    <data name="FutureBookingTitle" xml:space="preserve">
-        <value>Volgende boekingen</value>
-    </data>
-    <data name="PreviousBookingsTblTitle" xml:space="preserve">
-        <value>Afgelopen boekingen</value>
-    </data>
-    <data name="FutureBookingTblDate" xml:space="preserve">
-        <value>Datum</value>
-    </data>
-    <data name="FutureBookingTblTimeSlot" xml:space="preserve">
-        <value>Tijdslot</value>
-    </data>
-    <data name="FutureBookingTblBoat" xml:space="preserve">
-        <value>Boot</value>
-    </data>
-    <data name="FutureBookingTblBattery" xml:space="preserve">
-        <value>Batterij</value>
-    </data>
-    <data name="PreviousBookingsTblDate" xml:space="preserve">
-        <value>Datum</value>
-    </data>
-    <data name="PreviousBookingsTblTimeSlot" xml:space="preserve">
-        <value>Tijdslot</value>
-    </data>
-    <data name="FutureBookingTblCancel" xml:space="preserve">
-        <value>Annuleer</value>
-    </data>
+
+
     <data name="BookingsTitle" xml:space="preserve">
         <value>Boekingen</value>
     </data>
-    <data name="TimeNotation" xml:space="preserve">
-        <value>u</value>
-    </data>
-    <data name="NoPastBookings" xml:space="preserve">
+
+    <data name="NoBookings" xml:space="preserve">
         <value>Je hebt nog geen eerdere boekingen. Begin met ontdekken en creëer onvergetelijke herinneringen!</value>
     </data>
-    <data name="FutureBookingsTitle" xml:space="preserve">
-        <value>Volgende boekingen</value>
+	
+	<data name="Date" xml:space="preserve">
+        <value>Datum</value>
     </data>
-    <data name="NoFutureBookings" xml:space="preserve">
-        <value>Je hebt op dit moment geen toekomstige reserveringen. Klaar om je volgende reservering te maken?</value>
+    <data name="TimeSlot" xml:space="preserve">
+        <value>Tijdslot</value>
+    </data>
+
+	<data name="Status" xml:space="preserve">
+        <value>Status</value>
+    </data>
+	<data name="Boat" xml:space="preserve">
+        <value>Boot</value>
+    </data>
+	<data name="Contact" xml:space="preserve">
+        <value>Contact</value>
+    </data>
+	<data name="Credits" xml:space="preserve">
+        <value>Krediet</value>
+    </data>
+	
+	<data name="Morning" xml:space="preserve">
+        <value>10:00</value>
+    </data>
+    <data name="Afternoon" xml:space="preserve">
+        <value>14:00</value>
+    </data>
+    <data name="Evening" xml:space="preserve">
+        <value>17:00</value>
+    </data>
+	<data name="OPEN" xml:space="preserve">
+        <value>OPEN</value>
+    </data>
+	<data name="REFUNDED" xml:space="preserve">
+        <value>TERUGBETAALD</value>
+    </data>
+		<data name="CLOSED" xml:space="preserve">
+        <value>GESLOTEN</value>
+    </data>
+		<data name="COMPLETED" xml:space="preserve">
+        <value>VOLDAAN</value>
+    </data>
+		<data name="CANCELED" xml:space="preserve">
+        <value>GEANNULEERD</value>
     </data>
 </root>

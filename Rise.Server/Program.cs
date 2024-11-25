@@ -3,6 +3,8 @@ using Rise.Persistence;
 using Rise.Persistence.Triggers;
 using Rise.Services.Users;
 using Rise.Shared.Users;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -13,6 +15,11 @@ using Rise.Server.Settings;
 using Rise.Services.Bookings;
 using Rise.Shared.Bookings;
 using Rise.Shared.Services;
+using Rise.Services.Notifications;
+using Rise.Shared.Notifications;
+using Rise.Services.Events;
+using Rise.Services.Events.User;
+using Rise.Services.Events.Booking;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,9 +27,9 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         // This ensures enums are serialized as strings
-        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
-;
+
 builder.Services.AddEndpointsApiExplorer();
 // builder.Services.AddSwaggerGen();
 builder.Services.AddSwaggerGen(options =>
@@ -89,10 +96,32 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseTriggers(options => options.AddTrigger<EntityBeforeSaveTrigger>());
 });
 
+// Register event dispatcher
+builder.Services.AddSingleton<IEventDispatcher, EventDispatcher>();
+
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IAuth0UserService, Auth0UserService>();
 builder.Services.AddScoped<IValidationService, ValidationService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+
+builder.Services.AddSingleton<IEventDispatcher, EventDispatcher>();
+
+// Register open generic handlers
+builder.Services.AddScoped(typeof(IEventHandler<>), typeof(GenericEventHandler<>));
+
+// Register specific User event handlers
+builder.Services.AddScoped<IEventHandler<UserRegisteredEvent>, NotifyAdminsOnUserRegistrationHandler>();
+builder.Services.AddScoped<IEventHandler<UserDeletedEvent>, NotifyAdminsOnUserDeletionHandler>();
+builder.Services.AddScoped<IEventHandler<UserUpdatedEvent>, NotifyAdminsOnUserUpdateHandler>();
+builder.Services.AddScoped<IEventHandler<UserValidationEvent>, NotifyUserOnUserValidationHandler>();
+builder.Services.AddScoped<IEventHandler<UserRoleUpdatedEvent>, NotifyUserOnNewRolesAssignedHandler>();
+
+// Register specific Booking event handlers
+builder.Services.AddScoped<IEventHandler<BookingCreatedEvent>, NotifyOnBookingCreatedHandler>();
+builder.Services.AddScoped<IEventHandler<BookingUpdatedEvent>, NotifyOnBookingUpdatedHandler>();
+builder.Services.AddScoped<IEventHandler<BookingDeletedEvent>, NotifyOnBookingDeletedHandler>();
+
 
 var app = builder.Build();
 

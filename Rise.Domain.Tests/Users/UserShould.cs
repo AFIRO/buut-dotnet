@@ -46,6 +46,7 @@ public class UserShould
     [InlineData(null)]
     [InlineData("   ")]
     [InlineData("")]
+    [InlineData("invalid-email")]
     public void ShouldThrowIncorrectEmail(string? email)
     {
         Action action = () =>

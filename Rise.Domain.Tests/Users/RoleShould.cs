@@ -16,8 +16,8 @@ public class RoleShould
     public void ShouldAssignCorrectRole()
     {
         Role role = new Role();
-        role.Name = RolesEnum.Godparent;
+        role.Name = RolesEnum.BUUTAgent;
         
-        role.Name.ShouldBe(RolesEnum.Godparent);
+        role.Name.ShouldBe(RolesEnum.BUUTAgent);
     }
 }

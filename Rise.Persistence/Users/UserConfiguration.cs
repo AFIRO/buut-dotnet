@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Rise.Domain.Bookings;
+using Rise.Domain.Notifications;
 using Rise.Domain.Users;
 
 namespace Rise.Persistence.Users;
@@ -19,7 +21,7 @@ internal class UserConfiguration : EntityConfiguration<User>
         builder.ToTable(nameof(User));
 
         builder.HasIndex(x => x.Id).IsUnique();
-        
+
         builder.Property(x => x.FirstName).IsRequired();
         builder.Property(x => x.LastName).IsRequired();
         builder.Property(x => x.Email).IsRequired();
@@ -31,14 +33,14 @@ internal class UserConfiguration : EntityConfiguration<User>
             .WithOne(x => x.User)
             .HasForeignKey<Address>(x => x.UserId)
             .IsRequired();
-        
-        // builder
-        //     .HasMany(x => x.Roles)
-        //     .WithOne()
-        //     .HasForeignKey(x => x.UserId);
-        
+
         builder
             .HasMany(x => x.Bookings)
+            .WithOne()
+            .HasForeignKey(x => x.UserId);
+
+        builder
+            .HasMany(x => x.Notifications)
             .WithOne()
             .HasForeignKey(x => x.UserId);
     }

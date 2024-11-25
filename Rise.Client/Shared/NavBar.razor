@@ -1,12 +1,13 @@
 @using Rise.Client.Utils.Navigation
-@using Microsoft.EntityFrameworkCore.Metadata.Internal
+@using Rise.Shared.Notifications
 @inject Microsoft.Extensions.Localization.IStringLocalizer<NavBar> Localizer
-@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-@inject NavigationManager Navigation
+@inject NavigationManager NavigationManager
+@inject INotificationService NotificationService
+@inject NotificationStateService NotificationState
 @inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime js
 @using System.Globalization
 @using Rise.Shared.Enums
-
 
 <nav class="navbar navbar-expand-lg navbar-transparent position-fixed w-100 top-0 z-index-3 shadow-none start-0 end-0"
   id="navbar">
@@ -25,7 +26,7 @@
             <h6 class="text-white">@Localizer["Home"]</h6>
           </a>
         </li>
-        @foreach (var link in NavigationService.GetNavigationLinks().Where(link => link.Authenticated  ))
+        @foreach (var link in NavigationService.GetNavigationLinks().Where(link => link.Authenticated))
         {
           @if (link.Role == RolesEnum.Admin)
           {
@@ -66,8 +67,8 @@
       <AuthorizeView>
         <Authorized>
           <li class="nav-item dropdown dropdown-hover mx-2">
-            <a href="profile" class="nav-link ps-2 d-flex justify-content-between cursor-pointer align-items-center"
-              data-bs-toggle="dropdown" aria-expanded="false" role="button">
+            <a href="MyInfo" class="nav-link ps-2 d-flex justify-content-between cursor-pointer align-items-center"
+               aria-expanded="false" role="button">
               <i class="ni ni-circle-08 text-muted"></i>
               <div></div>
             </a>
@@ -82,7 +83,7 @@
           <i class="ni ni-settings-gear-65 text-muted"></i>
           <img src="img/down-arrow-white.svg" alt="down-arrow" class="arrow ms-1 d-lg-block d-none">
         </a>
-        <div class="dropdown-menu dropdown-menu-animation dropdown-lg mt-0 mt-lg-3 p-1 border-radius-lg" >
+        <div class="dropdown-menu dropdown-menu-animation dropdown-lg mt-0 mt-lg-3 p-1 border-radius-lg">
           <div class="d-none d-lg-block">
             <ul class="list-group">
               <li class="nav-item list-group-item border-0 p-0">
@@ -111,7 +112,7 @@
               </li>
             </ul>
           </div>
-          <div class="row d-lg-none" >
+          <div class="row d-lg-none">
             <div class="col-md-12 g-0">
               <a class="dropdown-item py-2 ps-3 border-radius-md" @onclick='() => ChangeLanguage("en-US")'>
                 <div class="d-flex align-items-center">
@@ -141,14 +142,18 @@
       <AuthorizeView>
         <Authorized>
           <li class="nav-item dropdown dropdown-hover mx-2">
-            <a href="alerts" class="nav-link ps-2 d-flex justify-content-between cursor-pointer align-items-center"
-              data-bs-toggle="dropdown" aria-expanded="false" role="button">
+            <a href="notifications"
+              class="nav-link ps-2 d-flex justify-content-between cursor-pointer align-items-center"
+              aria-expanded="false" role="button">
               <i class="ni ni-bell-55 text-muted"></i>
-              <span
-                class="position-absolute top-5 start-100 translate-middle badge rounded-pill bg-danger border border-white small py-1 px-2">
-                <span class="small">11</span>
-                <span class="visually-hidden">unread notifications</span>
-              </span>
+              @if (notificationCount?.Count > 0)
+              {
+                <span
+                  class="position-absolute top-5 start-100 translate-middle badge rounded-pill bg-danger border border-white small py-1 px-2">
+                  <span class="small">@notificationCount.Count</span>
+                  <span class="visually-hidden">unread notifications</span>
+                </span>
+              }
             </a>
           </li>
           <li class="nav-item dropdown dropdown-hover mx-2">
@@ -188,13 +193,67 @@
   </div>
 </nav>
 
-
 @code {
-
-  [Inject] IJSRuntime js { get; set; }
-  [Inject] NavigationManager NavigationManager { get; set; }
-
   private string selectedCulture = "en-US";
+  private NotificationDto.NotificationCount? notificationCount;
+  private string? errorMessage;
+
+  protected override async Task OnInitializedAsync()
+  {
+    AuthStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
+    NotificationState.NotificationCountChanged += OnNotificationCountChanged;
+
+    var storedCulture = await js.InvokeAsync<string>("blazorCulture.get");
+    if (!string.IsNullOrEmpty(storedCulture))
+    {
+      selectedCulture = storedCulture;
+    }
+
+    await LoadUnreadNotifications();
+  }
+
+  private async Task LoadUnreadNotifications()
+  {
+    var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+    var user = authState.User;
+
+    if (user.Identity?.IsAuthenticated == true)
+    {
+      var userId = user.FindFirst(c => c.Type == "sub")?.Value;
+      if (!string.IsNullOrEmpty(userId))
+      {
+        try
+        {
+          notificationCount = await NotificationService.GetUnreadUserNotificationsCount(userId);
+          NotificationState.UpdateNotificationCount(notificationCount.Count);
+        }
+        catch (Exception ex)
+        {
+          errorMessage = ex.Message;
+        }
+      }
+    }
+  }
+
+  private void OnNotificationCountChanged()
+  {
+    notificationCount = new NotificationDto.NotificationCount
+      {
+        Count = NotificationState.NotificationCount
+      };
+    StateHasChanged();
+  }
+
+  private async void OnAuthenticationStateChanged(Task<AuthenticationState> task)
+  {
+    await LoadUnreadNotifications();
+  }
+
+  public void Dispose()
+  {
+    AuthStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
+    NotificationState.NotificationCountChanged -= OnNotificationCountChanged;
+  }
 
   private async void BeginLogOut()
   {
@@ -202,29 +261,15 @@
     {
       customAuthStateProvider.NotifyUserLogout();
     }
-    Navigation.NavigateTo("/", true);
-  }
-
-  protected override async Task OnInitializedAsync()
-  {
-    // Get the culture from localStorage using JavaScript interop
-    var storedCulture = await js.InvokeAsync<string>("blazorCulture.get");
-
-    if (!string.IsNullOrEmpty(storedCulture))
-    {
-      selectedCulture = storedCulture;
-    }
+    NavigationManager.NavigateTo("/", true);
   }
 
   private async Task ChangeLanguage(string cultureName)
   {
     var culture = new CultureInfo(cultureName);
 
-    // Store the selected culture in localStorage
     await js.InvokeVoidAsync("blazorCulture.set", culture.Name);
 
-    // Reload the page to apply the new culture
-    NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true); ;
+    NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
   }
-
 }

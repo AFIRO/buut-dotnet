@@ -289,5 +289,73 @@ public class ValidationServiceTest
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentException>(() => _validationService.ValidateBookingAsync(user.Id, bookingDto));
     }
+    
+        [Fact]
+    public async Task CheckActiveBookings_ShouldReturnTrue_WhenUserHasActiveBookings()
+    {
+        // Arrange
+        var userId = "user1";
+        var user = new User(userId, "John", "Doe", "john.doe@example.com", DateTime.UtcNow.AddYears(-30),
+            new Address("Afrikalaan", "5"), "1234567890");
+        await _dbContext.Users.AddAsync(user);
+        var booking = new Booking(DateTime.UtcNow.AddDays(5), userId);
+        await _dbContext.Bookings.AddAsync(booking);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await _validationService.CheckActiveBookings(userId);
+
+        // Assert
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task CheckActiveBookings_ShouldReturnFalse_WhenUserHasNoActiveBookings()
+    {
+        // Arrange
+        var userId = "user1";
+        var user = new User(userId, "John", "Doe", "john.doe@example.com", DateTime.UtcNow.AddYears(-30),
+            new Address("Afrikalaan", "5"), "1234567890");
+        await _dbContext.Users.AddAsync(user);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await _validationService.CheckActiveBookings(userId);
+
+        // Assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task CheckActiveBookings_ShouldThrowArgumentException_WhenUserDoesNotExist()
+    {
+        // Arrange
+        var nonExistentUserId = "nonexistentUser";
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(() => _validationService.CheckActiveBookings(nonExistentUserId));
+    }
+
+    [Fact]
+    public async Task CheckActiveBookings_ShouldReturnFalse_WhenBookingsAreSoftDeleted()
+    {
+        // Arrange
+        var userId = "user1";
+        var user = new User(userId, "John", "Doe", "john.doe@example.com", DateTime.UtcNow.AddYears(-30),
+            new Address("Afrikalaan", "5"), "1234567890");
+        await _dbContext.Users.AddAsync(user);
+        var booking = new Booking(DateTime.UtcNow.AddDays(5), userId)
+        {
+            IsDeleted = true
+        };
+        await _dbContext.Bookings.AddAsync(booking);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await _validationService.CheckActiveBookings(userId);
+
+        // Assert
+        Assert.False(result);
+    }
 
 }

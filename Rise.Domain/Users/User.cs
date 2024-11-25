@@ -1,7 +1,8 @@
 using Rise.Domain.Bookings;
-using Rise.Shared.Bookings;
+using Rise.Domain.Notifications;
 
 namespace Rise.Domain.Users;
+
 using System.ComponentModel.DataAnnotations;
 
 /// <summary>
@@ -10,11 +11,14 @@ using System.ComponentModel.DataAnnotations;
 public class User : Entity
 {
     #region Fields
+
     private string _id = Guid.NewGuid().ToString();
 
     private string _firstName = default!;
     private string _lastName = default!;
+
     private string _email = default!;
+
     // private string _password = default!;
     private DateTime _birthDate;
     private Address _address = default!;
@@ -22,14 +26,19 @@ public class User : Entity
     private string _phoneNumber = default!;
     private List<Booking> _bookings = [];
 
+    private List<Notification> _notifications = [];
+
     #endregion
 
     #region Constructors
+
     /// <summary>
     ///Private constructor for Entity Framework Core
     /// </summary>
-    private User() { }
-    
+    private User()
+    {
+    }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="User"/> class with the specified details.
     /// </summary>
@@ -40,7 +49,8 @@ public class User : Entity
     /// <param name="birthDate">The birth date of the user.</param>
     /// <param name="address">The address of the user.</param>
     /// <param name="phoneNumber">The phone number of the user.</param>
-    public User(string id, string firstName, string lastName, string email, DateTime birthDate, Address address, string phoneNumber)
+    public User(string id, string firstName, string lastName, string email, DateTime birthDate, Address address,
+        string phoneNumber)
     {
         Id = id;
         FirstName = firstName;
@@ -50,6 +60,7 @@ public class User : Entity
         Address = address;
         PhoneNumber = phoneNumber;
     }
+
     #endregion
 
 
@@ -60,7 +71,7 @@ public class User : Entity
         get => _id;
         set => _id = Guard.Against.NullOrWhiteSpace(value, nameof(Id));
     }
-    
+
     /// <summary>
     /// Gets or sets the first name of the user.
     /// </summary>
@@ -69,7 +80,7 @@ public class User : Entity
         get => _firstName;
         set => _firstName = Guard.Against.NullOrWhiteSpace(value, nameof(FirstName));
     }
-    
+
     /// <summary>
     /// Gets or sets the last name of the user.
     /// </summary>
@@ -79,13 +90,23 @@ public class User : Entity
         set => _lastName = Guard.Against.NullOrWhiteSpace(value, nameof(LastName));
     }
 
-    /// <summary>
-    /// Gets or sets the email address of the user.
-    /// </summary>
+    [Required(ErrorMessage = "Email address is required.")]
+    [EmailAddress(ErrorMessage = "Invalid email address format.")]
     public string Email
     {
         get => _email;
-        set => _email = Guard.Against.NullOrWhiteSpace(value, nameof(Email));
+        set
+        {
+            // Validate using Guard clause
+            _email = Guard.Against.NullOrWhiteSpace(value, nameof(Email));
+
+            // Validate using data annotation attribute (Optional but good to check)
+            var emailValidationAttribute = new EmailAddressAttribute();
+            if (!emailValidationAttribute.IsValid(value))
+            {
+                throw new ArgumentException("Invalid email address format.", nameof(Email));
+            }
+        }
     }
 
     /// <summary>
@@ -110,11 +131,13 @@ public class User : Entity
     /// Gets the roles associated with the user.
     /// </summary>
     public List<Role> Roles => _roles;
-    
+
     /// <summary>
     /// Gets the bookings associated with the user.
     /// </summary>
     public IReadOnlyList<Booking> Bookings => _bookings;
+
+    public List<Notification> Notifications => _notifications;
 
     /// <summary>
     /// Gets or sets the phone number of the user.
@@ -124,10 +147,12 @@ public class User : Entity
         get => _phoneNumber;
         set => _phoneNumber = Guard.Against.NullOrWhiteSpace(value, nameof(PhoneNumber));
     }
+
     #endregion
 
 
     #region Methods
+
     /// <summary>
     /// Adds a role to the user.
     /// </summary>
@@ -147,7 +172,7 @@ public class User : Entity
         Guard.Against.Null(role, nameof(role));
         _roles.Remove(role);
     }
-    
+
     /// <summary>
     /// Adds a booking to the user.
     /// </summary>
@@ -157,7 +182,7 @@ public class User : Entity
         Guard.Against.Null(booking, nameof(booking));
         _bookings.Add(booking);
     }
-    
+
     /// <summary>
     /// Removes a booking from the user.
     /// </summary>
@@ -167,7 +192,7 @@ public class User : Entity
         Guard.Against.Null(booking, nameof(booking));
         _bookings.Remove(booking);
     }
-    
+
     // /// <summary>
     // /// Marks the user as deleted (soft delete).
     // /// </summary>
@@ -183,6 +208,6 @@ public class User : Entity
     {
         IsDeleted = false;
     }
+
     #endregion
 }
-

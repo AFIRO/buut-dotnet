@@ -4,14 +4,12 @@ namespace Rise.Shared.Enums;
 
 public enum RolesEnum
 {
-    [EnumMember(Value = "Visitor")]
-    Visitor,
     [EnumMember(Value = "Admin")]
     Admin,
     [EnumMember(Value = "User")]
     User,
-    [EnumMember(Value = "Godparent")]
-    Godparent,
+    [EnumMember(Value = "BUUTAgent")]
+    BUUTAgent,
     [EnumMember(Value = "Pending")]
     Pending,
 }

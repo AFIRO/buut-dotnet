@@ -43,6 +43,9 @@
 <data name="BirthDate" xml:space="preserve">
   <value>Date Of Birth</value>
 </data>
+<data name="PhoneNumber" xml:space="preserve">
+  <value>Phonenumber</value>
+</data>
 <data name="Address" xml:space="preserve">
   <value>Adress</value>
 </data>

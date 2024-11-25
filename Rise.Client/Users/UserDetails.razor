@@ -39,6 +39,10 @@
                 <div>@_userDetails.Email</div>
             </div>
             <div class="d-flex flex-row mb-2">
+                <div class="font-weight-bold" style="width: 150px;">@Localizer["PhoneNumber"]:</div>
+                <div>@_userDetails.PhoneNumber</div>
+            </div>
+            <div class="d-flex flex-row mb-2">
                 <div class="font-weight-bold" style="width: 150px;">@(_userDetails.Roles.Count > 1 ?
                     Localizer["Roles"] :
                     Localizer["Role"]):</div>

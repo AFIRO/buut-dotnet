@@ -1,5 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Rise.Domain.Bookings;
+using Rise.Domain.Notifications;
 using Rise.Domain.Users;
 
 namespace Rise.Persistence;
@@ -13,6 +14,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Booking> Bookings => Set<Booking>();
     public DbSet<Boat> Boats => Set<Boat>();
     public DbSet<Battery> Batteries => Set<Battery>();
+    public DbSet<Notification> Notifications => Set<Notification>();
 
     public ApplicationDbContext(DbContextOptions options) : base(options)
     {

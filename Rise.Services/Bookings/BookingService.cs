@@ -1,4 +1,6 @@
+using System.Collections.Immutable;
 using System.Text.Json;
+using Auth0.ManagementApi.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -9,6 +11,7 @@ using Rise.Shared.Bookings;
 using Rise.Shared.Enums;
 using Rise.Services.Users;
 using Rise.Shared.Services;
+using Rise.Shared.Users;
 
 namespace Rise.Services.Bookings;
 
@@ -46,7 +49,7 @@ public class BookingService : IBookingService
             .Where(x => x.IsDeleted == false)
             .ToListAsync();
 
-        if (query == null)
+        if (query is null)
         {
             return null;
         }
@@ -132,9 +135,9 @@ public class BookingService : IBookingService
             entity.BookingDate = booking.bookingDate.Value;
         }
 
-//         /*entity.Boat = booking.boat ?? entity.Boat;
-//         entity.Battery = booking.battery ?? entity.Battery;
-//
+        //         /*entity.Boat = booking.boat ?? entity.Boat;
+        //         entity.Battery = booking.battery ?? entity.Battery;
+        //
         _dbContext.Bookings.Update(entity);
         int response = await _dbContext.SaveChangesAsync();
 
@@ -172,7 +175,7 @@ public class BookingService : IBookingService
         var query = await _dbContext.Bookings
             .Include(b => b.Battery)
             .Include(b => b.Boat)
-            .Where(x => x.UserId.Equals(userId) && x.IsDeleted == false)
+            .Where(x => x.UserId.Equals(userId))
             .OrderByDescending(x => x.BookingDate)
             .ToListAsync();
 
@@ -181,7 +184,9 @@ public class BookingService : IBookingService
             return null;
         }
 
-        return query.Select(MapToDto);
+        return query.Select(MapToDto).OrderByDescending(b => b.status == BookingStatus.OPEN) 
+            .ThenByDescending(b => b.bookingDate)
+            .ToList();;
     }
 
     public async Task<IEnumerable<BookingDto.ViewBooking>?> GetFutureUserBookings(string userId)
@@ -239,7 +244,12 @@ public class BookingService : IBookingService
         }
 
         var boat = new BoatDto.ViewBoat();
-        if (booking.Boat != null)
+        
+        
+        //todo status toevoegen aan DB for refunded
+        BookingStatus status = BookingStatusHelper.GetBookingStatus(booking.IsDeleted, false, booking.BookingDate,booking.Boat != null && !booking.Boat.Name.IsNullOrEmpty());
+        
+        if (booking.Boat != null && !booking.Boat.Name.IsNullOrEmpty())
         {
             boat = new BoatDto.ViewBoat()
             {
@@ -248,17 +258,38 @@ public class BookingService : IBookingService
                 listComments = booking.Boat.ListComments,
             };
         }
+         
 
+        var contact = new UserDto.UserDetails
+        (
+            "auth0|6713ad784fda04f4b9ae2165",
+            "John",
+            "Doe",
+            "john.doe@gmail.com",
+            "09/123.45.67",
+            new AddressDto.GetAdress
+            {
+                Street = StreetEnum.DOKNOORD,
+                HouseNumber = "35",
+                Bus = "3a"
+            },
+            [new RoleDto() { Name = RolesEnum.User }],
+            new DateTime(1990, 1, 1)
+        );
+        
+        
         return new BookingDto.ViewBooking()
         {
+            userId = booking.UserId,
             bookingId = booking.Id,
             bookingDate = booking.BookingDate,
-            battery = battery,
             boat = boat,
+            status = status,
+            contact = contact,
             timeSlot = TimeSlotEnumExtensions.ToTimeSlot(booking.BookingDate.Hour),
         };
     }
-
+    
     public async Task<IEnumerable<BookingDto.ViewBookingCalender>?> GetTakenTimeslotsInDateRange(DateTime? startDate,
         DateTime? endDate)
     {
@@ -375,14 +406,14 @@ public class BookingService : IBookingService
     private async Task ValidateUser(string userId)
     {
         CheckUserIdNullOrWhiteSpace(userId);
-        
+
         bool userExists = await _validationService.CheckUserExistsAsync(userId);
         if (!userExists)
         {
             throw new UserNotFoundException("User with given id was not found.");
         }
     }
-    
+
     private static void CheckUserIdNullOrWhiteSpace(string userId)
     {
         if (string.IsNullOrWhiteSpace(userId))

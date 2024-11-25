@@ -37,6 +37,7 @@ public class AddressShould
     [InlineData("-1")]
     [InlineData("a")]
     [InlineData("10+")]
+
     public void ShouldThrowIncorrectHouseNumber(string houseNumber)
     {
         Action act = () =>

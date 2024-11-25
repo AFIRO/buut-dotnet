@@ -47,10 +47,4 @@
     <_ContentIncludedByDefault Remove="Products\Index.razor" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Content Update="Bookings\MyBookingsView.razor.css">
-      <DependentUpon>MyBookingsView.razor</DependentUpon>
-    </Content>
-  </ItemGroup>
-
 </Project>

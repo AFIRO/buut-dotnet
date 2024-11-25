@@ -1,0 +1,39 @@
+@code {
+    [Parameter] public string? FieldName { get; set; }
+    [Parameter] public string? FieldValue { get; set; }
+    [Parameter] public EventCallback OnSave { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private string? _inputValue;
+
+    protected override void OnParametersSet()
+    {
+        _inputValue = FieldValue;
+    }
+    private async Task SaveChanges()
+    {
+        FieldValue = _inputValue;
+        await OnSave.InvokeAsync();
+    }
+}
+
+<div class="popup">
+    <h4>@FieldName</h4>
+    <input type="text" @bind="_inputValue" />
+    <button @onclick="OnSave">Save</button>
+    <button @onclick="OnCancel">Cancel</button>
+</div>
+
+<style>
+    .popup {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 20px;
+        margin-inline: 10%;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+    }
+</style>

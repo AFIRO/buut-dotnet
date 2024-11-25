@@ -13,7 +13,6 @@ namespace Rise.Services.Users;
 public class UserService : IUserService
 {
     private readonly ApplicationDbContext _dbContext;
-    private readonly HttpClient _httpClient;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
 
 
@@ -21,16 +20,15 @@ public class UserService : IUserService
     /// Initializes a new instance of the <see cref="UserService"/> class.
     /// </summary>
     /// <param name="dbContext">The database context.</param>
-    /// <param name="httpClient">The HTTP client.</param>
-    public UserService(ApplicationDbContext dbContext, HttpClient httpClient)
+    /// <param name="jsonSerializerOptions">The JSON serializer options.</param>
+    public UserService(ApplicationDbContext dbContext)
     {
         this._dbContext = dbContext;
-        this._httpClient = httpClient;
+        // this._httpClient = httpClient;
         this._jsonSerializerOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         };
-        this._jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     }
 
     /// <summary>
@@ -109,6 +107,12 @@ public class UserService : IUserService
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(userDetails.Email) ||
+                !new System.ComponentModel.DataAnnotations.EmailAddressAttribute().IsValid(userDetails.Email))
+            {
+                return (false, "InvalidEmailFormat"); // Localization key
+            }
+
             if (_dbContext.Users.Any(x => x.Email == userDetails.Email))
             {
                 return (false, "UserAlreadyExists"); // Localization key
@@ -152,16 +156,21 @@ public class UserService : IUserService
     /// <returns>A boolean indicating whether the update was successful.</returns>
     public async Task<bool> UpdateUserAsync(UserDto.UpdateUser userDetails)
     {
+        if (userDetails == null)
+        {
+            throw new ArgumentNullException(nameof(userDetails));
+        }
+
         // Fetch the user entity from the database, including the related roles
         var entity = await _dbContext.Users
             .Include(u => u.Roles).Include(u => u.Address)
             .FirstOrDefaultAsync(u => u.Id == userDetails.Id)
             ?? throw new Exception("User not found");
 
+
         // Update user details only if they are provided
         if (userDetails.FirstName != null) entity.FirstName = userDetails.FirstName;
         if (userDetails.LastName != null) entity.LastName = userDetails.LastName;
-        if (userDetails.Email != null) entity.Email = userDetails.Email;
         if (userDetails.BirthDate != null) entity.BirthDate = (DateTime)userDetails.BirthDate;
         if (userDetails.PhoneNumber != null) entity.PhoneNumber = userDetails.PhoneNumber;
 
@@ -179,6 +188,8 @@ public class UserService : IUserService
             {
                 entity.Address.Bus = userDetails.Address.Bus;
             }
+            // Handle null value for Bus field
+            entity.Address.Bus = userDetails.Address.Bus ?? entity.Address.Bus;
         }
 
         // Update roles only if they are provided
@@ -199,7 +210,7 @@ public class UserService : IUserService
             {
                 if (!currentRoleNames.Contains(newRole.Name))
                 {
-                    Role DBrole = await GetRoleByNameFromDBAsync(new Role (newRole.Name)) ?? throw new Exception("Role not found");
+                    Role DBrole = await GetRoleByNameFromDBAsync(new Role(newRole.Name)) ?? throw new Exception("Role not found");
                     entity.Roles.Add(DBrole);
                 }
             }
@@ -217,10 +228,9 @@ public class UserService : IUserService
     /// </summary>
     /// <param name="userid">The ID of the user to delete.</param>
     /// <returns>A boolean indicating whether the deletion was successful.</returns>
-    public async Task<bool> DeleteUserAsync(string userid)
+    public async Task<bool> SoftDeleteUserAsync(string userid)
     {
-        var entity = await _dbContext.Users.FindAsync(userid) ?? throw new Exception("User not found");
-
+        var entity = await _dbContext.Users.FindAsync(userid) ?? throw new UserNotFoundException($"User with ID {userid} not found.");
         entity.SoftDelete();
         _dbContext.Users.Update(entity);
         await _dbContext.SaveChangesAsync();
@@ -228,13 +238,67 @@ public class UserService : IUserService
     }
 
     /// <summary>
+    /// Updates the roles of a user.
+    /// </summary>
+    /// <param name="userId">The ID of the user to update roles for.</param>
+    /// <param name="newRoles">The new roles to assign to the user.</param>
+    /// <returns>A boolean indicating whether the update was successful.</returns>
+    public async Task<bool> UpdateUserRolesAsync(string userId, ImmutableList<RoleDto> newRoles)
+    {
+        var user = await _dbContext.Users
+            .Include(u => u.Roles)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user is null)
+        {
+            return false; // User not found
+        }
+
+        bool rolesWereCleared = false;
+
+        // If the existing roles include "Pending", clear roles first
+        if (user.Roles.Any(r => r.Name == RolesEnum.Pending))
+        {
+            user.Roles.Clear();
+            rolesWereCleared = true;
+        }
+
+        bool anyValidRolesAdded = false;
+
+        // Add new roles
+        foreach (var newRole in newRoles)
+        {
+            var roleEntity = await _dbContext.Roles.FirstOrDefaultAsync(r => r.Name == newRole.Name);
+            if (roleEntity is not null)
+            {
+                // Avoid duplicating roles
+                if (!user.Roles.Contains(roleEntity))
+                {
+                    user.Roles.Add(roleEntity);
+                    anyValidRolesAdded = true;
+                }
+            }
+        }
+
+        // If no valid roles were added and roles were not cleared, return false
+        if (!anyValidRolesAdded && !rolesWereCleared)
+        {
+            return false;
+        }
+
+        // Save changes
+        _dbContext.Users.Update(user);
+        return await _dbContext.SaveChangesAsync() > 0;
+    }
+
+
+    /// <summary>
     /// Retrieves a list of Auth0 users.
     /// </summary>
     /// <returns>A collection of Auth0User DTOs.</returns>
-    public async Task<IEnumerable<UserDto.Auth0User>> GetAuth0Users()
+    public Task<IEnumerable<UserDto.Auth0User>> GetAuth0Users()
     {
-        var users = await _httpClient.GetFromJsonAsync<IEnumerable<UserDto.Auth0User>>("user/auth/users");
-        return users!;
+        throw new NotImplementedException();
     }
 
     /// <summary>

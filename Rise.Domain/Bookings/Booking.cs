@@ -31,9 +31,8 @@ public class Booking : Entity
     /// <summary>
     /// Initializes a new instance of the <see cref="Booking"/> class with the specified details.
     /// </summary>
-    /// <param name="countAdults">The amount of adults on the booking.</param>
-    /// <param name="countChildren">The amount of children on the booking.</param>
     /// <param name="bookingDate">The date of the booking.</param>
+    /// <param name="userId">The ID of the user making the booking.</param>
     public Booking(DateTime bookingDate, string userId)
     {
         BookingDate = bookingDate;

@@ -54,5 +54,14 @@ public class ValidationService : IValidationService
         return true;
     }
 
-    
+    public async Task<bool> CheckActiveBookings(string userId)
+    {
+        var userExists = await CheckUserExistsAsync(userId);
+        if (!userExists)
+        {
+            throw new ArgumentException("User does not exist.");
+        }
+        
+        return await _dbContext.Bookings.Where(x => x.IsDeleted == false && x.UserId == userId).CountAsync() > 0;
+    }
 }

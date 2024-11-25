@@ -46,4 +46,7 @@
   <data name="MyBookings" xml:space="preserve">
     <value>Mijn boekingen</value>
   </data>
+  <data name="Notifications" xml:space="preserve">
+    <value>Meldingen</value>
+    </data>
 </root>

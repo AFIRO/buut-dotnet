@@ -1,5 +1,7 @@
 ﻿@page "/users"
 @using Microsoft.Extensions.Localization
+@using Rise.Client.Components.Table
+@using Rise.Shared.Users
 @attribute [Authorize(Roles = "Admin")]
 @inject IStringLocalizer<UserManagement> Localizer;
 
@@ -10,79 +12,68 @@
 
     <p>@Localizer["DemoFetch"]</p>
 
-    @if (users == null)
-    {
-        <div class="loading-container" style="background-color: transparent;">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-        </div>
-    }
-    else
-    {
-        <p>@Localizer["AllUsers"]</p>
-        <table class="table text-white">
-        <thead>
-            <tr>
-                <th>@Localizer["Id"]</th>
-                <th>@Localizer["Firstname"]</th>
-                <th>@Localizer["Lastname"]</th>
-                <th>@Localizer["Email"]</th>
-                <th>@Localizer["Role"]</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var user in users)
-                {
-                    <tr @onclick="() => HandleUserClick(user.Id)" style="cursor: pointer;">
-                        <td>@user.Id</td>
-                        <td>@user.FirstName</td>
-                        <td>@user.LastName</td>
-                        <td>@user.Email</td>
-                        <td>
-                            @foreach (var role in user.Roles)
-                            {
-                                @role.Name
-                            }
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-
-    @if (user != null)
-    {
-        <div class="pt-5 mt-5">
-            <p>@Localizer["UserWithId"]@userIdAuth0</p>
-            <table class="table text-white">
-                <thead>
-                    <tr>
-                        <th>@Localizer["Id"]</th>
-                        <th>@Localizer["Firstname"]</th>
-                        <th>@Localizer["Lastname"]</th>
-                        <th>@Localizer["Email"]</th>
-                        <th>@Localizer["Role"]</th>
-                    </tr>
-                </thead>
-                <tbody>
+    <GenericTable Headers="Headers" Data="Data(users ?? Array.Empty<UserDto.UserBase>())" NoDataDisplay="@Localizer["NoUsers"]" IsLoading="_isLoading"/>
 
 
-                    <tr @onclick="() => HandleUserClick(user.Id)" style="cursor: pointer;">
-                        <td>@user.Id</td>
-                        <td>@user.FirstName</td>
-                        <td>@user.LastName</td>
-                        <td>@user.Email</td>
-                        <td>
-                            @foreach (var role in user.Roles)
-                            {
-                                @role.Name
-                            }
-                        </td>
-                    </tr>
-
-                </tbody>
-            </table>
-        </div>
-    }
 </div>
+
+@code{
+    
+    [Parameter] public EventCallback<string> OnUserSelected { get; set; }
+    private IEnumerable<UserDto.UserBase>? users;
+    private UserDto.UserBase? user;
+    private bool _isLoading = false;
+    private string? userIdAuth0;
+
+    [Inject] public required IUserService UserService { get; set; }
+    [Inject] public required AuthenticationStateProvider AuthenticationStateProvider { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoading = true;
+        // Get the current user's authentication state
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        userIdAuth0 = authState.User.Claims.FirstOrDefault(c => c.Type == "sub").Value;
+
+        if (!string.IsNullOrEmpty(userIdAuth0))
+        {
+            user = await UserService.GetUserByIdAsync(userIdAuth0);
+        }
+
+        users = await UserService.GetAllAsync();
+        _isLoading = false;
+    }
+
+    private async Task HandleUserClick(string userId)
+    {
+        await OnUserSelected.InvokeAsync(userId);
+    }
+
+    private List<TableHeader> Headers => new List<TableHeader>
+    {
+        new (Localizer["User"]),
+        new (Localizer["Role"]),
+        new (Localizer["ID"], "text-center d-none d-md-table-cell"),
+        new ("") // Empty header for action column
+    };
+    private List<List<RenderFragment>> Data(IEnumerable<UserDto.UserBase> users)
+    {
+        var rows = new List<List<RenderFragment>>();
+
+        foreach (var user in users)
+        {
+            var row = new List<RenderFragment>
+            {
+                TableCellService.UserCell(user.FirstName, user.LastName, user.Email),
+                TableCellService.ParagraphCell(user.Roles.Select(e =>Localizer[e.Name.ToString() ?? string.Empty] )),
+                TableCellService.BadgeCell(user.Id),
+                TableCellService.ActionCell(user.Id, this, HandleUserClick, null)
+            };
+
+            rows.Add(row);
+        }
+
+        return rows;
+    }
+   
+}

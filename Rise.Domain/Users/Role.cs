@@ -1,12 +1,12 @@
 namespace Rise.Domain.Users;
 using Rise.Shared.Enums;
+using System.ComponentModel.DataAnnotations.Schema;
 
 /// <summary>
 /// Represents a role assigned to a user in the system.
 /// </summary>
 public class Role : Entity
 {
-   
     private RolesEnum _name;
 
     /// <summary>
@@ -18,6 +18,7 @@ public class Role : Entity
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown when the assigned role name is not valid according to the <see cref="RolesEnum"/>.
     /// </exception>
+    [Column(TypeName = "nvarchar(50)")]
     public RolesEnum Name
     {
         get => _name;

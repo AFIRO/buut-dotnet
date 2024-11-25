@@ -3,23 +3,71 @@
 @attribute [Authorize(Roles = "Admin")]
 @inject IStringLocalizer<UserManagement> Localizer
 
-<PageTitle>@Localizer["UsersManagement"]</PageTitle>
+
+
+
 
 <div class="container-fluid mt-5" style="height: 70vh;">
-    <div class="row mt-5" style="height: 100%;">
-        <!-- Sidebar Navigation -->
-        <div class="col-2 p-3" style="height: 100%; color: white;">
-            <h4>@Localizer["Navigation"]</h4>
-            <nav class="nav flex-column">
-                <button class="btn btn-link text-start" style="color: white; text-transform: none;" @onclick="() => ShowView(USERS)">@Localizer["Users"]</button>
-                <button class="btn btn-link text-start" style="color: white; text-transform: none;" @onclick="() => ShowView(AUTH0USERS)">@Localizer["Auth0Users"]</button>
-                <button class="btn btn-link text-start" style="color: white; text-transform: none;" @onclick="() => ShowView(USERVALIDATION)">@Localizer["NewlyRegistered"]</button>
-            </nav>
-        </div>
-        <div class="col-1"></div>
+    <div class="row mt-5">
 
-        <!-- Main Content -->
-        <div class="col-9" style="height: 100%;">
+        <div class="col-2 d-none d-lg-block h-100">
+            <h4 class="text-decoration-underline pb-5 text-white-50">
+                <i class="ni ni-ungroup"></i> @Localizer["Navigation"]
+            </h4>
+            
+            <div class="nav-wrapper position-relative">
+              <ul class="nav nav-pills nav-fill flex-column p-1 bg-transparent" role="tablist">
+                <li class="nav-item">
+                  <a class="nav-link mb-0 ps-3 py-3 @GetNavClass(USERS) text-start text-white-50" role="tab" style="cursor: pointer;" @onclick="() => ShowView(USERS)">
+                    @Localizer["Users"]
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link mb-0 ps-3 py-3 text-start text-white-50 @GetNavClass(AUTH0USERS)" role="tab" style="cursor: pointer;" @onclick="() => ShowView(AUTH0USERS)">
+                    @Localizer["Auth0Users"]
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link mb-0 ps-3 py-3 text-start text-white-50 @GetNavClass(USERVALIDATION)" role="tab" style="cursor: pointer;" @onclick="() => ShowView(USERVALIDATION)">
+                    @Localizer["NewlyRegistered"]
+                  </a>
+                </li>
+              </ul>
+            </div>
+        </div>
+        
+        <div class="col-lg-9 col-12" style="height: 100%;">
+            <button class="btn btn-primary d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasSidebar" aria-controls="offcanvasSidebar">
+                ☰
+            </button>
+            
+           <div class="offcanvas offcanvas-start d-lg-none bg-black" tabindex="-1" id="offcanvasSidebar" aria-labelledby="offcanvasSidebarLabel" style="top: 56px;">
+               <div class="offcanvas-header">
+                   <h5 class="offcanvas-title" id="offcanvasSidebarLabel">@Localizer["Navigation"]</h5>
+                   <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+               </div>
+               <div class="offcanvas-body">
+              <ul class="nav nav-pills nav-fill flex-column p-1 bg-transparent" role="tablist">
+                <li class="nav-item">
+                  <a class="nav-link mb-0 ps-3 py-3 @GetNavClass(USERS) text-start text-white-50" role="tab" style="cursor: pointer;" @onclick="() => ShowView(USERS)">
+                    @Localizer["Users"]
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link mb-0 ps-3 py-3 text-start text-white-50 @GetNavClass(AUTH0USERS)" role="tab" style="cursor: pointer;" @onclick="() => ShowView(AUTH0USERS)">
+                    @Localizer["Auth0Users"]
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link mb-0 ps-3 py-3 text-start text-white-50 @GetNavClass(USERVALIDATION)" role="tab" style="cursor: pointer;" @onclick="() => ShowView(USERVALIDATION)">
+                    @Localizer["NewlyRegistered"]
+                  </a>
+                </li>
+              </ul>
+               </div>
+           </div>
+
+
             @if (isUserDetailsVisible)
             {
                 <UserDetails UserId="@selectedUserId" OnBackClick="HideUserDetails" />
@@ -63,5 +111,10 @@
     private void HideUserDetails()
     {
         isUserDetailsVisible = false;
+    }
+    
+    private string GetNavClass(string viewName)
+    {
+        return viewName == currentView ? "active" : "";
     }
 }

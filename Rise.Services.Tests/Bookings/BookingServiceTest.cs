@@ -1532,7 +1532,7 @@ public class BookingServiceTest
     {
         // Arrange
         var userId = "user1";
-        var currentBooking = new Booking(DateTime.UtcNow.Date, userId) // Exactly now
+        var currentBooking = new Booking(DateTime.UtcNow.Date.AddDays(1), userId) // Move booking to tomorrow
         {
             Id = Guid.NewGuid().ToString(),
             IsDeleted = false
@@ -1551,6 +1551,7 @@ public class BookingServiceTest
         Assert.Single(result);
         Assert.Equal(currentBooking.Id, result.First().bookingId);
     }
+
 
     [Fact]
     public async Task GetFutureUserBookings_ShouldReturnAllFutureBookings_WhenUserHasManyFutureBookings()

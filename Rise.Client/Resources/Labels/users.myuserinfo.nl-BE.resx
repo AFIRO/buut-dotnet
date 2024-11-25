@@ -51,8 +51,21 @@
   <value>Geboortedatum</value>
 </data>
 
+//Address-------------------------------------------------------
 <data name="Address" xml:space="preserve">
   <value>Adres</value>
+</data>
+
+<data name="Street" xml:space="preserve">
+  <value>Straatnaam</value>
+</data>
+
+<data name="HouseNumber" xml:space="preserve">
+  <value>Huisnummer</value>
+</data>
+
+<data name="Bus" xml:space="preserve">
+  <value>Busnummer</value>
 </data>
 
 </root>
