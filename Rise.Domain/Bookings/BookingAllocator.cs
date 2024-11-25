@@ -59,11 +59,29 @@ public class BookingAllocator
         var availableBatteries = getAvailableBatteries(bookings, batteries, today.Date);
         var availableBoats = boats.OrderBy(x => x.CountBookings).ToList();
         var todaysBookings = getTodaysBookings(bookings, today.Date);
+        
+        var cntAvailableBatteries = availableBatteries.Count;
+        var cntAvailableBoats = availableBoats.Count;
 
         foreach (var (booking, index) in todaysBookings.Select((value, index) => (value, index)))
         {
-            booking.AddBattery(availableBatteries[index]);
-            booking.AddBoat(availableBoats[index]);
+            if (index < cntAvailableBoats)
+            {
+                booking.AddBoat(availableBoats[index]);
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException(nameof(boats), "Not enough boats available for today's bookings.");
+            }
+
+            if (index < cntAvailableBatteries)
+            {
+                booking.AddBattery(availableBatteries[index]);
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException(nameof(batteries), "Not enough batteries available for today's bookings.");
+            }
         }
     } 
 }
