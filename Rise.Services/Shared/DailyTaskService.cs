@@ -32,17 +32,20 @@ public class DailyTaskService : IHostedService, IDisposable
         // Calculate initial delay
         var now = DateTime.Now;
         // var nextRunTime = now.Date.AddDays(1).AddHours(20); // Next day at 20:00.
-        var nextRunTime = now.Date.AddMinutes(1); // Next day at 20:00
+        var nextRunTime = now.Date.AddMinutes(1);
 
         var initialDelay = (nextRunTime - now).TotalMilliseconds;
         
         // Ensure the delay is valid
         if (initialDelay < 0)
         {
-            initialDelay = TimeSpan.FromMinutes(1).TotalMilliseconds; // Default to 24 hours
+            // initialDelay = TimeSpan.FromDays(1).TotalMilliseconds; // Default to 24 hours
+            initialDelay = TimeSpan.FromMinutes(1).TotalMilliseconds; // Default to 1 minute
+
             Console.WriteLine($"Initial delay: {initialDelay} milliseconds");
         }
 
+        // _timer = new Timer(ExecuteTask, null, (long)initialDelay, (long)TimeSpan.FromDays(1).TotalMilliseconds);
         _timer = new Timer(ExecuteTask, null, (long)initialDelay, (long)TimeSpan.FromMinutes(1).TotalMilliseconds);
         return Task.CompletedTask;
     }
