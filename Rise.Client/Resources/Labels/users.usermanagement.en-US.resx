@@ -34,7 +34,7 @@
 <data name="UsersManagement" xml:space="preserve">
   <value>User Management</value>
 </data>
-<data name="AuthUsers" xml:space="preserve">
+<data name="Auth0Users" xml:space="preserve">
   <value>Auth Users</value>
 </data>
 <data name="NewlyRegistered" xml:space="preserve">
@@ -48,21 +48,32 @@
 <data name="UserWithId" xml:space="preserve">
 <value>User with ID </value>
 </data>
-
-//Table headers
-<data name="Id" xml:space="preserve">
+<data name="User" xml:space="preserve">
+<value>User</value>
+</data>
+<data name="ID" xml:space="preserve">
 <value>ID</value>
 </data>
-<data name="Firstname" xml:space="preserve">
-<value>Firstname</value>
-</data>
-<data name="Lastname" xml:space="preserve">
-<value>Lastname</value>
-</data>
-<data name="Email" xml:space="preserve">
-<value>Email</value>
+<data name="NoUsers" xml:space="preserve">
+<value>No users found</value>
 </data>
 <data name="Role" xml:space="preserve">
 <value>Role</value>
 </data>
-  </root>
+
+//User Roles
+<data name="Admin" xml:space="preserve">
+<value>Administrator</value>
+</data>
+<data name="User" xml:space="preserve">
+<value>User</value>
+</data>
+<data name="BUUTAgent" xml:space="preserve">
+<value>Buut Agent</value>
+</data>
+<data name="Pending" xml:space="preserve">
+<value>Pending</value>
+</data>
+
+
+</root>

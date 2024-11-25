@@ -9,6 +9,10 @@ using Rise.Shared.Bookings;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Auth0.Core.Exceptions;
 using Rise.Shared.Services;
+using Rise.Services.Events;
+using Rise.Services.Events.User;
+using Rise.Shared.Enums;
+using System.Security.Claims;
 
 namespace Rise.Server.Controllers;
 
@@ -23,18 +27,22 @@ public class UserController : ControllerBase
     private readonly IUserService _userService;
     private readonly IAuth0UserService _auth0UserService;
     private readonly IValidationService _validationService;
+    private readonly IEventDispatcher _eventDispatcher;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UserController"/> class with the specified user service.
     /// </summary>
     /// <param name="userService">The user service that handles user operations.</param>
     /// <param name="auth0UserService">The user service that handles Auth0 user operations</param>
-    /// <param name="bookingService">The booking service that handles booking operations</param>
-    public UserController(IUserService userService, IAuth0UserService auth0UserService, IValidationService validationService)
+    /// <param name="validationService">The validation service that handles validation operations</param>
+    /// <param name="eventDispatcher">The event dispatcher that handles event operations</param>
+
+    public UserController(IUserService userService, IAuth0UserService auth0UserService, IValidationService validationService, IEventDispatcher eventDispatcher)
     {
         _userService = userService;
         _auth0UserService = auth0UserService;
         _validationService = validationService;
+        _eventDispatcher = eventDispatcher;
     }
 
     /// <summary>
@@ -73,10 +81,33 @@ public class UserController : ControllerBase
     /// <returns>The <see cref="UserDto"/> object or <c>null</c> if no user with the specified ID is found.</returns>
     [HttpGet("{userid}")]
     [Authorize]
-    public async Task<UserDto.UserBase?> Get(string userid)
+    public async Task<IActionResult> Get(string userid)
     {
-        var user = await _userService.GetUserByIdAsync(userid);
-        return user;
+        try
+        {
+            // Get the authenticated user's ID and roles
+            var authenticatedUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userRoles = User.FindAll(ClaimTypes.Role).Select(r => r.Value).ToList() ?? new List<string>();
+
+            // Check if the authenticated user has Admin role or is accessing their own details
+            if (!userRoles.Contains(RolesEnum.Admin.ToString()) && userid != authenticatedUserId)
+            {
+                return Forbid("Access denied. You are not authorized to access this user's details.");
+            }
+            var user = await _userService.GetUserByIdAsync(userid);
+
+            if (user == null)
+            {
+                return NotFound(new { message = $"User with ID {userid} was not found." });
+            }
+
+            return Ok(user);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500,
+                new { message = "An unexpected error occurred while fetching the user details."});
+        }
     }
 
     /// <summary>
@@ -90,6 +121,15 @@ public class UserController : ControllerBase
     {
         try
         {
+            // Get the authenticated user's ID and roles
+            var authenticatedUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userRoles = User.FindAll(ClaimTypes.Role).Select(r => r.Value).ToList();
+
+            // Check if the authenticated user has Admin role or is accessing their own details
+            if (!userRoles.Contains(RolesEnum.Admin.ToString()) && userid != authenticatedUserId)
+            {
+                return Forbid("Access denied. You are not authorized to access this user's details.");
+            }
             var user = await _userService.GetUserDetailsByIdAsync(userid);
 
             if (user == null)
@@ -102,7 +142,7 @@ public class UserController : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(500,
-                new { message = "An unexpected error occurred while fetching the user details.", detail = ex.Message });
+                new { message = "An unexpected error occurred while fetching the user details."});
         }
     }
 
@@ -120,14 +160,20 @@ public class UserController : ControllerBase
             var userDb = await _auth0UserService.RegisterUserAuth0(userDetails);
             var (success, message) = await _userService.CreateUserAsync(userDb);
 
-            if (success)
-            {
-                return Ok(new { message }); // Localization key
-            }
-            else
+            if (!success)
             {
                 return BadRequest(new { message }); // Localization key
             }
+            if (userDb.Id == null || userDb.FirstName == null || userDb.LastName == null)
+            {
+                return BadRequest(new { message = "User registration data is incomplete." });
+            }
+
+            var userRegistrationEvent = new UserRegisteredEvent(userDb.Id, userDb.FirstName, userDb.LastName);
+            await _eventDispatcher.DispatchAsync(userRegistrationEvent);
+
+            return Ok(new { message }); // Localization key
+
         }
         catch (UserAlreadyExistsException)
         {
@@ -148,11 +194,94 @@ public class UserController : ControllerBase
     }
 
 
-    /// <summary>
-    /// Updates an existing user asynchronously.
-    /// </summary>
-    /// <param name="userDetails">The <see cref="UserDto.UpdateUser"/> object containing updated user details.</param>
-    /// <returns><c>true</c> if the update is successful; otherwise, <c>false</c>.</returns>
+    // /// <summary>
+    // /// Updates an existing user asynchronously.
+    // /// </summary>
+    // /// <param name="userDetails">The <see cref="UserDto.UpdateUser"/> object containing updated user details.</param>
+    // /// <returns><c>true</c> if the update is successful; otherwise, <c>false</c>.</returns>
+    // [HttpPut]
+    // [Authorize]
+    // public async Task<IActionResult> Put(UserDto.UpdateUser userDetails)
+    // {
+    //     if (userDetails == null)
+    //     {
+    //         return BadRequest(new { message = "User details cannot be null." });
+    //     }
+    //     var user = await _userService.GetUserByIdAsync(userDetails.Id);
+    //     var rolesAssigned = false;
+    //     try
+    //     {
+    //         // Update the user in Auth0
+    //         var userUpdatedInAuth0 = await _auth0UserService.UpdateUserAuth0(userDetails);
+    //         if (!userUpdatedInAuth0)
+    //         {
+    //             return NotFound(new { message = "User not found in Auth0." });
+    //         }
+
+    //         if (userDetails.Roles != null)
+    //         {
+    //             // Assign new roles to the user in Auth0
+    //             rolesAssigned = await _auth0UserService.AssignRoleToUser(userDetails);
+    //             if (!rolesAssigned)
+    //             {
+    //                 return StatusCode(500, new { message = "Failed to assign roles to user in Auth0." });
+    //             }
+    //         }
+
+    //         // Update the user in the local database
+    //         var userUpdatedInDb = await _userService.UpdateUserAsync(userDetails);
+    //         if (!userUpdatedInDb)
+    //         {
+    //             return NotFound(new { message = $"User with ID {userDetails.Id} was not found." });
+    //         }
+
+    //         if ((bool)(user?.Roles?.Contains(new RoleDto { Name = RolesEnum.Pending })))
+    //         {
+    //             var userUpdateEvent = new UserUpdatedEvent(user.Id, user.FirstName, user.LastName);
+    //         }
+
+
+    //         return Ok(new { message = "User updated successfully." });
+    //     }
+    //     catch (ApiException ex)
+    //     {
+    //         // Handle specific Auth0 API exceptions
+    //         return StatusCode(503,
+    //             new { message = "Auth0 service is unavailable. Please try again later.", detail = ex.Message });
+    //     }
+    //     catch (DatabaseOperationException ex)
+    //     {
+    //         // Handle specific exceptions related to the local database
+    //         return StatusCode(500,
+    //             new
+    //             {
+    //                 message = "An error occurred while updating the user in the local database.",
+    //                 detail = ex.Message
+    //             });
+    //     }
+    //     catch (ExternalServiceException ex)
+    //     {
+    //         // Handle custom exceptions from external services
+    //         return StatusCode(503, new { message = ex.Message, detail = ex.InnerException?.Message });
+    //     }
+    //     catch (ArgumentException ex)
+    //     {
+    //         // Handle cases where the input arguments might be invalid
+    //         return BadRequest(new { message = ex.Message });
+    //     }
+    //     catch (UnauthorizedAccessException ex)
+    //     {
+    //         // Handle unauthorized access exceptions
+    //         return StatusCode(403, new { message = $"Access denied: {ex.Message}" });
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         // Handle any other unexpected errors
+    //         return StatusCode(500,
+    //             new { message = "An unexpected error occurred while updating the user.", detail = ex.Message });
+    //     }
+    // }
+
     [HttpPut]
     [Authorize]
     public async Task<IActionResult> Put(UserDto.UpdateUser userDetails)
@@ -162,92 +291,148 @@ public class UserController : ControllerBase
             return BadRequest(new { message = "User details cannot be null." });
         }
 
+        // Get authenticated user's ID and roles
+        var authenticatedUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userRoles = User.FindAll(ClaimTypes.Role).Select(r => r.Value).ToList();
+
+        // Check if the user is updating their own details or is an Admin
+        var isAdmin = userRoles.Contains(RolesEnum.Admin.ToString());
+        if (!isAdmin && userDetails.Id != authenticatedUserId)
+        {
+            return Forbid("Access denied. You are not authorized to update this user's details.");
+        }
+
+        // Prevent non-admins from updating roles
+        if (!isAdmin && userDetails.Roles != null)
+        {
+            return BadRequest(new { message = "You are not authorized to update roles." });
+        }
+
+        // Ensure non-admins update only allowed fields
+        var user = await _userService.GetUserByIdAsync(userDetails.Id);
+        if (user == null)
+        {
+            return NotFound(new { message = "User not found." });
+        }
+
         try
         {
-            // Update the user in Auth0
-            var userUpdatedInAuth0 = await _auth0UserService.UpdateUserAuth0(userDetails);
-            if (!userUpdatedInAuth0)
+            // Update user details (only allowed fields for non-admins)
+            var updatedUserDetails = new UserDto.UpdateUser
             {
-                return NotFound(new { message = "User not found in Auth0." });
-            }
+                Id = userDetails.Id,
+                FirstName = userDetails.FirstName,
+                LastName = userDetails.LastName,
+                PhoneNumber = userDetails.PhoneNumber,
+                BirthDate = userDetails.BirthDate,
+                Address = userDetails.Address, // Street, HouseNumber, Bus
+            };
 
-            // Assign new roles to the user in Auth0
-            var rolesAssigned = await _auth0UserService.AssignRoleToUser(userDetails);
-            if (!rolesAssigned)
-            {
-                return StatusCode(500, new { message = "Failed to assign roles to user in Auth0." });
-            }
-
-            // Update the user in the local database
-            var userUpdatedInDb = await _userService.UpdateUserAsync(userDetails);
+            var userUpdatedInDb = await _userService.UpdateUserAsync(updatedUserDetails);
             if (!userUpdatedInDb)
             {
                 return NotFound(new { message = $"User with ID {userDetails.Id} was not found." });
+            }
+            // Trigger UserUpdatedEvent if the user is updating their own profile
+            if (!isAdmin)
+            {
+                var userUpdateEvent = new UserUpdatedEvent(user.Id, user.FirstName, user.LastName);
+                await _eventDispatcher.DispatchAsync(userUpdateEvent);
+            }
+
+            if (isAdmin && userDetails.Roles != null)
+            {
+                var existingRoles = user.Roles.Select(r => r.Name).ToList();
+                var rolesAssigned = await _auth0UserService.AssignRoleToUser(userDetails);
+                if (!rolesAssigned)
+                {
+                    return StatusCode(500, new { message = "Failed to assign roles to user in Auth0." });
+                }
+
+                // **Synchronize roles with local database**
+                var roleUpdateSuccess = await _userService.UpdateUserRolesAsync(userDetails.Id, userDetails.Roles);
+                if (!roleUpdateSuccess)
+                {
+                    return StatusCode(500, new { message = "Failed to update user roles in the local database." });
+                }
+
+                // Check if existing role was "Pending" and new roles differ
+                if (existingRoles.Contains(RolesEnum.Pending) && !userDetails.Roles.Any(r => r.Name == RolesEnum.Pending))
+                {
+                    var userValidationEvent = new UserValidationEvent(user.Id, user.FirstName, user.LastName);
+                    await _eventDispatcher.DispatchAsync(userValidationEvent);
+                }
+                else
+                    // Check if the roles have changed (for UserRoleUpdatedEvent)
+                    if (!existingRoles.SequenceEqual(userDetails.Roles.Select(r => r.Name)))
+                {
+                    var userRoleUpdateEvent = new UserRoleUpdatedEvent(user.Id, user.FirstName, user.LastName, existingRoles, userDetails.Roles.Select(r => r.Name).ToList());
+                    await _eventDispatcher.DispatchAsync(userRoleUpdateEvent);
+                }
+
             }
 
             return Ok(new { message = "User updated successfully." });
         }
         catch (ApiException ex)
         {
-            // Handle specific Auth0 API exceptions
             return StatusCode(503,
                 new { message = "Auth0 service is unavailable. Please try again later.", detail = ex.Message });
         }
-        catch (DatabaseOperationException ex)
-        {
-            // Handle specific exceptions related to the local database
-            return StatusCode(500,
-                new
-                {
-                    message = "An error occurred while updating the user in the local database.", detail = ex.Message
-                });
-        }
-        catch (ExternalServiceException ex)
-        {
-            // Handle custom exceptions from external services
-            return StatusCode(503, new { message = ex.Message, detail = ex.InnerException?.Message });
-        }
-        catch (ArgumentException ex)
-        {
-            // Handle cases where the input arguments might be invalid
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            // Handle unauthorized access exceptions
-            return StatusCode(403, new { message = $"Access denied: {ex.Message}" });
-        }
         catch (Exception ex)
         {
-            // Handle any other unexpected errors
             return StatusCode(500,
                 new { message = "An unexpected error occurred while updating the user.", detail = ex.Message });
         }
     }
+
 
     /// <summary>
     /// Deletes a user by their ID asynchronously.
     /// </summary>
     /// <param name="userid">The ID of the user to delete.</param>
     /// <returns><c>true</c> if the deletion is successful; otherwise, <c>false</c>.</returns>
-    [HttpDelete("{userid}")]
+    [HttpDelete("{userid}/softdelete")]
     [Authorize]
     public async Task<IActionResult> Delete(string userid)
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(userid))
+            {
+                return BadRequest(new { message = "User ID cannot be null or empty." });
+            }
+
             var activeBookings = await _validationService.CheckActiveBookings(userid);
             if (activeBookings)
             {
                 return BadRequest(new { message = "User has active bookings" });
             }
-            
-            var deleted = await _userService.DeleteUserAsync(userid);
+
+            var user = await _userService.GetUserByIdAsync(userid);
+            var deleted = await _userService.SoftDeleteUserAsync(userid);
+            var result = await _auth0UserService.SoftDeleteAuth0UserAsync(userid);
+            if (user is null || !deleted || !result)
+            {
+                return NotFound(new { message = $"User with ID {userid} was not found." });
+            }
+
+            var userDeletionEvent = new UserDeletedEvent(user.Id, user.FirstName, user.LastName);
+            await _eventDispatcher.DispatchAsync(userDeletionEvent);
+
             return Ok(new { message = $"User with ID {userid} has been deleted successfully." });
         }
-        catch (UserNotFoundException)
+        catch (UnauthorizedAccessException ex)
         {
-            return NotFound(new { message = $"User with ID {userid} was not found." });
+            return StatusCode(403, new { message = $"Access denied: {ex.Message}" });
+        }
+        catch (UserNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (DatabaseOperationException ex)
+        {
+            return StatusCode(500, new { message = "An error occurred while deleting the user.", detail = ex.Message });
         }
         catch (Exception ex)
         {
@@ -261,7 +446,7 @@ public class UserController : ControllerBase
     /// </summary>
     /// <returns>A list of Auth0 users.</returns>
     [HttpGet("authUsers")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetUsers()
     {
         try
@@ -392,4 +577,5 @@ public class UserController : ControllerBase
             return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
         }
     }
+
 }

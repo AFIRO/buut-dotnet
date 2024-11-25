@@ -279,5 +279,72 @@ public class NotificationServiceTests
         // Act & Assert
         await Should.ThrowAsync<ArgumentNullException>(() => _notificationService.GetUserNotificationsByType(null, NotificationType.General));
     }
+
+
+    [Fact]
+    public async Task GetUnreadUserNotificationsCount_ReturnsCorrectCount()
+    {
+        // Arrange
+        var userId = "123";
+        _dbContext.Notifications.Add(new Notification(userId, "Unread Title EN", "Unread Title NL", "Unread Message EN", "Unread Message NL", NotificationType.General) { IsRead = false });
+        _dbContext.Notifications.Add(new Notification(userId, "Another Unread Title EN", "Another Unread Title NL", "Another Unread Message EN", "Another Unread Message NL", NotificationType.Alert) { IsRead = false });
+        _dbContext.Notifications.Add(new Notification(userId, "Read Title EN", "Read Title NL", "Read Message EN", "Read Message NL", NotificationType.General) { IsRead = true });
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await _notificationService.GetUnreadUserNotificationsCount(userId);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.Count.ShouldBe(2);
+    }
+
+    [Fact]
+    public async Task GetUnreadUserNotificationsCount_NoUnreadNotifications_ReturnsZero()
+    {
+        // Arrange
+        var userId = "123";
+        _dbContext.Notifications.Add(new Notification(userId, "Read Title EN", "Read Title NL", "Read Message EN", "Read Message NL", NotificationType.General) { IsRead = true });
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await _notificationService.GetUnreadUserNotificationsCount(userId);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.Count.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task GetUnreadUserNotificationsCount_UserHasNoNotifications_ReturnsZero()
+    {
+        // Arrange
+        var userId = "123";
+
+        // Act
+        var result = await _notificationService.GetUnreadUserNotificationsCount(userId);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.Count.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task GetUnreadUserNotificationsCount_InvalidUserId_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        await Should.ThrowAsync<ArgumentNullException>(() => _notificationService.GetUnreadUserNotificationsCount(null));
+    }
+
+    [Fact]
+    public async Task GetUnreadUserNotificationsCount_ExceptionDuringQuery_ThrowsException()
+    {
+        // Arrange
+        var userId = "123";
+        _dbContext.Dispose(); // Simulate an exception scenario by disposing of the context
+
+        // Act & Assert
+        await Should.ThrowAsync<Exception>(() => _notificationService.GetUnreadUserNotificationsCount(userId));
+    }
 }
 

@@ -32,7 +32,7 @@ public class NotificationService : INotificationService
     /// Retrieves all notifications.
     /// </summary>
     /// <returns>A task that represents the asynchronous operation. The task result contains a collection of view notifications.</returns>
-    public async Task<IEnumerable<NotificationDto.ViewNotification>?> GetAllNotificationsAsync(String language = "en")
+    public async Task<IEnumerable<NotificationDto.ViewNotification>?> GetAllNotificationsAsync(string language = "en")
     {
         try
         {
@@ -60,9 +60,7 @@ public class NotificationService : INotificationService
         {
             // Log the error
             Console.Error.WriteLine($"Error fetching all notifications: {ex.Message}");
-
-            // Return null or throw a custom exception
-            return null;
+            throw;
         }
     }
 
@@ -72,7 +70,7 @@ public class NotificationService : INotificationService
     /// <param name="userId">The ID of the user.</param>
     /// <param name="language">The language for localization.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a collection of view notifications.</returns>
-    public async Task<IEnumerable<NotificationDto.ViewNotification>?> GetAllUserNotifications(String userId, String language = "en")
+    public async Task<IEnumerable<NotificationDto.ViewNotification>?> GetAllUserNotifications(string userId, string language = "en")
     {
         try
         {
@@ -85,8 +83,14 @@ public class NotificationService : INotificationService
                 .Where(n => n.UserId == userId && !n.IsDeleted).ToListAsync();
 
             // Transform to ViewNotification
+            // var notifications = query
+            //     .Select(n => CreateViewNotification(n, language)).GroupBy(n => n.IsRead).SelectMany(g => g).OrderByDescending(n => n.CreatedAt);
+
             var notifications = query
-                .Select(n => CreateViewNotification(n, language));
+                .Select(n => CreateViewNotification(n, language))
+                .OrderByDescending(n => n.CreatedAt) // Primary sorting by CreatedAt descending
+                .ThenBy(n => n.IsRead); // Secondary sorting: unread (IsRead == false) comes before read
+
 
             return notifications;
         }
@@ -114,7 +118,7 @@ public class NotificationService : INotificationService
     /// <param name="notification">The new notification data.</param>
     /// <param name="language">The language for localization.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the created view notification.</returns>
-    public async Task<NotificationDto.ViewNotification> CreateNotificationAsync(NotificationDto.NewNotification notification, String language = "en")
+    public async Task<NotificationDto.ViewNotification> CreateNotificationAsync(NotificationDto.NewNotification notification, string language = "en")
     {
         try
         {
@@ -174,7 +178,7 @@ public class NotificationService : INotificationService
     /// </summary>
     /// <param name="id">The ID of the notification to delete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a boolean indicating whether the deletion was successful.</returns>
-    public async Task<Boolean> DeleteNotificationAsync(String id)
+    public async Task<bool> DeleteNotificationAsync(string id)
     {
         try
         {
@@ -182,7 +186,7 @@ public class NotificationService : INotificationService
             {
                 throw new ArgumentNullException(nameof(id), "Notification ID cannot be null or empty.");
             }
-            
+
             // Find the notification by ID
             var notification = await _dbContext.Notifications.FindAsync(id);
 
@@ -230,7 +234,7 @@ public class NotificationService : INotificationService
     /// </summary>
     /// <param name="notificationDto">The notification data to update.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a boolean indicating whether the update was successful.</returns>
-    public async Task<Boolean> UpdateNotificationAsync(NotificationDto.UpdateNotification notificationDto)
+    public async Task<bool> UpdateNotificationAsync(NotificationDto.UpdateNotification notificationDto)
     {
         try
         {
@@ -294,7 +298,7 @@ public class NotificationService : INotificationService
     /// <param name="id">The ID of the notification.</param>
     /// <param name="language">The language for localization.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the view notification.</returns>
-    public async Task<NotificationDto.ViewNotification?> GetNotificationById(String id, String language = "en")
+    public async Task<NotificationDto.ViewNotification?> GetNotificationById(string id, string language = "en")
     {
         try
         {
@@ -340,7 +344,7 @@ public class NotificationService : INotificationService
     /// <param name="userId">The ID of the user.</param>
     /// <param name="language">The language for localization.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a collection of view notifications.</returns>
-    public async Task<IEnumerable<NotificationDto.ViewNotification>?> GetUnreadUserNotifications(String userId, String language = "en")
+    public async Task<IEnumerable<NotificationDto.ViewNotification>?> GetUnreadUserNotifications(string userId, string language = "en")
     {
         try
         {
@@ -383,7 +387,7 @@ public class NotificationService : INotificationService
     /// <param name="userId">The ID of the user.</param>
     /// <param name="language">The language for localization.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a collection of view notifications.</returns>
-    public async Task<IEnumerable<NotificationDto.ViewNotification>?> GetReadUserNotifications(String userId, String language = "en")
+    public async Task<IEnumerable<NotificationDto.ViewNotification>?> GetReadUserNotifications(string userId, string language = "en")
     {
         try
         {
@@ -398,7 +402,7 @@ public class NotificationService : INotificationService
                 .ToListAsync();
 
             // Transform each notification to a ViewNotification DTO
-            var viewNotifications = notifications.Select(n => CreateViewNotification(n, language));
+            var viewNotifications = notifications.Select(n => CreateViewNotification(n, language)).OrderByDescending(n => n.CreatedAt);
 
             return viewNotifications;
         }
@@ -428,7 +432,7 @@ public class NotificationService : INotificationService
     /// <param name="type">The type of notifications to retrieve.</param>
     /// <param name="language">The language for localization.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a collection of view notifications.</returns>
-    public async Task<IEnumerable<NotificationDto.ViewNotification>?> GetUserNotificationsByType(String userId, NotificationType type, String language = "en")
+    public async Task<IEnumerable<NotificationDto.ViewNotification>?> GetUserNotificationsByType(string userId, NotificationType type, string language = "en")
     {
         try
         {
@@ -464,7 +468,7 @@ public class NotificationService : INotificationService
         }
     }
 
-    private NotificationDto.ViewNotification CreateViewNotification(Notification notification, String language = "en")
+    private NotificationDto.ViewNotification CreateViewNotification(Notification notification, string language = "en")
     {
         try
         {
@@ -474,7 +478,8 @@ public class NotificationService : INotificationService
                 Title = GetLocalizedText(notification.Title_NL, notification.Title_EN, language),
                 Message = GetLocalizedText(notification.Message_NL, notification.Message_EN, language),
                 IsRead = notification.IsRead,
-                Type = notification.Type
+                Type = notification.Type,
+                CreatedAt = notification.CreatedAt
             };
         }
         catch (Exception ex)
@@ -487,7 +492,7 @@ public class NotificationService : INotificationService
         }
     }
 
-    private String GetLocalizedText(String textNL, String textEN, String language)
+    private string GetLocalizedText(string textNL, string textEN, string language)
     {
         try
         {
@@ -508,6 +513,43 @@ public class NotificationService : INotificationService
 
             // Return a default value to ensure the application continues running
             return textEN;
+        }
+    }
+
+    /// <summary>
+    /// Retrieves the count of unread notifications for a specific user.
+    /// </summary>
+    /// <param name="userId">The ID of the user.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the count of unread notifications.</returns>
+    public async Task<NotificationDto.NotificationCount> GetUnreadUserNotificationsCount(string userId)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                throw new ArgumentNullException(nameof(userId), "User ID cannot be null or empty.");
+            }
+
+            var unreadCount = await _dbContext.Notifications
+                .Where(n => n.UserId == userId && !n.IsDeleted && !n.IsRead)
+                .CountAsync();
+
+            return new NotificationDto.NotificationCount { Count = unreadCount };
+        }
+        catch (ArgumentNullException ex)
+        {
+            Console.Error.WriteLine($"Argument Null Exception: {ex.Message}");
+            throw; // Re-throw the exception for higher-level handling
+        }
+        catch (InvalidOperationException ex)
+        {
+            Console.Error.WriteLine($"Invalid Operation Exception: {ex.Message}");
+            throw; // Rethrow to propagate the specific issue
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error fetching unread notification count: {ex.Message}");
+            throw new Exception("An unexpected error occurred while fetching unread notifications count.", ex);
         }
     }
 }

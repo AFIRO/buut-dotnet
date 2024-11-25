@@ -79,6 +79,17 @@ public class NotificationDto
     }
 
     /// <summary>
+    /// Represents the count of notifications.
+    /// </summary>
+    public class NotificationCount
+    {
+        /// <summary>
+        /// Gets or sets the count of notifications.
+        /// </summary>
+        public int Count { get; set; } = 0;
+    }
+
+    /// <summary>
     /// Represents an updatable notification.
     /// </summary>
     public class UpdateNotification

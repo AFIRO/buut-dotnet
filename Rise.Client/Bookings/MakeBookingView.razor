@@ -8,11 +8,10 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 
-<MudCalendar Items="_events" MonthCellMinHeight="100" DateRangeChanged="DateRangeChanged">
+<MudCalendar Class="bookingCalendar" Items="_events" MonthCellMinHeight="100" DateRangeChanged="DateRangeChanged">
     <CellTemplate>
         <div class="pb-1" style="width: 100%; height: 100%; border: 1px solid white">
-            
-            <div style="background-color: @(((CustomCalenderItem)context).Color);
+            <div class="timeslot" style="background-color: @(((CustomCalenderItem)context).Color);
                         cursor: @(((CustomCalenderItem)context).Available ? "pointer" : "default");"
                  @onclick="@(((CustomCalenderItem)context).Available ? () => ItemClicked((CustomCalenderItem)context) : null)">
                 <MudText Style="color: #ffffff; text-align: start; margin-left: 4px; overflow: hidden; display: flex; flex-direction: row; gap: 4px; " Typo="Typo.body1" Align="Align.Center">
@@ -159,6 +158,25 @@
         return allTimeSlots;
     }
 
+    private async Task<List<CustomCalenderItem>> GetFreeCalendarItems(DateRange dateRange)
+    {
+        var freeTimeslots = await BookingService.GetFreeTimeslotsInDateRange(dateRange.Start, dateRange.End);
+        ArrayList freeCalendarItems = [];
+
+        foreach (var timeslot in freeTimeslots)
+        {
+            freeCalendarItems.Add(
+                new CustomCalenderItem
+                {
+                    Start = GetTimeFromTimeslot(timeslot.BookingDate, timeslot),
+                    End = GetTimeFromTimeslot(timeslot.BookingDate, timeslot, true),
+                    Text = "Occupied"
+                });
+        }
+
+        return freeCalendarItems.Cast<CustomCalenderItem>().ToList();
+    }
+
     @* booking generator for dateRange *@
     List<CustomCalenderItem> GenerateCalendarItems(DateRange dateRange)
     {
@@ -196,25 +214,6 @@
         }
 
         return events;
-    }
-
-    private async Task<List<CustomCalenderItem>> GetFreeCalendarItems(DateRange dateRange)
-    {
-        var freeTimeslots = await BookingService.GetFreeTimeslotsInDateRange(dateRange.Start, dateRange.End);
-        ArrayList freeCalendarItems = [];
-
-        foreach (var timeslot in freeTimeslots)
-        {
-            freeCalendarItems.Add(
-                new CustomCalenderItem
-                {
-                    Start = GetTimeFromTimeslot(timeslot.BookingDate, timeslot),
-                    End = GetTimeFromTimeslot(timeslot.BookingDate, timeslot, true),
-                    Text = "Occupied"
-                });
-        }
-
-        return freeCalendarItems.Cast<CustomCalenderItem>().ToList();
     }
 
     private DateTime GetTimeFromTimeslot(DateTime date, BookingDto.ViewBookingCalender timeSlot, bool isEnd = false)

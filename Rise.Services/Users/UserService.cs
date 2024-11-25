@@ -112,7 +112,7 @@ public class UserService : IUserService
             {
                 return (false, "InvalidEmailFormat"); // Localization key
             }
-            
+
             if (_dbContext.Users.Any(x => x.Email == userDetails.Email))
             {
                 return (false, "UserAlreadyExists"); // Localization key
@@ -165,7 +165,6 @@ public class UserService : IUserService
         // Update user details only if they are provided
         if (userDetails.FirstName != null) entity.FirstName = userDetails.FirstName;
         if (userDetails.LastName != null) entity.LastName = userDetails.LastName;
-        if (userDetails.Email != null) entity.Email = userDetails.Email;
         if (userDetails.BirthDate != null) entity.BirthDate = (DateTime)userDetails.BirthDate;
         if (userDetails.PhoneNumber != null) entity.PhoneNumber = userDetails.PhoneNumber;
 
@@ -221,19 +220,69 @@ public class UserService : IUserService
     /// </summary>
     /// <param name="userid">The ID of the user to delete.</param>
     /// <returns>A boolean indicating whether the deletion was successful.</returns>
-    public async Task<bool> DeleteUserAsync(string userid)
+    public async Task<bool> SoftDeleteUserAsync(string userid)
     {
-        var entity = await _dbContext.Users.FindAsync(userid);
-        if (entity == null)
-        {
-            throw new UserNotFoundException($"User with ID {userid} not found.");
-        }
-        
+        var entity = await _dbContext.Users.FindAsync(userid) ?? throw new UserNotFoundException($"User with ID {userid} not found.");
         entity.SoftDelete();
         _dbContext.Users.Update(entity);
         await _dbContext.SaveChangesAsync();
         return true;
     }
+
+    /// <summary>
+    /// Updates the roles of a user.
+    /// </summary>
+    /// <param name="userId">The ID of the user to update roles for.</param>
+    /// <param name="newRoles">The new roles to assign to the user.</param>
+    /// <returns>A boolean indicating whether the update was successful.</returns>
+    public async Task<bool> UpdateUserRolesAsync(string userId, ImmutableList<RoleDto> newRoles)
+    {
+        var user = await _dbContext.Users
+            .Include(u => u.Roles)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user is null)
+        {
+            return false; // User not found
+        }
+
+        bool rolesWereCleared = false;
+
+        // If the existing roles include "Pending", clear roles first
+        if (user.Roles.Any(r => r.Name == RolesEnum.Pending))
+        {
+            user.Roles.Clear();
+            rolesWereCleared = true;
+        }
+
+        bool anyValidRolesAdded = false;
+
+        // Add new roles
+        foreach (var newRole in newRoles)
+        {
+            var roleEntity = await _dbContext.Roles.FirstOrDefaultAsync(r => r.Name == newRole.Name);
+            if (roleEntity is not null)
+            {
+                // Avoid duplicating roles
+                if (!user.Roles.Contains(roleEntity))
+                {
+                    user.Roles.Add(roleEntity);
+                    anyValidRolesAdded = true;
+                }
+            }
+        }
+
+        // If no valid roles were added and roles were not cleared, return false
+        if (!anyValidRolesAdded && !rolesWereCleared)
+        {
+            return false;
+        }
+
+        // Save changes
+        _dbContext.Users.Update(user);
+        return await _dbContext.SaveChangesAsync() > 0;
+    }
+
 
     /// <summary>
     /// Retrieves a list of Auth0 users.

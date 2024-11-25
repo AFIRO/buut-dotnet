@@ -17,6 +17,9 @@ using Rise.Shared.Bookings;
 using Rise.Shared.Services;
 using Rise.Services.Notifications;
 using Rise.Shared.Notifications;
+using Rise.Services.Events;
+using Rise.Services.Events.User;
+using Rise.Services.Events.Booking;
 using AngleSharp.Text;
 using Rise.Domain.Bookings;
 using Rise.Shared.Boats;
@@ -96,6 +99,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseTriggers(options => options.AddTrigger<EntityBeforeSaveTrigger>());
 });
 
+// Register event dispatcher
+builder.Services.AddSingleton<IEventDispatcher, EventDispatcher>();
+
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IEquipmentService<BoatDto.ViewBoat, BoatDto.NewBoat>, BoatService>();
@@ -107,6 +113,24 @@ builder.Services.AddScoped<BookingAllocator>();
 builder.Services.AddScoped<BookingAllocationService>();
 
 builder.Services.AddHostedService<DailyTaskService>();
+
+builder.Services.AddSingleton<IEventDispatcher, EventDispatcher>();
+
+// Register open generic handlers
+builder.Services.AddScoped(typeof(IEventHandler<>), typeof(GenericEventHandler<>));
+
+// Register specific User event handlers
+builder.Services.AddScoped<IEventHandler<UserRegisteredEvent>, NotifyAdminsOnUserRegistrationHandler>();
+builder.Services.AddScoped<IEventHandler<UserDeletedEvent>, NotifyAdminsOnUserDeletionHandler>();
+builder.Services.AddScoped<IEventHandler<UserUpdatedEvent>, NotifyAdminsOnUserUpdateHandler>();
+builder.Services.AddScoped<IEventHandler<UserValidationEvent>, NotifyUserOnUserValidationHandler>();
+builder.Services.AddScoped<IEventHandler<UserRoleUpdatedEvent>, NotifyUserOnNewRolesAssignedHandler>();
+
+// Register specific Booking event handlers
+builder.Services.AddScoped<IEventHandler<BookingCreatedEvent>, NotifyOnBookingCreatedHandler>();
+builder.Services.AddScoped<IEventHandler<BookingUpdatedEvent>, NotifyOnBookingUpdatedHandler>();
+builder.Services.AddScoped<IEventHandler<BookingDeletedEvent>, NotifyOnBookingDeletedHandler>();
+
 
 var app = builder.Build();
 

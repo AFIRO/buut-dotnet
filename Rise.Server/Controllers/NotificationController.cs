@@ -260,4 +260,25 @@ public class NotificationController : ControllerBase
             return StatusCode(500, new { message = "An unexpected error occurred.", detail = ex.Message });
         }
     }
+    [HttpGet("user/{userId}/unread/count")]
+    public async Task<IActionResult> GetUnreadNotificationCount(String userId)
+    {
+        try
+        {
+            var unreadCount = await _notificationService.GetUnreadUserNotificationsCount(userId);
+            return Ok(unreadCount);
+        }
+        catch (ArgumentNullException ex)
+        {
+            return BadRequest(new { message = $"Invalid input: {ex.Message}" });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return StatusCode(500, new { message = $"Internal error occurred: {ex.Message}" });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "An unexpected error occurred.", detail = ex.Message });
+        }
+    }
 }

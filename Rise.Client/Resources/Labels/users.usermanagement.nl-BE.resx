@@ -48,22 +48,31 @@
 <data name="UserWithId" xml:space="preserve">
 <value>Gebruiker met ID </value>
 </data>
-
-//Table headers
+<data name="User" xml:space="preserve">
+<value>Gebruiker</value>
+</data>
 <data name="Id" xml:space="preserve">
 <value>ID</value>
 </data>
-<data name="Firstname" xml:space="preserve">
-<value>Voornaam</value>
-</data>
-<data name="Lastname" xml:space="preserve">
-<value>Achternaam</value>
-</data>
-<data name="Email" xml:space="preserve">
-<value>Email</value>
+<data name="NoUsers" xml:space="preserve">
+<value>Geen gebruikers gevonden</value>
 </data>
 <data name="Role" xml:space="preserve">
 <value>Rol</value>
 </data>
 
-  </root>
+//User Roles
+<data name="Admin" xml:space="preserve">
+<value>Administrator</value>
+</data>
+<data name="User" xml:space="preserve">
+<value>Gebruiker</value>
+</data>
+<data name="BUUTAgent" xml:space="preserve">
+<value>Meter/Peter</value>
+</data>
+<data name="Pending" xml:space="preserve">
+<value>Wachtend op goedkeuring</value>
+</data>
+
+</root>

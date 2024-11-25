@@ -4,7 +4,10 @@ using Microsoft.Extensions.Options;
 using Rise.Domain.Bookings;
 using Rise.Server.Settings;
 using Rise.Services.Bookings;
+using Rise.Services.Events;
+using Rise.Services.Events.Booking;
 using Rise.Shared.Bookings;
+using Rise.Shared.Enums;
 
 namespace Rise.Server.Controllers;
 
@@ -17,18 +20,24 @@ namespace Rise.Server.Controllers;
 public class BookingController : ControllerBase
 {
     private readonly IBookingService _bookingService;
+    private readonly IEventDispatcher _eventDispatcher;
     private readonly int _minReservationDays;
     private readonly int _maxReservationDays;
+
+
 
     /// <summary>
     /// Initializes a new instance of the <see cref="BookingController"/> class with the specified booking service.
     /// </summary>
     /// <param name="bookingService">The booking service that handles booking operations.</param>
-    public BookingController(IBookingService bookingService, IOptions<BookingSettings> options)
+    /// <param name="options">The booking settings options.</param>
+    /// <param name="eventDispatcher">The event dispatcher that handles event dispatching.</param>
+    public BookingController(IBookingService bookingService, IOptions<BookingSettings> options, IEventDispatcher eventDispatcher)
     {
         _bookingService = bookingService;
         _minReservationDays = options.Value.MinReservationDays;
         _maxReservationDays = options.Value.MaxReservationDays;
+        _eventDispatcher = eventDispatcher;
     }
 
     /// <summary>
@@ -100,6 +109,16 @@ public class BookingController : ControllerBase
         try
         {
             var createdBooking = await _bookingService.CreateBookingAsync(booking);
+            if (createdBooking == null)
+            {
+                return BadRequest("Booking creation failed.");
+            }
+
+            // Dispatch the event
+            var bookingCreatedEvent = new BookingCreatedEvent(createdBooking.bookingId, createdBooking.userId,
+                createdBooking.bookingDate, createdBooking.timeSlot);
+            await _eventDispatcher.DispatchAsync(bookingCreatedEvent);
+
             return CreatedAtAction(nameof(Get), new { id = createdBooking.bookingId }, createdBooking);
         }
         catch (Exception ex)
@@ -126,21 +145,36 @@ public class BookingController : ControllerBase
 
         try
         {
+            var existingBooking = await _bookingService.GetBookingById(id);
+            if (existingBooking == null)
+            {
+                return NotFound($"Booking with ID '{id}' was not found.");
+            }
+
             var updated = await _bookingService.UpdateBookingAsync(booking);
             if (updated)
             {
-                return NoContent();
+                // Dispatch the event
+                TimeSlot updatedTimeSlot = booking.bookingDate.HasValue
+                    ? TimeSlotEnumExtensions.ToTimeSlot(booking.bookingDate.Value.Hour)
+                    : existingBooking.timeSlot;
+
+                var bookingUpdatedEvent = new BookingUpdatedEvent(id, existingBooking.userId,
+                    existingBooking.bookingDate, existingBooking.timeSlot, booking.bookingDate ?? existingBooking.bookingDate, updatedTimeSlot);
+                await _eventDispatcher.DispatchAsync(bookingUpdatedEvent);
+
+                return NoContent(); // Explicitly return NoContentResult
             }
 
             return NotFound($"Booking with ID '{id}' was not found.");
         }
         catch (Exception ex)
         {
-            // _logger.LogError(ex, "An error occurred while updating the booking with ID '{BookingId}'.", id);
             return StatusCode(StatusCodes.Status500InternalServerError,
                 "An error occurred while processing your request.");
         }
     }
+
 
     /// <summary>
     /// Deletes a booking by their ID asynchronously.
@@ -157,21 +191,32 @@ public class BookingController : ControllerBase
 
         try
         {
+            var existingBooking = await _bookingService.GetBookingById(id);
+            if (existingBooking == null)
+            {
+                return NotFound($"Booking with ID '{id}' was not found.");
+            }
+
             var deleted = await _bookingService.DeleteBookingAsync(id);
             if (deleted)
             {
-                return NoContent();
+                // Dispatch the event
+                var bookingDeletedEvent = new BookingDeletedEvent(id, existingBooking.userId,
+                    existingBooking.bookingDate, existingBooking.timeSlot);
+                await _eventDispatcher.DispatchAsync(bookingDeletedEvent);
+
+                return NoContent(); // Explicitly return NoContentResult
             }
 
             return NotFound($"Booking with ID '{id}' was not found.");
         }
         catch (Exception ex)
         {
-            // _logger.LogError(ex, "An error occurred while deleting the booking with ID '{BookingId}'.", id);
             return StatusCode(StatusCodes.Status500InternalServerError,
                 "An error occurred while processing your request.");
         }
     }
+
 
     /// <summary>
     /// Retrieves all bookings within a specified date range.
@@ -306,7 +351,8 @@ public class BookingController : ControllerBase
             return StatusCode(500,
                 new
                 {
-                    message = "An unexpected error occurred while fetching the future bookings.", detail = ex.Message
+                    message = "An unexpected error occurred while fetching the future bookings.",
+                    detail = ex.Message
                 });
         }
     }
@@ -333,7 +379,8 @@ public class BookingController : ControllerBase
             return StatusCode(500,
                 new
                 {
-                    message = "An unexpected error occurred while fetching the past bookings.", detail = ex.Message
+                    message = "An unexpected error occurred while fetching the past bookings.",
+                    detail = ex.Message
                 });
         }
     }

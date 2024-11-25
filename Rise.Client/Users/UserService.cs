@@ -1,4 +1,5 @@
 using Rise.Shared.Users;
+using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -45,7 +46,7 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<bool> DeleteUserAsync(string userid)
+    public async Task<bool> SoftDeleteUserAsync(string userid)
     {
         var response = await _httpClient.DeleteAsync($"user/{userid}");
         return response.IsSuccessStatusCode;
@@ -211,6 +212,11 @@ public class UserService : IUserService
             Console.WriteLine($"An error occurred: {ex.Message}");
             return Enumerable.Empty<UserDto.UserBase>();
         }
+    }
+
+    public Task<bool> UpdateUserRolesAsync(string userId, ImmutableList<RoleDto> newRoles)
+    {
+        throw new NotImplementedException();
     }
 }
 

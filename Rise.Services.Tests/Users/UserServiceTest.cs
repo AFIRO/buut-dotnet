@@ -584,7 +584,6 @@ public class UserServiceTests
             Id = userId,
             FirstName = "UpdatedFirstName",
             LastName = "UpdatedLastName",
-            Email = $"updated.email{userId}@example.com",
             BirthDate = new DateTime(1995, 5, 10),
             PhoneNumber = $"1234567890-{userId}",
             Address = new AddressDto.UpdateAddress()
@@ -607,7 +606,6 @@ public class UserServiceTests
         Assert.NotNull(updatedUser);
         Assert.Equal(updatedUserDetails.FirstName, updatedUser.FirstName);
         Assert.Equal(updatedUserDetails.LastName, updatedUser.LastName);
-        Assert.Equal(updatedUserDetails.Email, updatedUser.Email);
         Assert.Equal(updatedUserDetails.BirthDate, updatedUser.BirthDate);
         Assert.Equal(updatedUserDetails.PhoneNumber, updatedUser.PhoneNumber);
         Assert.Equal(updatedUserDetails.Address.Street.ToString().ToLower(), updatedUser.Address.Street.ToLower());
@@ -827,7 +825,7 @@ public class UserServiceTests
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _userService.DeleteUserAsync(userId);
+        var result = await _userService.SoftDeleteUserAsync(userId);
 
         // Assert
         Assert.True(result);
@@ -844,7 +842,7 @@ public class UserServiceTests
 
         // Act & Assert
         var exception =
-            await Assert.ThrowsAsync<UserNotFoundException>(() => _userService.DeleteUserAsync(nonExistentUserId));
+            await Assert.ThrowsAsync<UserNotFoundException>(() => _userService.SoftDeleteUserAsync(nonExistentUserId));
         Assert.Equal($"User with ID {nonExistentUserId} not found.", exception.Message);
     }
 
@@ -859,7 +857,7 @@ public class UserServiceTests
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _userService.DeleteUserAsync(userId);
+        var result = await _userService.SoftDeleteUserAsync(userId);
 
         // Assert
         Assert.True(result);
@@ -989,4 +987,160 @@ public class UserServiceTests
         Assert.Single(result);
         Assert.Equal(user2.Id, result.First().Id);
     }
+
+    [Fact]
+    public async Task UpdateUserRolesAsync_ShouldUpdateRoles_WhenValidDataProvided()
+    {
+        // Arrange
+        var userId = "1";
+        var originalUser = CreateUser(userId);
+
+        // Add roles to the database
+        var adminRole = new Role { Name = RolesEnum.Admin };
+        var userRole = new Role { Name = RolesEnum.User };
+        await _dbContext.Roles.AddRangeAsync(adminRole, userRole);
+        await _dbContext.Users.AddAsync(originalUser);
+        await _dbContext.SaveChangesAsync();
+
+        // Create new roles
+        var newRoles = ImmutableList.Create(
+            new RoleDto { Name = RolesEnum.Admin },
+            new RoleDto { Name = RolesEnum.User });
+
+        // Act
+        var result = await _userService.UpdateUserRolesAsync(userId, newRoles);
+
+        // Assert
+        Assert.True(result);
+
+        var updatedUser = await _dbContext.Users.Include(u => u.Roles).FirstOrDefaultAsync(u => u.Id == userId);
+        Assert.NotNull(updatedUser);
+        Assert.Equal(2, updatedUser.Roles.Count);
+        Assert.Contains(updatedUser.Roles, r => r.Name == RolesEnum.Admin);
+        Assert.Contains(updatedUser.Roles, r => r.Name == RolesEnum.User);
+    }
+
+    [Fact]
+    public async Task UpdateUserRolesAsync_ShouldReturnFalse_WhenUserDoesNotExist()
+    {
+        // Arrange
+        var nonExistentUserId = "NonExistentUserId";
+        var newRoles = ImmutableList.Create(new RoleDto { Name = RolesEnum.Admin });
+
+        // Act
+        var result = await _userService.UpdateUserRolesAsync(nonExistentUserId, newRoles);
+
+        // Assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task UpdateUserRolesAsync_ShouldNotClearRoles_WhenEmptyRolesListProvided()
+    {
+        // Arrange
+        var userId = "1";
+        var originalUser = CreateUser(userId);
+        var adminRole = new Role { Name = RolesEnum.Admin };
+        originalUser.Roles.Add(adminRole);
+
+        await _dbContext.Roles.AddAsync(adminRole);
+        await _dbContext.Users.AddAsync(originalUser);
+        await _dbContext.SaveChangesAsync();
+
+        var newRoles = ImmutableList<RoleDto>.Empty;
+
+        // Act
+        var result = await _userService.UpdateUserRolesAsync(userId, newRoles);
+
+        // Assert
+        Assert.False(result); // Expect the update to fail because no valid roles were provided
+
+        var updatedUser = await _dbContext.Users.Include(u => u.Roles).FirstOrDefaultAsync(u => u.Id == userId);
+        Assert.NotNull(updatedUser);
+        Assert.Single(updatedUser.Roles); // The existing role should remain
+        Assert.Contains(updatedUser.Roles, r => r.Name == RolesEnum.Admin);
+    }
+
+
+    [Fact]
+    public async Task UpdateUserRolesAsync_ShouldIgnoreNonexistentRoles()
+    {
+        // Arrange
+        var userId = "1";
+        var originalUser = CreateUser(userId);
+        var adminRole = new Role { Name = RolesEnum.Admin };
+
+        await _dbContext.Roles.AddAsync(adminRole);
+        await _dbContext.Users.AddAsync(originalUser);
+        await _dbContext.SaveChangesAsync();
+
+        // Create a mix of existing and nonexistent roles
+        var newRoles = ImmutableList.Create(
+            new RoleDto { Name = RolesEnum.Admin },
+            new RoleDto { Name = (RolesEnum)9999 }); // Invalid role
+
+        // Act
+        var result = await _userService.UpdateUserRolesAsync(userId, newRoles);
+
+        // Assert
+        Assert.True(result);
+
+        var updatedUser = await _dbContext.Users.Include(u => u.Roles).FirstOrDefaultAsync(u => u.Id == userId);
+        Assert.NotNull(updatedUser);
+        Assert.Single(updatedUser.Roles);
+        Assert.Contains(updatedUser.Roles, r => r.Name == RolesEnum.Admin);
+    }
+
+    [Fact]
+    public async Task UpdateUserRolesAsync_ShouldReturnFalse_WhenNoRolesExistInDatabase()
+    {
+        // Arrange
+        var userId = "1";
+        var originalUser = CreateUser(userId);
+        await _dbContext.Users.AddAsync(originalUser);
+        await _dbContext.SaveChangesAsync();
+
+        // Create new roles that don't exist in the database
+        var newRoles = ImmutableList.Create(new RoleDto { Name = RolesEnum.Admin });
+
+        // Act
+        var result = await _userService.UpdateUserRolesAsync(userId, newRoles);
+
+        // Assert
+        Assert.False(result);
+
+        var updatedUser = await _dbContext.Users.Include(u => u.Roles).FirstOrDefaultAsync(u => u.Id == userId);
+        Assert.NotNull(updatedUser);
+        Assert.Empty(updatedUser.Roles);
+    }
+
+    [Fact]
+    public async Task UpdateUserRolesAsync_ShouldHandleConcurrency_WhenMultipleUpdatesOccurSimultaneously()
+    {
+        // Arrange
+        var userId = "1";
+        var originalUser = CreateUser(userId);
+        var adminRole = new Role { Name = RolesEnum.Admin };
+        var userRole = new Role { Name = RolesEnum.User };
+
+        await _dbContext.Roles.AddRangeAsync(adminRole, userRole);
+        await _dbContext.Users.AddAsync(originalUser);
+        await _dbContext.SaveChangesAsync();
+
+        var newRoles1 = ImmutableList.Create(new RoleDto { Name = RolesEnum.Admin });
+        var newRoles2 = ImmutableList.Create(new RoleDto { Name = RolesEnum.User });
+
+        // Act
+        var updateTask1 = _userService.UpdateUserRolesAsync(userId, newRoles1);
+        var updateTask2 = _userService.UpdateUserRolesAsync(userId, newRoles2);
+        await Task.WhenAll(updateTask1, updateTask2);
+
+        // Assert
+        var updatedUser = await _dbContext.Users.Include(u => u.Roles).FirstOrDefaultAsync(u => u.Id == userId);
+        Assert.NotNull(updatedUser);
+        Assert.Equal(2, updatedUser.Roles.Count); // Both roles should exist
+        Assert.Contains(updatedUser.Roles, r => r.Name == RolesEnum.Admin);
+        Assert.Contains(updatedUser.Roles, r => r.Name == RolesEnum.User);
+    }
+
 }

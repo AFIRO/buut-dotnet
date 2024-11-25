@@ -69,5 +69,11 @@ namespace Rise.Shared.Notifications
         /// <param name="language">The language of the notification.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a collection of notifications of the specified type.</returns>
         Task<IEnumerable<NotificationDto.ViewNotification>?> GetUserNotificationsByType(String userId, NotificationType type, String language = "en");
+        /// <summary>
+        /// Retrieves the count of unread notifications for a specific user.
+        /// </summary>
+        /// <param name="userId">The identifier of the user.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the count of unread notifications.</returns>
+        Task<NotificationDto.NotificationCount> GetUnreadUserNotificationsCount(String userId);
     }
 }
