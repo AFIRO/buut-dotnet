@@ -17,7 +17,8 @@ public class BookingService : IBookingService
         this.httpClient = httpClient;
         this.jsonSerializerOptions = new JsonSerializerOptions
         {
-            PropertyNameCaseInsensitive = true
+            PropertyNameCaseInsensitive = true,
+            Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
         };
     }
 

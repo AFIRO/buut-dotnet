@@ -1,82 +1,112 @@
 @page "/mybookings"
-@using Microsoft.IdentityModel.Tokens
+@using Rise.Shared.Bookings
 @using Rise.Shared.Enums
+@using Microsoft.IdentityModel.Tokens
+@using Rise.Client.Components.Table
 @attribute [Authorize(Roles = "User")]
 @inject Microsoft.Extensions.Localization.IStringLocalizer<MyBookingsView> Localizer
 
-<main class="main-content mt-0 background-overlay">
-    <div class="page-header align-items-center min-vh-95">
-        <div class="container my-auto">
-            <div class="row">
-                <div class="col-lg-12 col-md-12 col-12 mx-auto">
-                    <div class="card z-index-0 fadeIn3 fadeInBottom">
-                        <div class="card-body">
-                            <PageTitle>@Localizer["Title"]</PageTitle>
+<PageTitle>@Localizer["BookingsTitle"]</PageTitle>
 
-                            <h1>@Localizer["BookingsTitle"]</h1>
+<div>
+    <GenericTable Headers="Headers" Data="Data(_bookings ?? Array.Empty<BookingDto.ViewBooking>())"  NoDataDisplay="@Localizer["NoBookings"]" IsLoading="_isLoading"/>
+</div>
 
-                            <MudExpansionPanels>
-                                <MudExpansionPanel MaxHeight="150" Expanded="true">
-                                    <TitleContent>
-                                        <MudText class="PanelTitle">@Localizer["FutureBookingsTitle"]</MudText>
-                                    </TitleContent>
-                                    <ChildContent>
-                                        @if (_futureBookings == null || !_futureBookings.Any())
-                                        {
-                                            <p>@Localizer["NoFutureBookings"]</p>
-                                        }
-                                        else
-                                        {
-                                            <MudTable Class="futureBookings" Items="@_futureBookings" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loadingFutureBookings" LoadingProgressColor="Color.Info">
-                                                <HeaderContent >
-                                                    <MudTh class="header-style">@Localizer["FutureBookingTblDate"]</MudTh>
-                                                    <MudTh class="header-style">@Localizer["FutureBookingTblTimeSlot"]</MudTh>
-                                                    <MudTh class="header-style">@Localizer["FutureBookingTblBoat"]</MudTh>
-                                                    <MudTh class="header-style">@Localizer["FutureBookingTblBattery"]</MudTh>
-                                                    <MudTh class="header-style">@Localizer["FutureBookingTblCancel"]</MudTh>
-                                                </HeaderContent>
-                                                <RowTemplate>
-                                                    <MudTd DataLabel="Date" class="datarow-style">@context.bookingDate.ToString("d")</MudTd>
-                                                    <MudTd DataLabel="TimeSlot" class="datarow-style">@(TimeSlotEnumExtensions.GetStartHour(context.timeSlot))@Localizer["TimeNotation"] - @(TimeSlotEnumExtensions.GetEndHour(context.timeSlot))@Localizer["TimeNotation"]</MudTd>
-                                                    <MudTd DataLabel="Boat" class="datarow-style">@(!string.IsNullOrEmpty(context.boat.name) ? context.boat.name : "Still needs to be defined")</MudTd>
-                                                    <MudTd DataLabel="Battery" class="datarow-style">@(!string.IsNullOrEmpty(context.battery.name) ? context.boat.name : "Still needs to be defined")</MudTd>
-                                                    <MudTd class="datarow-style">
-                                                        <MudButton class="deleteBookingButton" Variant="Variant.Outlined" Size="Size.Small" OnClick="() => DeleteBooking(context.bookingId)" Disabled="@(context.bookingDate.Date <= DateTime.Today.AddDays(2))">@Localizer["FutureBookingTblCancel"]</MudButton>
-                                                    </MudTd>
-                                                </RowTemplate>
-                                            </MudTable>
-                                        }
-                                    </ChildContent>
-                                </MudExpansionPanel>
-                                <MudExpansionPanel MaxHeight="1000">
-                                    <TitleContent>
-                                        <MudText class="PanelTitle">@Localizer["PreviousBookingsTblTitle"]</MudText>
-                                    </TitleContent>
-                                    <ChildContent>
-                                        @if (_pastBookings == null || !_pastBookings!.Any())
-                                        {
-                                            <p>@Localizer["NoPastBookings"]</p>
-                                        }
-                                        else
-                                        {
-                                            <MudTable Class="pastBookings" Items="@_pastBookings" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loadingFutureBookings" LoadingProgressColor="Color.Info">
-                                                <HeaderContent>
-                                                    <MudTh class="header-style">@Localizer["PreviousBookingsTblDate"]</MudTh>
-                                                    <MudTh Class="header-style">@Localizer["PreviousBookingsTblTimeSlot"]</MudTh>
-                                                </HeaderContent>
-                                                <RowTemplate>
-                                                    <MudTd DataLabel="Date" class="datarow-style">@context.bookingDate.ToString("d")</MudTd>
-                                                    <MudTd DataLabel="TimeSlot" class="datarow-style">@(TimeSlotEnumExtensions.GetStartHour(context.timeSlot))@Localizer["TimeNotation"] - @(TimeSlotEnumExtensions.GetEndHour(context.timeSlot))@Localizer["TimeNotation"]</MudTd>
-                                                </RowTemplate>
-                                            </MudTable>
-                                        }
-                                    </ChildContent>
-                                </MudExpansionPanel>
-                            </MudExpansionPanels>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</main>
+@code {
+    [Inject] private IDialogService DialogService { get; set; }
+    [Inject] public required IBookingService BookingService { get; set; }
+    [Inject] AuthenticationStateProvider AuthenticationStateProvider { get; set; }
+    
+    
+    private IEnumerable<BookingDto.ViewBooking>? _bookings;
+
+    private int _maxBookings;
+    private string? userIdAuth0;
+    private bool _isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoading = true;
+        // Get the current user's authentication state
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        userIdAuth0 = authState.User.Claims.FirstOrDefault(c => c.Type == "sub").Value;
+        _bookings = await BookingService.GetAllUserBookings(userIdAuth0) ?? new List<BookingDto.ViewBooking>();
+        _isLoading = false;
+    }
+
+    private async Task DeleteBooking(string bookingId)
+    {
+        var result = await DialogService.ShowMessageBox(
+            Localizer["CancelBookingTitle"],
+            Localizer["CancelBookingMessage"],
+            Localizer["CancelBookingYes"],
+            Localizer["CancelBookingNo"]
+        );
+
+        if (result == true)
+        {
+            await BookingService.DeleteBookingAsync(bookingId);
+            _bookings = await BookingService.GetAllUserBookings(userIdAuth0);
+            StateHasChanged();
+        }
+    }
+
+    private async Task EditBooking(string bookingId)
+    {
+        var result = await DialogService.ShowMessageBox(
+            "Work in progress", "",
+            Localizer["CancelBookingYes"]
+        );
+    }
+    
+    private List<TableHeader> Headers => new List<TableHeader>
+    {
+        new (Localizer["Date"]),
+        new (Localizer["TimeSlot"]),
+        new (Localizer["Status"], "text-center"),
+        new (Localizer["Boat"]),
+        new (Localizer["Contact"]),
+        new (Localizer["Credits"]),
+        new ("") // Empty header for action column
+    };
+    
+    private List<List<RenderFragment>> Data(IEnumerable<BookingDto.ViewBooking> bookings)
+    {
+        var rows = new List<List<RenderFragment>>();
+
+        if (bookings.IsNullOrEmpty())
+        {
+            return new List<List<RenderFragment>>();
+        }
+        
+        foreach (var booking in bookings)
+        {
+            var row = new List<RenderFragment>
+            {
+                TableCellService.DefaultTableCell(booking.bookingDate.ToString("D")),
+                TableCellService.DefaultTableCell(Localizer[booking.timeSlot.ToString()]),
+                TableCellService.BadgeCell(Localizer[booking.status.ToString()], "badge bg-gradient-" + GetBadgeBackground(booking.status)),
+                TableCellService.DefaultTableCell(booking.boat.name),
+                TableCellService.UserCell(booking.contact.FirstName, booking.contact.LastName, booking.contact.PhoneNumber),
+                TableCellService.DefaultTableCell("Todo"),
+                booking.status == BookingStatus.OPEN ? TableCellService.ActionCell(booking.bookingId, this,  EditBooking, DeleteBooking) : TableCellService.DefaultTableCell("")
+            };
+
+            rows.Add(row);
+        }
+
+        return rows;
+    }
+    
+    
+    private string GetBadgeBackground(BookingStatus status) => status switch
+    {
+        BookingStatus.OPEN => "dark",
+        BookingStatus.CLOSED => "secondary",
+        BookingStatus.COMPLETED => "success",
+        BookingStatus.REFUNDED => "warning",
+        BookingStatus.CANCELED => "danger",
+        _ => "light"
+    };
+
+}

@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Rise.Shared.Enums;
+using Rise.Shared.Users;
 
 namespace Rise.Shared.Bookings;
 
@@ -18,7 +19,8 @@ public class BookingDto
         public string bookingId { get; set; } = default!;
         public DateTime bookingDate { get; set; } = DateTime.Now;
         public BoatDto.ViewBoat boat { get; set; } = new();
-        public BatteryDto.ViewBattery battery { get; set; } = new();
+        public BookingStatus status { get; set; } = BookingStatus.COMPLETED;
+        public UserDto.UserDetails contact { get; set; } = new();
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public TimeSlot timeSlot { get; set; }
