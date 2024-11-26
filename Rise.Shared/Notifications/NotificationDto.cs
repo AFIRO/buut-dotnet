@@ -122,7 +122,7 @@ public class NotificationDto
         /// <summary>
         /// Gets or sets the type of the notification.
         /// </summary>
-        public NotificationType Type { get; set; }
+        public NotificationType? Type { get; set; }
         /// <summary>
         /// Gets or sets the related entity ID associated with the notification.
         /// </summary>

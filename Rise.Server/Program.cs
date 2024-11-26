@@ -31,7 +31,7 @@ builder.Services.AddControllers()
     });
 
 builder.Services.AddEndpointsApiExplorer();
-// builder.Services.AddSwaggerGen();
+
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
@@ -96,15 +96,14 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseTriggers(options => options.AddTrigger<EntityBeforeSaveTrigger>());
 });
 
-// Register event dispatcher
-builder.Services.AddSingleton<IEventDispatcher, EventDispatcher>();
-
+// Register services
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IAuth0UserService, Auth0UserService>();
 builder.Services.AddScoped<IValidationService, ValidationService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 
+// Register event dispatcher
 builder.Services.AddSingleton<IEventDispatcher, EventDispatcher>();
 
 // Register open generic handlers
