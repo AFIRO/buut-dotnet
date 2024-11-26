@@ -353,6 +353,7 @@ public class BookingService : IBookingService
             bookingId = booking.Id,
             bookingDate = booking.BookingDate,
             boat = boat,
+            battery = battery,
             status = status,
             contact = contact,
             timeSlot = TimeSlotEnumExtensions.ToTimeSlot(booking.BookingDate.Hour),

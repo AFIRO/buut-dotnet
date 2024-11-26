@@ -4,7 +4,7 @@ public class BoatDto
 {
     public class NewBoat
     {
-        public string name { get; set; }= default!;
+        public string? name { get; set; }= default!;
     }
 
     public class ViewBoat

@@ -63,4 +63,10 @@
     <data name="DlgBookingCompletePt1" xml:space="preserve">
         <value>Uw boeking op {0} om {1} is geslaagd&lt;br&gt;&lt;br&gt;Twee dagen voor uw boeking zult u een e-mail en een notificatie ontvangen met alle informatie over de boot en de batterij.</value>
     </data>
+    <data name="DlgBookingEditedTtl" xml:space="preserve">
+        <value>Boeking gewijzigd!</value>
+    </data>
+    <data name="DlgBookingEditedPt1" xml:space="preserve">
+        <value>Uw boeking op {0} om {1} is succesvol gewijzigd!&lt;br&gt;&lt;br&gt;Twee dagen voor uw boeking zult u een e-mail en een notificatie ontvangen met alle informatie over de boot en de batterij.</value>
+    </data>
 </root>

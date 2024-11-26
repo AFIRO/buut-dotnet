@@ -1147,11 +1147,16 @@ public class BookingServiceTest
     }
 
     [Fact]
-    public async Task GetAllUserBookings_ShouldNotReturnDeletedBookings()
+    public async Task GetAllUserBookings_ShouldReturnBookingsWithRoles()
     {
         // Arrange
+        
+        // Clear existing bookings
+        _dbContext.Bookings.RemoveRange(_dbContext.Bookings);
+        await _dbContext.SaveChangesAsync();
+        
         var userId = "user1";
-        var validBooking = new Booking(DateTime.UtcNow.AddDays(5), userId)
+        var openBooking = new Booking(DateTime.UtcNow.AddDays(5), userId)
         {
             Id = Guid.NewGuid().ToString(),
             IsDeleted = false
@@ -1161,8 +1166,8 @@ public class BookingServiceTest
             Id = Guid.NewGuid().ToString(),
             IsDeleted = true // Soft deleted booking
         };
-
-        await _dbContext.Bookings.AddAsync(validBooking);
+        
+        await _dbContext.Bookings.AddAsync(openBooking);
         await _dbContext.Bookings.AddAsync(deletedBooking);
         await _dbContext.SaveChangesAsync();
 
@@ -1173,8 +1178,15 @@ public class BookingServiceTest
 
         // Assert
         Assert.NotNull(result);
-        Assert.Single(result);
-        Assert.Equal(validBooking.Id, result.First().bookingId);
+        // Assert that openBooking has status OPEN
+        var openBookingResult = result.FirstOrDefault(b => b.bookingId == openBooking.Id);
+        Assert.NotNull(openBookingResult);
+        Assert.Equal(BookingStatus.OPEN, openBookingResult.status);
+
+        // Assert that deletedBooking has status DELETED
+        var deletedBookingResult = result.FirstOrDefault(b => b.bookingId == deletedBooking.Id);
+        Assert.NotNull(deletedBookingResult);
+        Assert.Equal(BookingStatus.CANCELED, deletedBookingResult.status);
     }
 
     [Fact]

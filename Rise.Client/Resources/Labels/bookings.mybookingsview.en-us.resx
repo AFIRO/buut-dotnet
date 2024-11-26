@@ -20,25 +20,68 @@
     <data name="CancelBookingMessage" xml:space="preserve">
         <value>Are you sure you want to cancel your booking?</value>
     </data>
-    <data name="CancelBookingYes" xml:space="preserve">
+    <data name="ChoiceYes" xml:space="preserve">
         <value>Yes</value>
     </data>
-    <data name="CancelBookingNo" xml:space="preserve">
+    <data name="ChoiceNo" xml:space="preserve">
         <value>No</value>
+    </data>
+    <data name="FutureBookingTblBattery" xml:space="preserve">
+        <value>Battery</value>
+    </data>
+    <data name="FutureBookingTblBoat" xml:space="preserve">
+        <value>Boat</value>
+    </data>
+    <data name="FutureBookingTblDate" xml:space="preserve">
+        <value>Date</value>
+    </data>
+    <data name="FutureBookingTblTimeSlot" xml:space="preserve">
+        <value>Timeslot</value>
+    </data>
+    <data name="FutureBookingTitle" xml:space="preserve">
+        <value>Next bookings</value>
+    </data>
+    <data name="PreviousBookingsTblTitle" xml:space="preserve">
+        <value>Previous bookings</value>
+    </data>
+    <data name="PreviousBookingsTblDate" xml:space="preserve">
+        <value>Date</value>
+    </data>
+    <data name="PreviousBookingsTblTimeSlot" xml:space="preserve">
+        <value>Timeslot</value>
+    </data>
+    <data name="FutureBookingTblCancel" xml:space="preserve">
+        <value>Cancel</value>
     </data>
     <data name="BookingsTitle" xml:space="preserve">
         <value>Bookings</value>
     </data>
- 
-    <data name="NoBookings" xml:space="preserve">
+    <data name="TimeNotation" xml:space="preserve">
+        <value>h</value>
+    </data>
+    <data name="NoPastBookings" xml:space="preserve">
         <value>You have no past bookings on record. Start exploring and create unforgettable memories!</value>
     </data>
-	
-	<data name="Date" xml:space="preserve">
-        <value>Date</value>
+    <data name="NoFutureBookings" xml:space="preserve">
+        <value>You currently have no future bookings. Ready to make your next reservation?</value>
     </data>
-    <data name="TimeSlot" xml:space="preserve">
-        <value>Timeslot</value>
+    <data name="FutureBookingsTitle" xml:space="preserve">
+        <value>Next bookings</value>
+    </data>
+    <data name="EditBookingMessage" xml:space="preserve">
+        <value>Are you sure you want to edit this booking?</value>
+    </data>
+    <data name="EditBookingTitle" xml:space="preserve">
+        <value>Edit booking</value>
+    </data>
+    <data name="FutureBookingTblEdit" xml:space="preserve">
+        <value>Edit</value>
+    </data>
+    <data name="NoBatteryAssigned" xml:space="preserve">
+        <value>Not assigned</value>
+    </data>
+    <data name="NoBoatAssigned" xml:space="preserve">
+        <value>Not assigned</value>
     </data>
 
 	<data name="Status" xml:space="preserve">
@@ -75,8 +118,25 @@
 	<data name="COMPLETED" xml:space="preserve">
         <value>COMPLETED</value>
     </data>
-	<data name="CANCELED" xml:space="preserve">
+    <data name="FutureBookingsTitle" xml:space="preserve">
+        <value>Next bookings</value>
+    </data>
+    <data name="EditBookingMessage" xml:space="preserve">
+        <value>Are you sure you want to edit this booking?</value>
+    </data>
+    <data name="EditBookingTitle" xml:space="preserve">
+        <value>Edit booking</value>
+    </data>
+    <data name="FutureBookingTblEdit" xml:space="preserve">
+        <value>Edit</value>
+    </data>
+    <data name="CANCELED" xml:space="preserve">
         <value>CANCELED</value>
     </data>
-	
+    <data name="NoBatteryAssigned" xml:space="preserve">
+        <value>Not assigned</value>
+    </data>
+    <data name="NoBoatAssigned" xml:space="preserve">
+        <value>Not assigned</value>
+    </data>
 </root>

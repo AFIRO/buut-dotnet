@@ -257,9 +257,9 @@ public class NotificationService : INotificationService
             {
                 notification.IsRead = notificationDto.IsRead;
             }
-            if (notificationDto.Type != notification.Type)
+            if (notificationDto.Type.HasValue && notificationDto.Type != notification.Type)
             {
-                notification.Type = notificationDto.Type;
+                notification.Type = notificationDto.Type.Value;
             }
 
             // Save changes to the database

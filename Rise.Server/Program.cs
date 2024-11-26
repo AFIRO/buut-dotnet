@@ -34,7 +34,7 @@ builder.Services.AddControllers()
     });
 
 builder.Services.AddEndpointsApiExplorer();
-// builder.Services.AddSwaggerGen();
+
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
@@ -99,9 +99,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseTriggers(options => options.AddTrigger<EntityBeforeSaveTrigger>());
 });
 
-// Register event dispatcher
-builder.Services.AddSingleton<IEventDispatcher, EventDispatcher>();
-
+// Register services
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IEquipmentService<BoatDto.ViewBoat, BoatDto.NewBoat>, BoatService>();
@@ -114,6 +112,7 @@ builder.Services.AddScoped<BookingAllocationService>();
 
 builder.Services.AddHostedService<DailyTaskService>();
 
+// Register event dispatcher
 builder.Services.AddSingleton<IEventDispatcher, EventDispatcher>();
 
 // Register open generic handlers

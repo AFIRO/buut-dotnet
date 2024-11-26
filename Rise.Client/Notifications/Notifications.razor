@@ -30,6 +30,7 @@
                                 @Localizer["Title"]</th>
                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2 d-none d-md-table-cell">
                                 @Localizer["Message"]</th>
+                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"></th>
                             <th
                                 class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ">
                                 @Localizer["Sent"]</th>
@@ -38,7 +39,7 @@
                     <tbody>
                         @foreach (var notification in notifications)
                         {
-                            <tr @onclick="() => HandleNotificationClick(notification.NotificationId)"
+                            <tr @onclick="() => HandleNotificationClick(notification.NotificationId, notification.IsRead)"
                         style="vertical-align: middle;">
                         <td>
                             <div class="d-flex align-items-center px-2 py-1">
@@ -58,6 +59,7 @@
                                     <p class="text-xs font-weight-bold mb-0 text-start">
                                         @notification.Message</p>
                                 </td>
+                                <td class="align-middle text-center text-sm">@notification.Type</td>
                                 <td class="align-middle text-center text-sm">
                                     <div class="d-flex flex-column justify-content-center align-items-center">
                                         <h6 class="mb-0 text-xs">@notification.CreatedAt.ToShortDateString()</h6>
