@@ -21,6 +21,8 @@ public class BookingDto
         public BoatDto.ViewBoat boat { get; set; } = new();
         public BookingStatus status { get; set; } = BookingStatus.COMPLETED;
         public UserDto.UserDetails contact { get; set; } = new();
+        public BatteryDto.ViewBattery battery { get; set; } = new();
+        
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public TimeSlot timeSlot { get; set; }
