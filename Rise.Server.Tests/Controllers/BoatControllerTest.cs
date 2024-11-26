@@ -48,7 +48,7 @@ public class BoatControllerTest
     }  
 
     [Fact]
-    public async Task Post_ValidNewBooking_ReturnsCreatedActionResult()
+    public async Task Post_ValidNewBoat_ReturnsCreatedActionResult()
     {
         //Arrange
         var newBoat = new BoatDto.NewBoat{name = "New Boat"};

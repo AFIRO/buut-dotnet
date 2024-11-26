@@ -28,7 +28,7 @@ public class BatteryServiceTest
     #region GetAllAsync
 
     [Fact]
-    public async Task GetAllAsync_ExistingBatterys_ShouldReturnBatterys()
+    public async Task GetAllAsync_ExistingBatteries_ShouldReturnBatteries()
     {
         var testBattery = new Battery("TestBattery");
         await _dbContext.AddAsync(testBattery);
@@ -41,7 +41,7 @@ public class BatteryServiceTest
     }
 
     [Fact]
-    public async Task GetAllAsync_NoExistingBatterys_ShouldReturnNull()
+    public async Task GetAllAsync_NoExistingBatteries_ShouldReturnNull()
     {      
         var result = await _batteryService.GetAllAsync();        
         Assert.Null(result);

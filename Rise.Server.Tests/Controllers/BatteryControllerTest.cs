@@ -48,7 +48,7 @@ public class BatteryControllerTest
     }    
 
     [Fact]
-    public async Task Post_ValidNewBooking_ReturnsCreatedActionResult()
+    public async Task Post_ValidNewBattery_ReturnsCreatedActionResult()
     {
         //Arrange
         var newBattery = new BatteryDto.NewBattery{name = "New Battery"};
@@ -65,7 +65,7 @@ public class BatteryControllerTest
     }
 
     [Fact]
-    public async Task Post_NewBookingIsNull_ReturnsBadRequest()
+    public async Task Post_NewBatteryIsNull_ReturnsBadRequest()
     {   
         //Act
         var result = await _controller.Post(null);
