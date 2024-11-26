@@ -27,27 +27,68 @@
     <data name="CancelBookingMessage" xml:space="preserve">
         <value>Weet u zeker dat u uw boeking wilt annuleren?</value>
     </data>
-    <data name="CancelBookingYes" xml:space="preserve">
+    <data name="ChoiceYes" xml:space="preserve">
         <value>Ja</value>
     </data>
-    <data name="CancelBookingNo" xml:space="preserve">
+    <data name="ChoiceNo" xml:space="preserve">
         <value>Nee</value>
     </data>
-
-
+    <data name="FutureBookingTitle" xml:space="preserve">
+        <value>Volgende boekingen</value>
+    </data>
+    <data name="PreviousBookingsTblTitle" xml:space="preserve">
+        <value>Afgelopen boekingen</value>
+    </data>
+    <data name="FutureBookingTblDate" xml:space="preserve">
+        <value>Datum</value>
+    </data>
+    <data name="FutureBookingTblTimeSlot" xml:space="preserve">
+        <value>Tijdslot</value>
+    </data>
+    <data name="FutureBookingTblBoat" xml:space="preserve">
+        <value>Boot</value>
+    </data>
+    <data name="FutureBookingTblBattery" xml:space="preserve">
+        <value>Batterij</value>
+    </data>
+    <data name="PreviousBookingsTblDate" xml:space="preserve">
+        <value>Datum</value>
+    </data>
+    <data name="PreviousBookingsTblTimeSlot" xml:space="preserve">
+        <value>Tijdslot</value>
+    </data>
+    <data name="FutureBookingTblCancel" xml:space="preserve">
+        <value>Annuleer</value>
+    </data>
     <data name="BookingsTitle" xml:space="preserve">
         <value>Boekingen</value>
     </data>
-
-    <data name="NoBookings" xml:space="preserve">
+    <data name="TimeNotation" xml:space="preserve">
+        <value>u</value>
+    </data>
+    <data name="NoPastBookings" xml:space="preserve">
         <value>Je hebt nog geen eerdere boekingen. Begin met ontdekken en creëer onvergetelijke herinneringen!</value>
     </data>
-	
-	<data name="Date" xml:space="preserve">
-        <value>Datum</value>
+    <data name="FutureBookingsTitle" xml:space="preserve">
+        <value>Volgende boekingen</value>
     </data>
-    <data name="TimeSlot" xml:space="preserve">
-        <value>Tijdslot</value>
+    <data name="NoFutureBookings" xml:space="preserve">
+        <value>Je hebt op dit moment geen toekomstige reserveringen. Klaar om je volgende reservering te maken?</value>
+    </data>
+    <data name="EditBookingMessage" xml:space="preserve">
+        <value>Weet u zeker dat u uw boeking wilt aanpassen?</value>
+    </data>
+    <data name="EditBookingTitle" xml:space="preserve">
+        <value>Pas boeking aan</value>
+    </data>
+    <data name="FutureBookingTblEdit" xml:space="preserve">
+        <value>Aanpassen</value>
+    </data>
+    <data name="NoBatteryAssigned" xml:space="preserve">
+        <value>Niet toegewezen</value>
+    </data>
+    <data name="NoBoatAssigned" xml:space="preserve">
+        <value>Niet toegewezen</value>
     </data>
 
 	<data name="Status" xml:space="preserve">
@@ -86,5 +127,20 @@
     </data>
 		<data name="CANCELED" xml:space="preserve">
         <value>GEANNULEERD</value>
+    </data>
+    <data name="EditBookingMessage" xml:space="preserve">
+        <value>Weet u zeker dat u uw boeking wilt aanpassen?</value>
+    </data>
+    <data name="EditBookingTitle" xml:space="preserve">
+        <value>Pas boeking aan</value>
+    </data>
+    <data name="FutureBookingTblEdit" xml:space="preserve">
+        <value>Aanpassen</value>
+    </data>
+    <data name="NoBatteryAssigned" xml:space="preserve">
+        <value>Niet toegewezen</value>
+    </data>
+    <data name="NoBoatAssigned" xml:space="preserve">
+        <value>Niet toegewezen</value>
     </data>
 </root>

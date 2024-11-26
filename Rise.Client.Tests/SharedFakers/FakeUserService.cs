@@ -47,6 +47,11 @@ public class FakeUserService : IUserService
         throw new NotImplementedException();
     }
 
+    public Task<bool> UpdateUserRolesAsync(string userId, ImmutableList<RoleDto> newRoles)
+    {
+        throw new NotImplementedException();
+    }
+
     public Task<Boolean> IsEmailTakenAsync(string email)
     {
         throw new NotImplementedException();

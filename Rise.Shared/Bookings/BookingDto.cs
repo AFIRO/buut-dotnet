@@ -33,8 +33,8 @@ public class BookingDto
     {
         public string bookingId { get; set; } = default!;
         public DateTime? bookingDate { get; set; } = DateTime.Now;
-        public BoatDto.NewBoat? boat { get; set; } = new();
-        public BatteryDto.NewBattery? battery { get; set; } = new();
+        public BoatDto.NewBoat? boat { get; set; } = null;
+        public BatteryDto.NewBattery? battery { get; set; } = null;
     }
 
     public class ViewBookingCalender

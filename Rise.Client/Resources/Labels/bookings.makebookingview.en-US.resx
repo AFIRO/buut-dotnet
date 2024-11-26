@@ -63,4 +63,10 @@
     <data name="DlgBookingCompletePt1" xml:space="preserve">
         <value>Your booking on {0} at {1} has been successful!&lt;br&gt;&lt;br&gt;Two days before your booking you will get an e-mail and a notification with information about the boat and the battery.</value>
     </data>
+    <data name="DlgBookingEditedTtl" xml:space="preserve">
+        <value>Booking edited!</value>
+    </data>
+    <data name="DlgBookingEditedPt1" xml:space="preserve">
+        <value>Your booking on {0} at {1} has been successfully edited!&lt;br&gt;&lt;br&gt;Two days before your booking you will get an e-mail and a notification with information about the boat and the battery.</value>
+    </data>
 </root>
