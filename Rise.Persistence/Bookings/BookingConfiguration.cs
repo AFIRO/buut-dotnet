@@ -25,12 +25,12 @@ internal class BookingConfiguration : EntityConfiguration<Booking>
 
         builder
             .HasOne(x => x.Boat)
-            .WithOne()
-            .HasForeignKey<Booking>(x => x.BoatId);
+            .WithMany()
+            .HasForeignKey(x => x.BoatId);
         
         builder
             .HasOne(x => x.Battery)
-            .WithOne()
-            .HasForeignKey<Booking>(x => x.BatteryId);
+            .WithMany()
+            .HasForeignKey(x => x.BatteryId);
     }
 }

@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Rise.Shared.Boats;
 using Rise.Shared.Enums;
 using Rise.Shared.Users;
 
@@ -21,6 +22,8 @@ public class BookingDto
         public BoatDto.ViewBoat boat { get; set; } = new();
         public BookingStatus status { get; set; } = BookingStatus.COMPLETED;
         public UserDto.UserDetails contact { get; set; } = new();
+        public BatteryDto.ViewBattery battery { get; set; } = new();
+
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public TimeSlot timeSlot { get; set; }
@@ -31,8 +34,8 @@ public class BookingDto
     {
         public string bookingId { get; set; } = default!;
         public DateTime? bookingDate { get; set; } = DateTime.Now;
-        public BoatDto.NewBoat? boat { get; set; } = new();
-        public BatteryDto.NewBattery? battery { get; set; } = new();
+        public BoatDto.NewBoat? boat { get; set; } = null;
+        public BatteryDto.NewBattery? battery { get; set; } = null;
     }
 
     public class ViewBookingCalender

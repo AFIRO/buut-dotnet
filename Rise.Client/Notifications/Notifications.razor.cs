@@ -48,12 +48,12 @@ public partial class Notifications
         }
     }
 
-    private async void HandleNotificationClick(string NotificationId)
+    private async void HandleNotificationClick(string NotificationId, bool IsRead)
     {
         NotificationDto.UpdateNotification updateNotification = new NotificationDto.UpdateNotification
         {
             NotificationId = NotificationId,
-            IsRead = true
+            IsRead = !IsRead
         };
 
         var response = await NotificationService.UpdateNotificationAsync(updateNotification);

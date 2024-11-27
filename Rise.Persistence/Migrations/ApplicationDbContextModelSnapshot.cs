@@ -382,12 +382,12 @@ namespace Rise.Persistence.Migrations
             modelBuilder.Entity("Rise.Domain.Bookings.Booking", b =>
                 {
                     b.HasOne("Rise.Domain.Bookings.Battery", "Battery")
-                        .WithOne()
-                        .HasForeignKey("Rise.Domain.Bookings.Booking", "BatteryId");
+                        .WithMany()
+                        .HasForeignKey("BatteryId");
 
                     b.HasOne("Rise.Domain.Bookings.Boat", "Boat")
-                        .WithOne()
-                        .HasForeignKey("Rise.Domain.Bookings.Booking", "BoatId");
+                        .WithMany()
+                        .HasForeignKey("BoatId");
 
                     b.HasOne("Rise.Domain.Users.User", null)
                         .WithMany("Bookings")
