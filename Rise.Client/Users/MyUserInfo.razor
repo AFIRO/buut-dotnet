@@ -1,0 +1,274 @@
+@page "/MyInfo"
+@using Microsoft.Extensions.Localization
+@using Rise.Shared.Users
+@using Rise.Shared.Enums
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components
+@attribute [Authorize(Roles = "User")]
+@inject IStringLocalizer<MyUserInfo> Localizer
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>@Localizer["MyInfo"]</PageTitle>
+
+<h2>@Localizer["Title"]</h2>
+
+@if (_isLoading)
+{
+    <div class="loading-container" style="background-color: transparent;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else
+{
+    <div class="main-contentWrapper">
+    @if (!_isActiveEdit){
+
+        <div class="edit-btn-container">
+            <button class="btn bg-gradient-primary mt-4 mb-0 edit-btn" id="Edit-btn-top" type="button" @onclick="() => _isActiveEdit = true">@Localizer["Edit"] <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg></button>
+        </div>
+
+        <div>
+            <h4>@Localizer["LastName"]</h4>
+            <p>@tempUser.LastName</p>
+        </div>
+        <div>
+            <h4>@Localizer["FirstName"]</h4>
+            <p>@tempUser.FirstName</p>
+        </div>
+        <div>
+            <h4>@Localizer["PhoneNumber"]</h4>
+            <p>@tempUser.PhoneNumber</p>
+        </div>
+        <div>
+            <h4>@Localizer["BirthDate"]</h4>
+            <p>@tempUser.BirthDate.ToString("dd-MM-yyyy")</p>
+        </div>
+        <div>
+            <h4>@Localizer["Address"]</h4>
+            <p>@tempUser.Street @tempUser.HouseNumber @(tempUser.Bus != null ? tempUser.Bus : "")</p>
+        </div>
+        
+
+        <div class="edit-btn-container">
+            <button class="btn bg-gradient-primary mt-4 mb-0 edit-btn" id="Edit-btn-bottom" type="button" @onclick="() => _isActiveEdit = true">@Localizer["Edit"] <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg></button>
+        </div>
+    }
+    else{
+        <EditForm EditContext="_editContext" OnValidSubmit="SaveChanges">
+        <CustomDataAnnotationsValidator EditContext="_editContext" />
+        <ValidationSummary />
+
+        <h4 class="lable">@Localizer["LastName"]</h4>
+        <div class="input-wrapper">
+            <InputText class="@( $"form-input form-control mt-0 {(_isActiveEdit ? "" : "viewState")}")" @bind-Value="tempUser.LastName" />
+            <ValidationMessage For="@(() => tempUser.LastName)" />
+            
+        </div>
+
+        <h4 class="lable">@Localizer["FirstName"]</h4>
+        <div class="input-wrapper">
+            <InputText class="@( $"form-input form-control mt-0 {(_isActiveEdit ? "" : "viewState")}")" @bind-Value="tempUser.FirstName" />
+            <ValidationMessage For="@(() => tempUser.FirstName)" />
+        </div>
+
+        <h4 class="lable">@Localizer["PhoneNumber"]</h4>
+        <div class="input-wrapper">
+            <InputText class="@( $"form-input form-control mt-0 {(_isActiveEdit ? "" : "viewState")}")" @bind-Value="tempUser.PhoneNumber" />
+            <ValidationMessage For="@(() => tempUser.PhoneNumber)" />
+        </div> 
+
+        <h4 class="lable">@Localizer["BirthDate"]</h4>
+        <div id="Input-wrapper-BirthDate">
+            <InputDate class="@( $"form-input form-control mt-0 {(_isActiveEdit ? "" : "viewState")}")" @bind-Value="tempUser.BirthDate" />
+            <ValidationMessage For="@(() => tempUser.BirthDate)" />
+        </div> 
+
+        
+        <h4 class="lable" id="Address-lbl">@Localizer["Address"]</h4>
+        <div id="Address-wrapper">
+            <div id="Street-wrapper">
+                <h4 class="Address-lbl lable">@Localizer["Street"]</h4>
+                <InputText id="Street" class="@( $"form-input form-control mt-0 {(_isActiveEdit ? "" : "viewState")}")" @bind-Value="searchQuery" @oninput="OnSearchQueryChanged" />
+                @if (filteredStreets.Any())
+                {
+                    <ul class="list-group mt-1 street-list">
+                        @foreach (var street in filteredStreets)
+                        {
+                            <li class="list-group-item" style="cursor: pointer;" @onclick="() => SelectStreet(street)">
+                                @street
+                            </li>
+                        }
+                    </ul>
+                }
+                <ValidationMessage For="@(() => tempUser.Street)" />
+            </div>
+
+            <div id="HouseNumber-wrapper">
+                <h4 class="Address-lbl lable">@Localizer["HouseNumber"]</h4>
+                <InputText class="@( $"form-input form-control mt-0 {(_isActiveEdit ? "" : "viewState")}")" @bind-Value="tempUser.HouseNumber" />
+                <ValidationMessage For="@(() => tempUser.HouseNumber)" />
+            </div>
+
+            <div id="Bus-wrapper">
+                <h4 class="Address-lbl lable">@Localizer["Bus"]</h4>
+                <InputText class="@( $"form-input form-control mt-0 {(_isActiveEdit ? "" : "viewState")}")" @bind-Value="tempUser.Bus" />
+                <ValidationMessage For="@(() => tempUser.Bus)" />
+            </div>
+        </div>
+
+            <div class="changeUser-btn-menu-container">
+                <button class="btn bg-gradient-primary mt-4 mb-0 menu-btn-item" id="Save-btn" type="submit" disabled="@(!_isFormModified)">@Localizer["Save"] <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg></button>
+                <button class="btn bg-gradient-dark mt-4 mb-0 menu-btn-item" id="Cancel-btn" type="button" @onclick="() => _isActiveEdit = false">@Localizer["Cancel"]</button>
+            </div>
+        </EditForm>
+    }
+    </div>
+    
+}
+
+@code {
+    private string? userIdAuth0;
+    private bool _isLoading = false;
+    private UserDto.TempEditUser tempUser = new();
+    private UserDto.TempEditUser originalUser = new();
+    private string searchQuery = string.Empty;
+    private List<string> filteredStreets = new();
+    private EditContext _editContext;
+    private bool _isFormModified = false;
+    private bool _isActiveEdit = false;
+
+    [Inject] public required IUserService UserService { get; set; }
+    @inject NavigationManager Navigation
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoading = true;
+
+        // Get the current user's authentication state        
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+                
+        userIdAuth0 = authState.User.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;        
+        if (!string.IsNullOrEmpty(userIdAuth0))        
+        {            
+            var userDetails = await UserService.GetUserDetailsByIdAsync(userIdAuth0);
+            if (userDetails != null)
+            {
+                tempUser = new UserDto.TempEditUser
+                {
+                    Id = userDetails.Id,
+                    FirstName = userDetails.FirstName,
+                    LastName = userDetails.LastName,
+                    BirthDate = userDetails.BirthDate,
+                    PhoneNumber = userDetails.PhoneNumber,
+                    HouseNumber = userDetails.Address.HouseNumber,
+                    Street = userDetails.Address.Street,
+                    Bus = userDetails.Address.Bus
+                };
+
+                // original values to compare
+                originalUser = new UserDto.TempEditUser
+                {
+                    Id = userDetails.Id,
+                    FirstName = userDetails.FirstName,
+                    LastName = userDetails.LastName,
+                    BirthDate = userDetails.BirthDate,
+                    PhoneNumber = userDetails.PhoneNumber,
+                    HouseNumber = userDetails.Address.HouseNumber,
+                    Street = userDetails.Address.Street,
+                    Bus = userDetails.Address.Bus
+                };
+
+                searchQuery = tempUser.Street?.GetStreetName();
+            }
+        }
+
+        _editContext = new EditContext(tempUser);
+        _editContext.OnFieldChanged += HandleFieldChanged;
+        _isLoading = false;
+    }
+
+    private void HandleFieldChanged(object? sender, FieldChangedEventArgs e)
+    {
+        _isFormModified = _editContext.IsModified();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+
+        if (_editContext.Validate())
+        {
+            await SaveChanges();
+        }
+    }
+
+    private async Task SaveChanges()
+    {
+        if (tempUser == null) return;
+
+        UserDto.UpdateUser userToUpdate = new()
+        {
+            Id = tempUser.Id,
+            FirstName = tempUser.FirstName != originalUser.FirstName ? tempUser.FirstName : null,
+            LastName = tempUser.LastName != originalUser.LastName ? tempUser.LastName : null,
+            BirthDate = tempUser.BirthDate != originalUser.BirthDate ? tempUser.BirthDate : null,
+            PhoneNumber = tempUser.PhoneNumber != originalUser.PhoneNumber ? tempUser.PhoneNumber : null,
+            Address = new AddressDto.UpdateAddress
+            {
+                HouseNumber = tempUser.HouseNumber != originalUser.HouseNumber ? tempUser.HouseNumber : null,
+                Street = tempUser.Street != originalUser.Street ? tempUser.Street : null,
+                Bus = tempUser.Bus != originalUser.Bus ? tempUser.Bus : null
+            }
+        };
+        
+        var result = await UserService.UpdateUserAsync(userToUpdate);
+        if (result)
+        {
+            var currentUri = Navigation.Uri;
+            Navigation.NavigateTo("/temporary", forceLoad: false);
+            Navigation.NavigateTo(currentUri, forceLoad: false); // Soft refresh
+            //TODO Clean up Soft Refresh
+        }
+        else
+        {
+            //TODO add decent logging from backend, possible error messege that gets shown on screen in case of error returned from backend?
+        }
+    }
+
+    private void OnSearchQueryChanged(ChangeEventArgs e)
+    {
+        searchQuery = e.Value?.ToString() ?? string.Empty;
+        FilterStreets();
+    }
+
+    private void FilterStreets()
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery))
+        {
+            filteredStreets.Clear();
+            return;
+        }
+
+        filteredStreets = Enum.GetValues(typeof(StreetEnum))
+            .Cast<StreetEnum>()
+            .Select(street => street.GetStreetName())
+            .Where(name => name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+    }
+
+    private void SelectStreet(string streetName)
+    {
+        searchQuery = streetName;
+        filteredStreets.Clear();
+
+        try
+        {
+            tempUser.Street = StreetEnumExtensions.GetStreetEnum(streetName);
+        }
+        catch (ArgumentException ex)
+        {
+            //TODO same as before show propper error on screen or handle error in backend logging system
+        }
+    }
+}

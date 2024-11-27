@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Rise.Persistence;
 
@@ -11,9 +12,11 @@ using Rise.Persistence;
 namespace Rise.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241117192953_updatedNotifications")]
+    partial class updatedNotifications
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -382,12 +385,12 @@ namespace Rise.Persistence.Migrations
             modelBuilder.Entity("Rise.Domain.Bookings.Booking", b =>
                 {
                     b.HasOne("Rise.Domain.Bookings.Battery", "Battery")
-                        .WithMany()
-                        .HasForeignKey("BatteryId");
+                        .WithOne()
+                        .HasForeignKey("Rise.Domain.Bookings.Booking", "BatteryId");
 
                     b.HasOne("Rise.Domain.Bookings.Boat", "Boat")
-                        .WithMany()
-                        .HasForeignKey("BoatId");
+                        .WithOne()
+                        .HasForeignKey("Rise.Domain.Bookings.Booking", "BoatId");
 
                     b.HasOne("Rise.Domain.Users.User", null)
                         .WithMany("Bookings")

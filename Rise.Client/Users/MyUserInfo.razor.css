@@ -1,0 +1,96 @@
+.edit-btn-container{
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.edit-btn{
+    width: 20%;
+}
+
+.main-contentWrapper{
+    padding-inline: 5%;
+}
+
+.changeUser-btn-menu-container{
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+#Save-btn{
+    margin-right: 2%;
+}
+
+#Cancel-btn{
+    margin-left: 2%;
+}
+
+.menu-btn-item{
+    width: 20%;
+}
+
+p{
+    color: white;
+    font-weight: lighter;
+    margin-left: 1%;
+}
+
+h4{
+    font-size: 1.6rem;
+}
+
+h4.lable{
+    margin-top: 2%;
+    margin-bottom: 0px;
+}
+
+.input-wrapper, #Input-wrapper-BirthDate, #Address-wrapper{
+    margin-left: 1%;
+}
+
+
+
+
+
+@media (width > 990px){
+    .input-wrapper{
+        margin-right: 70%;
+    }
+
+    #Input-wrapper-BirthDate{
+        width: 200px;
+    }
+
+    .Address-lbl{
+        font-size: 1.2rem;
+    }
+
+    #Address-wrapper{
+        width: 100%;
+        display: flex;
+        justify-content: flex-start;
+        flex-direction: row;
+    }
+
+    #Street-wrapper{
+        width: 30%;
+    }
+
+    #HouseNumber-wrapper{
+        margin-left: 1%;
+        width: 15%;
+        padding: 0;
+    }
+
+    #Bus-wrapper{
+        margin-left: 1%;
+        width: 15%;
+    }
+
+    h4.Address-lbl{
+        margin-top: 7px;
+    }
+    
+}
+

@@ -23,7 +23,7 @@ public class BookingDto
         public BookingStatus status { get; set; } = BookingStatus.COMPLETED;
         public UserDto.UserDetails contact { get; set; } = new();
         public BatteryDto.ViewBattery battery { get; set; } = new();
-        
+
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public TimeSlot timeSlot { get; set; }

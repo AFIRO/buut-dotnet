@@ -234,7 +234,7 @@ public class BookingService : IBookingService
             return null;
         }
 
-        return query.Select(MapToDto).OrderByDescending(b => b.status == BookingStatus.OPEN) 
+        return query.Select(MapToDto).OrderByDescending(b => b.status == BookingStatus.OPEN)
             .ThenByDescending(b => b.bookingDate)
             .ToList();;
     }
@@ -313,11 +313,11 @@ public class BookingService : IBookingService
         }
 
         var boat = new BoatDto.ViewBoat();
-        
-        
+
+
         //todo status toevoegen aan DB for refunded
         BookingStatus status = BookingStatusHelper.GetBookingStatus(booking.IsDeleted, false, booking.BookingDate,booking.Boat != null && !booking.Boat.Name.IsNullOrEmpty());
-        
+
         if (booking.Boat != null && !booking.Boat.Name.IsNullOrEmpty())
         {
             boat = new BoatDto.ViewBoat()
@@ -327,7 +327,7 @@ public class BookingService : IBookingService
                 listComments = booking.Boat.ListComments,
             };
         }
-         
+
 
         var contact = new UserDto.UserDetails
         (
@@ -345,8 +345,8 @@ public class BookingService : IBookingService
             [new RoleDto() { Name = RolesEnum.User }],
             new DateTime(1990, 1, 1)
         );
-        
-        
+
+
         return new BookingDto.ViewBooking()
         {
             userId = booking.UserId,

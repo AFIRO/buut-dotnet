@@ -95,7 +95,7 @@ public class ValidationService : IValidationService
         {
             throw new ArgumentException("User does not exist.");
         }
-        
+
         return await _dbContext.Bookings.Where(x => x.IsDeleted == false && x.UserId == userId).CountAsync() > 0;
     }
 
