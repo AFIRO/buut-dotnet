@@ -80,41 +80,51 @@ public static class TableCellService
     /// <param name="cssClass">Additional CSS classes.</param>
     /// <returns>A RenderFragment representing the table cell.</returns>
     public static RenderFragment NotificationTitleCell(string title, bool isRead, EventCallback onClick, string cssClass = "") => builder =>
+{
+    builder.OpenElement(0, "td");
+    builder.AddAttribute(1, "onclick", onClick); // Attach the click event
+    builder.AddAttribute(2, "class", cssClass);
+
+    // Outer div
+    builder.OpenElement(3, "div");
+    builder.AddAttribute(4, "class", "d-flex align-items-center px-2 py-1 gap-2");
+
+    // Envelope Icon
+    string envelopeColor = isRead ? "green" : "red";
+    builder.OpenElement(5, "div");
+    builder.AddMarkupContent(6, isRead
+        ? $"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' style='fill:{envelopeColor}; width: 24px; height: 24px;'><path d='M255.4 48.2c.2-.1 .4-.2 .6-.2s.4 .1 .6 .2L460.6 194c2.1 1.5 3.4 3.9 3.4 6.5l0 13.6L291.5 355.7c-20.7 17-50.4 17-71.1 0L48 214.1l0-13.6c0-2.6 1.2-5 3.4-6.5L255.4 48.2zM48 276.2L190 392.8c38.4 31.5 93.7 31.5 132 0L464 276.2 464 456c0 4.4-3.6 8-8 8L56 464c-4.4 0-8-3.6-8-8l0-179.8zM256 0c-10.2 0-20.2 3.2-28.5 9.1L23.5 154.9C8.7 165.4 0 182.4 0 200.5L0 456c0 30.9 25.1 56 56 56l400 0c30.9 0 56-25.1 56-56l0-255.5c0-18.1-8.7-35.1-23.4-45.6L284.5 9.1C276.2 3.2 266.2 0 256 0z'/></svg>"
+        : $"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' style='fill:{envelopeColor}; width: 24px; height: 24px;'><path d='M64 112c-8.8 0-16 7.2-16 16l0 22.1L220.5 291.7c20.7 17 50.4 17 71.1 0L464 150.1l0-22.1c0-8.8-7.2-16-16-16L64 112zM48 212.2L48 384c0 8.8 7.2 16 16 16l384 0c8.8 0 16-7.2 16-16l0-171.8L322 328.8c-38.4 31.5-93.7 31.5-132 0L48 212.2zM0 128C0 92.7 28.7 64 64 64l384 0c35.3 0 64 28.7 64 64l0 256c0 35.3-28.7 64-64 64L64 448c-35.3 0-64-28.7-64-64L0 128z'/></svg>");
+    builder.CloseElement(); // Close SVG container
+
+    // Title div
+    builder.OpenElement(7, "div");
+    builder.AddAttribute(8, "class", "d-flex flex-column justify-content-center");
+
+    // Title text
+    builder.OpenElement(9, "h6");
+    builder.AddAttribute(10, "class", "mb-0 text-xs");
+    builder.AddContent(11, title);
+    builder.CloseElement(); // Close h6
+
+    builder.CloseElement(); // Close inner div for title
+    builder.CloseElement(); // Close outer div
+    builder.CloseElement(); // Close td
+};
+
+
+    public static RenderFragment NotificationMessageCell(string message, string cssClass = "") => builder =>
     {
         builder.OpenElement(0, "td");
-        builder.AddAttribute(1, "onclick", onClick); // Attach the click event
+        builder.AddAttribute(1, "class", cssClass);
 
-        // Outer div
         builder.OpenElement(2, "div");
-        builder.AddAttribute(3, "class", "d-flex align-items-center px-2 py-1");
-
-        // Title div
-        builder.OpenElement(4, "div");
-        builder.AddAttribute(5, "class", "d-flex flex-column justify-content-center");
-
-        // Title text
-        builder.OpenElement(6, "h6");
-        builder.AddAttribute(7, "class", "mb-0 text-xs");
-        builder.AddContent(8, title);
-        builder.CloseElement(); // Close h6
-
-        builder.CloseElement(); // Close inner div for title
-
-        // Badge div (conditionally rendered)
-        builder.OpenElement(8, "div");
-        builder.AddAttribute(9, "class", "m-0 p-0");
-        if (!isRead)
-        {
-            builder.OpenElement(10, "span");
-            builder.AddAttribute(11, "class", "badge p-1 ms-2");
-            builder.AddAttribute(12, "style", "background-color: #db110b; color: white; font-weight: bold;");
-            builder.AddContent(13, "New");
-            builder.CloseElement(); // Close span
-        }
-        builder.CloseElement(); // Close badge div
-
-        builder.CloseElement(); // Close outer div
-        builder.CloseElement(); // Close td
+        builder.OpenElement(3, "p");
+        builder.AddAttribute(4, "class", "text-xs font-weight-bold mb-0 text-start");
+        builder.AddContent(5, message);
+        builder.CloseElement(); // Close <p>
+        builder.CloseElement(); // Close <div>
+        builder.CloseElement(); // Close <td>
     };
 
 

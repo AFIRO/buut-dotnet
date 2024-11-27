@@ -4,6 +4,7 @@ using Xunit.Abstractions;
 using Shouldly;
 using Rise.Shared.Users;
 using Rise.Shared.Enums;
+using Moq;
 
 namespace Rise.Client.Users;
 
@@ -17,7 +18,13 @@ public class RegistrationShould : TestContext
         Services.AddXunitLogger(outputHelper);
         Services.AddScoped<IUserService, FakeUserService>();
         Services.AddLocalization();
+
+
+    // Properly mock JavaScript interop for autofill
+    JSInterop.SetupVoid("addAutofillEvent", _ => true);
+    JSInterop.SetupVoid("promptAutofill");
     }
+
 
     [Fact]
     public void RegisterPageRendersCorrectly()
@@ -75,7 +82,7 @@ public class RegistrationShould : TestContext
 
         // Render the Register component
         var cut = RenderComponent<Register>();
-        
+
         // Act: Fill in the form with valid data
         cut.Find("input#FirstName").Change(user.FirstName);
         cut.Find("input#LastName").Change(user.LastName);
@@ -89,19 +96,19 @@ public class RegistrationShould : TestContext
         cut.Find("input#Street").Input(user.Address.Street.ToString().ToLower());
 
         cut.Find("ul.street-list li").Click();
-        
+
         // Submit the form
         cut.Find("input#flexCheckDefault").Change(true);
         cut.Find("button[type='submit']").Click();
-        
+
         cut.FindAll("div.validation-message").Count.ShouldBeLessThanOrEqualTo(0); // There should be no validation errors
-        
+
         // Assert: Ensure CreateUserAsync was called
         var header = cut.Find("h2");
         Assert.NotNull(header);
         Assert.Contains("ThankForRegistering", header.TextContent);
     }
-    
+
     [Theory]
     [InlineData("FirstName", "FirstNameRequired")]
     [InlineData("LastName", "LastNameRequired")]

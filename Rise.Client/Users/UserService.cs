@@ -19,6 +19,8 @@ public class UserService : IUserService
         {
             PropertyNameCaseInsensitive = true
         };
+                // Add the immutable converters for System.Collections.Immutable types
+        this._jsonSerializerOptions.Converters.Add(new ImmutableListJsonConverter<RoleDto>());
         this._jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     }
 

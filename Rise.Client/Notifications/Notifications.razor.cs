@@ -78,7 +78,8 @@ public partial class Notifications
     {
         new(Localizer["Title"]),
         new(Localizer["Message"], "d-none d-md-table-cell"),
-        new(Localizer["Sent"])
+        new(Localizer["Type"], "text-center"),
+        new(Localizer["Sent"], "text-center")
     };
 
     private List<List<RenderFragment>> Data(IEnumerable<NotificationDto.ViewNotification> notifications)
@@ -89,7 +90,7 @@ public partial class Notifications
             var row = new List<RenderFragment>
             {
             TableCellService.NotificationTitleCell(notification.Title, notification.IsRead,EventCallback.Factory.Create(this, () => HandleNotificationClick(notification.NotificationId, notification.IsRead))),
-            TableCellService.UserCell(notification.Message, "d-none d-md-table-cell"),
+            TableCellService.NotificationMessageCell(notification.Message, "d-none d-md-table-cell"),
             TableCellService.BadgeCell(notification.Type.ToString()),
             TableCellService.DateAndTimeCell(notification.CreatedAt.ToShortDateString(),notification.CreatedAt.ToShortTimeString()),
             };

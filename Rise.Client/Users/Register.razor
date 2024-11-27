@@ -265,7 +265,7 @@
         _editContext = new EditContext(tempUser);
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    @* protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
@@ -279,7 +279,28 @@
 
             await Js.InvokeVoidAsync("promptAutofill");
         }
+    } *@
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+{
+    if (firstRender)
+    {
+        try
+        {
+            await Js.InvokeVoidAsync("addAutofillEvent", "FirstName", DotNetObjectReference.Create(this));
+            await Js.InvokeVoidAsync("addAutofillEvent", "LastName", DotNetObjectReference.Create(this));
+            await Js.InvokeVoidAsync("addAutofillEvent", "Email", DotNetObjectReference.Create(this));
+            await Js.InvokeVoidAsync("addAutofillEvent", "PhoneNumber", DotNetObjectReference.Create(this));
+            await Js.InvokeVoidAsync("addAutofillEvent", "BirthDate", DotNetObjectReference.Create(this));
+
+            await Js.InvokeVoidAsync("promptAutofill");
+        }
+        catch (JSException ex)
+        {
+            Console.WriteLine($"JSInterop error: {ex.Message}"); // Optional: Log the error for debugging
+        }
     }
+}
+
 
     [JSInvokable]
     public void UpdateValue(string inputId, string value)
