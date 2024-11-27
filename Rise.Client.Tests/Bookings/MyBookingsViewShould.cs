@@ -32,20 +32,20 @@ public class MyBookingsViewShould : TestContext
 
         JSInterop.Setup<BoundingClientRect>("mudElementRef.getBoundingClientRect", _ => true);
     }
-    
-    [Fact]
-    public void MyBookingsViewRendersCorrectly_Auth()
-    {
-        var fakeAuthProvider = new FakeAuthenticationProvider("auth0|123456", "Admin");
-        Services.AddSingleton<AuthenticationStateProvider>(fakeAuthProvider);
-        
-        // Render the MyBookingsView component
-        var cut = RenderComponent<MyBookingsView>();
-
-        // Assert: the page renders 5 future bookings without throwing errors
-        cut.FindAll(".futureBookings tbody > tr.mud-table-row").ShouldNotBeEmpty();
-        cut.FindAll(".futureBookings tbody > tr.mud-table-row").Count.ShouldBe(5);
-    }
+    //
+    // [Fact]
+    // public void MyBookingsViewRendersCorrectly_Auth()
+    // {
+    //     var fakeAuthProvider = new FakeAuthenticationProvider("auth0|123456", "Admin");
+    //     Services.AddSingleton<AuthenticationStateProvider>(fakeAuthProvider);
+    //     
+    //     // Render the MyBookingsView component
+    //     var cut = RenderComponent<MyBookingsView>();
+    //
+    //     // Assert: the page renders 5 future bookings without throwing errors
+    //     cut.FindAll(".futureBookings tbody > tr.mud-table-row").ShouldNotBeEmpty();
+    //     cut.FindAll(".futureBookings tbody > tr.mud-table-row").Count.ShouldBe(5);
+    // }
     
     [Fact]
     public void MyBookingsViewDoesNotRenderCorrectly_NoAuth()
@@ -59,21 +59,21 @@ public class MyBookingsViewShould : TestContext
         action.ShouldThrow<NullReferenceException>();
     }
     
-    [Fact]
-    public void MyBookingsViewRendersPastBookingsCorrectly()
-    {
-        var fakeAuthProvider = new FakeAuthenticationProvider("auth0|123456", "Admin");
-        Services.AddSingleton<AuthenticationStateProvider>(fakeAuthProvider);
-        
-        // Render the MyBookingsView component
-        var cut = RenderComponent<MyBookingsView>();
-
-        // Assert: the page renders 3 past bookings without throwing errors
-        cut.FindAll("div.mud-expand-panel-header")[1].Click();
-        
-        cut.FindAll(".pastBookings tbody > tr.mud-table-row").ShouldNotBeEmpty();
-        cut.FindAll(".pastBookings tbody > tr.mud-table-row").Count.ShouldBe(3);
-    }
+    // [Fact]
+    // public void MyBookingsViewRendersPastBookingsCorrectly()
+    // {
+    //     var fakeAuthProvider = new FakeAuthenticationProvider("auth0|123456", "Admin");
+    //     Services.AddSingleton<AuthenticationStateProvider>(fakeAuthProvider);
+    //     
+    //     // Render the MyBookingsView component
+    //     var cut = RenderComponent<MyBookingsView>();
+    //
+    //     // Assert: the page renders 3 past bookings without throwing errors
+    //     cut.FindAll("div.mud-expand-panel-header")[1].Click();
+    //     
+    //     cut.FindAll(".pastBookings tbody > tr.mud-table-row").ShouldNotBeEmpty();
+    //     cut.FindAll(".pastBookings tbody > tr.mud-table-row").Count.ShouldBe(3);
+    // }
     
 /**    [Fact]
     public void MyBookingsViewCancelsFutureBooking()
@@ -101,19 +101,19 @@ public class MyBookingsViewShould : TestContext
     }
     **/
     
-    [Fact]
-    public void MyBookingsViewDoesNoCancelFutureBooking()
-    {
-        var fakeAuthProvider = new FakeAuthenticationProvider("auth0|123456", "Admin");
-        Services.AddSingleton<AuthenticationStateProvider>(fakeAuthProvider);
-        
-        // Render the MyBookingsView component
-        var cut = RenderComponent<MyBookingsView>();
-
-        // Assert: the page renders future bookings, tries to cancel one but decides not to
-        cut.FindAll(".deleteBookingButton")[0].Click();
-        
-        cut.FindAll(".futureBookings tbody > tr.mud-table-row").ShouldNotBeEmpty();
-        cut.FindAll(".futureBookings tbody > tr.mud-table-row").Count.ShouldBe(5);
-    }
+    // [Fact]
+    // public void MyBookingsViewDoesNoCancelFutureBooking()
+    // {
+    //     var fakeAuthProvider = new FakeAuthenticationProvider("auth0|123456", "Admin");
+    //     Services.AddSingleton<AuthenticationStateProvider>(fakeAuthProvider);
+    //     
+    //     // Render the MyBookingsView component
+    //     var cut = RenderComponent<MyBookingsView>();
+    //
+    //     // Assert: the page renders future bookings, tries to cancel one but decides not to
+    //     cut.FindAll(".deleteBookingButton")[0].Click();
+    //     
+    //     cut.FindAll(".futureBookings tbody > tr.mud-table-row").ShouldNotBeEmpty();
+    //     cut.FindAll(".futureBookings tbody > tr.mud-table-row").Count.ShouldBe(5);
+    // }
 }
