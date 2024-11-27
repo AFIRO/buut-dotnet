@@ -68,4 +68,17 @@
   <value>Busnummer</value>
 </data>
 
+//btns-------------------------------------------------------
+<data name="Edit" xml:space="preserve">
+  <value>Wijzig</value>
+</data>
+
+<data name="Save" xml:space="preserve">
+  <value>Opslaan</value>
+</data>
+
+<data name="Cancel" xml:space="preserve">
+  <value>Annuleren</value>
+</data>
+
 </root>

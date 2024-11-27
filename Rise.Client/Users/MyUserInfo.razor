@@ -22,68 +22,110 @@
 }
 else
 {
-    <EditForm EditContext="_editContext" OnValidSubmit="SaveChanges">
-        <CustomDataAnnotationsValidator EditContext="_editContext" />
-        <ValidationSummary />
+    <div class="main-contentWrapper">
+    @if (!_isActiveEdit){
+
+        <div class="edit-btn-container">
+            <button class="btn bg-gradient-primary mt-4 mb-0 edit-btn" id="Edit-btn-top" type="button" @onclick="() => _isActiveEdit = true">@Localizer["Edit"] <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg></button>
+        </div>
+
         <div>
             <h4>@Localizer["LastName"]</h4>
-            <InputText class="form-input form-control mt-0" @bind-Value="tempUser.LastName" />
+            <p>@tempUser.LastName</p>
+        </div>
+        <div>
+            <h4>@Localizer["FirstName"]</h4>
+            <p>@tempUser.FirstName</p>
+        </div>
+        <div>
+            <h4>@Localizer["PhoneNumber"]</h4>
+            <p>@tempUser.PhoneNumber</p>
+        </div>
+        <div>
+            <h4>@Localizer["BirthDate"]</h4>
+            <p>@tempUser.BirthDate.ToString("dd-MM-yyyy")</p>
+        </div>
+        <div>
+            <h4>@Localizer["Address"]</h4>
+            <p>@tempUser.Street @tempUser.HouseNumber @(tempUser.Bus != null ? tempUser.Bus : "")</p>
+        </div>
+        
+
+        <div class="edit-btn-container">
+            <button class="btn bg-gradient-primary mt-4 mb-0 edit-btn" id="Edit-btn-bottom" type="button" @onclick="() => _isActiveEdit = true">@Localizer["Edit"] <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg></button>
+        </div>
+    }
+    else{
+        <EditForm EditContext="_editContext" OnValidSubmit="SaveChanges">
+        <CustomDataAnnotationsValidator EditContext="_editContext" />
+        <ValidationSummary />
+
+        <h4 class="lable">@Localizer["LastName"]</h4>
+        <div class="input-wrapper">
+            <InputText class="@( $"form-input form-control mt-0 {(_isActiveEdit ? "" : "viewState")}")" @bind-Value="tempUser.LastName" />
             <ValidationMessage For="@(() => tempUser.LastName)" />
             
         </div>
 
-        <div>
-            <h4>@Localizer["FirstName"]</h4>
-            <InputText class="form-input form-control mt-0" @bind-Value="tempUser.FirstName" />
+        <h4 class="lable">@Localizer["FirstName"]</h4>
+        <div class="input-wrapper">
+            <InputText class="@( $"form-input form-control mt-0 {(_isActiveEdit ? "" : "viewState")}")" @bind-Value="tempUser.FirstName" />
             <ValidationMessage For="@(() => tempUser.FirstName)" />
         </div>
 
-        <div>
-            <h4>@Localizer["PhoneNumber"]</h4>
-            <InputText class="form-input form-control mt-0" @bind-Value="tempUser.PhoneNumber" />
+        <h4 class="lable">@Localizer["PhoneNumber"]</h4>
+        <div class="input-wrapper">
+            <InputText class="@( $"form-input form-control mt-0 {(_isActiveEdit ? "" : "viewState")}")" @bind-Value="tempUser.PhoneNumber" />
             <ValidationMessage For="@(() => tempUser.PhoneNumber)" />
         </div> 
 
-        <div>
-            <h4>@Localizer["BirthDate"]</h4>
-            <InputDate class="form-input form-control mt-0" @bind-Value="tempUser.BirthDate" />
+        <h4 class="lable">@Localizer["BirthDate"]</h4>
+        <div id="Input-wrapper-BirthDate">
+            <InputDate class="@( $"form-input form-control mt-0 {(_isActiveEdit ? "" : "viewState")}")" @bind-Value="tempUser.BirthDate" />
             <ValidationMessage For="@(() => tempUser.BirthDate)" />
         </div> 
 
-        <div>
-            <h4>@Localizer["Address"]</h4>
-        </div>
-        <div>
-            <h4>@Localizer["Street"]</h4>
-            <InputText id="Street" class="form-input form-control mt-0" @bind-Value="searchQuery" @oninput="OnSearchQueryChanged" />
-            @if (filteredStreets.Any())
-            {
-                <ul class="list-group mt-1 street-list">
-                    @foreach (var street in filteredStreets)
-                    {
-                        <li class="list-group-item" style="cursor: pointer;" @onclick="() => SelectStreet(street)">
-                            @street
-                        </li>
-                    }
-                </ul>
-            }
-            <ValidationMessage For="@(() => tempUser.Street)" />
+        
+        <h4 class="lable" id="Address-lbl">@Localizer["Address"]</h4>
+        <div id="Address-wrapper">
+            <div id="Street-wrapper">
+                <h4 class="Address-lbl lable">@Localizer["Street"]</h4>
+                <InputText id="Street" class="@( $"form-input form-control mt-0 {(_isActiveEdit ? "" : "viewState")}")" @bind-Value="searchQuery" @oninput="OnSearchQueryChanged" />
+                @if (filteredStreets.Any())
+                {
+                    <ul class="list-group mt-1 street-list">
+                        @foreach (var street in filteredStreets)
+                        {
+                            <li class="list-group-item" style="cursor: pointer;" @onclick="() => SelectStreet(street)">
+                                @street
+                            </li>
+                        }
+                    </ul>
+                }
+                <ValidationMessage For="@(() => tempUser.Street)" />
+            </div>
+
+            <div id="HouseNumber-wrapper">
+                <h4 class="Address-lbl lable">@Localizer["HouseNumber"]</h4>
+                <InputText class="@( $"form-input form-control mt-0 {(_isActiveEdit ? "" : "viewState")}")" @bind-Value="tempUser.HouseNumber" />
+                <ValidationMessage For="@(() => tempUser.HouseNumber)" />
+            </div>
+
+            <div id="Bus-wrapper">
+                <h4 class="Address-lbl lable">@Localizer["Bus"]</h4>
+                <InputText class="@( $"form-input form-control mt-0 {(_isActiveEdit ? "" : "viewState")}")" @bind-Value="tempUser.Bus" />
+                <ValidationMessage For="@(() => tempUser.Bus)" />
+            </div>
         </div>
 
-        <div>
-            <h4>@Localizer["HouseNumber"]</h4>
-            <InputText class="form-input form-control mt-0" @bind-Value="tempUser.HouseNumber" />
-            <ValidationMessage For="@(() => tempUser.HouseNumber)" />
-        </div>
-
-        <div>
-            <h4>@Localizer["Bus"]</h4>
-            <InputText class="form-input form-control mt-0" @bind-Value="tempUser.Bus" />
-            <ValidationMessage For="@(() => tempUser.Bus)" />
-        </div>
-
-        <button class="btn-primary" type="submit" disabled="@(!_isFormModified)">Save</button>
-    </EditForm>
+            <div class="changeUser-btn-menu-container">
+                <button class="btn bg-gradient-primary mt-4 mb-0 menu-btn-item" id="Save-btn" type="submit" disabled="@(!_isFormModified)">@Localizer["Save"] <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg></button>
+                <button class="btn bg-gradient-dark mt-4 mb-0 menu-btn-item" id="Cancel-btn" type="button" @onclick="() => _isActiveEdit = false">@Localizer["Cancel"]</button>
+            </div>
+        </EditForm>
+    }
+    </div>
+    
 }
 
 @code {
@@ -95,8 +137,10 @@ else
     private List<string> filteredStreets = new();
     private EditContext _editContext;
     private bool _isFormModified = false;
+    private bool _isActiveEdit = false;
 
     [Inject] public required IUserService UserService { get; set; }
+    @inject NavigationManager Navigation
     
     protected override async Task OnInitializedAsync()
     {
@@ -186,6 +230,9 @@ else
         if (result)
         {
             Console.WriteLine("User updated successfully");
+            var currentUri = Navigation.Uri;
+            Navigation.NavigateTo("/temporary", forceLoad: false);
+            Navigation.NavigateTo(currentUri, forceLoad: false); // Soft refresh
         }
         else
         {
