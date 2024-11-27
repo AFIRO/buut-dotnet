@@ -79,7 +79,6 @@ public class UserService : IUserService
         // Console.WriteLine(jsonString);
         try
         {
-            Console.WriteLine("Updating user...");
             Console.WriteLine(userDetails);
             var response = await _httpClient.PutAsJsonAsync("user", userDetails);
             if (response.IsSuccessStatusCode)

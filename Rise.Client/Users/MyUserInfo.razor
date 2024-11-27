@@ -222,22 +222,17 @@ else
             }
         };
         
-    
-
-        Console.WriteLine(userToUpdate);
-        
         var result = await UserService.UpdateUserAsync(userToUpdate);
         if (result)
         {
-            Console.WriteLine("User updated successfully");
             var currentUri = Navigation.Uri;
             Navigation.NavigateTo("/temporary", forceLoad: false);
             Navigation.NavigateTo(currentUri, forceLoad: false); // Soft refresh
+            //TODO Clean up Soft Refresh
         }
         else
         {
-            Console.WriteLine("User update failed");
-            Console.WriteLine(result);
+            //TODO add decent logging from backend, possible error messege that gets shown on screen in case of error returned from backend?
         }
     }
 
@@ -273,7 +268,7 @@ else
         }
         catch (ArgumentException ex)
         {
-            Console.WriteLine(ex.Message);
+            //TODO same as before show propper error on screen or handle error in backend logging system
         }
     }
 }
