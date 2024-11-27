@@ -166,11 +166,15 @@ public class Seeder
 
     private void SeedBoats()
     {
-        for (int i = 1; i <= 3; i++)
+        var boats = new List<Boat>
         {
-            dbContext.Boats.Add(new Boat("Boat" + i));
-        }
-        dbContext.SaveChanges();
+            new Boat("Leith"),
+            new Boat("Lubeck"),
+            new Boat("Limba")
+        };
+
+        boats.ForEach(boat => dbContext.Boats.Add(boat));
+        dbContext.SaveChanges();        
     }
 
     private void SeedBatteries()

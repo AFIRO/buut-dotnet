@@ -1,4 +1,4 @@
-namespace Rise.Shared.Bookings;
+namespace Rise.Shared.Boats;
 
 public class BoatDto
 {

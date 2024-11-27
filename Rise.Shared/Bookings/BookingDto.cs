@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Rise.Shared.Boats;
 using Rise.Shared.Enums;
 using Rise.Shared.Users;
 

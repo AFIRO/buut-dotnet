@@ -7,6 +7,8 @@ public static class NavigationService
     public static List<NavigationLink> GetNavigationLinks() => new()
     {
         new NavigationLink("userspage", "ManageUsers", authenticated: true, role: RolesEnum.Admin),
+        new NavigationLink("boats", "Boats", authenticated: true, role: RolesEnum.Admin),
+        new NavigationLink("batteries", "Batteries", authenticated: true, role: RolesEnum.Admin),
         new NavigationLink("informatie", "Information", authenticated: false),
         new NavigationLink("actua", "Actua", authenticated: false),
         new NavigationLink("meter-peter", "Sponsors", authenticated: false),
@@ -19,6 +21,8 @@ public static class NavigationService
     {
         new PageInfo("", backgroundImage: "img/Buut_BG.png", renderHeader: false),
         new PageInfo("userspage"),
+        new PageInfo("boats"),
+        new PageInfo("batteries"),
         new PageInfo("userdetails/{userId}"),
         new PageInfo("informatie"),
         new PageInfo("actua"),
