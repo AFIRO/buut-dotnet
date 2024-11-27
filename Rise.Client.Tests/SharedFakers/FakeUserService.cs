@@ -83,6 +83,11 @@ public class FakeUserService : IUserService
         return Task.FromResult(userDetails ?? null);
     }
 
+    public Task<bool> UpdateUserRolesAsync(string userId, ImmutableList<RoleDto> newRoles)
+    {
+        throw new NotImplementedException();
+    }
+
     // public Task<bool> UpdateUserAsync(int id, UserDto.UpdateUser userDetails)
     // {
     //     return Task.FromResult(true);
