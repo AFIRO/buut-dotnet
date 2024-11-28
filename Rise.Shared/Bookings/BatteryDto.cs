@@ -4,7 +4,7 @@ public class BatteryDto
 {
     public class NewBattery
     {
-        public string name { get; set; } = default!;
+        public string? name { get; set; } = default!;
     }
 
     public class ViewBattery

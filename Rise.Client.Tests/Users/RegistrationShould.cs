@@ -145,3 +145,4 @@ public class RegistrationShould : TestContext
         cut.Find("div.validation-message").TextContent.ShouldContain(expectedMessage);
     }
 }
+

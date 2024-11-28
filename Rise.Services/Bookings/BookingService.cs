@@ -12,6 +12,7 @@ using Rise.Shared.Enums;
 using Rise.Services.Users;
 using Rise.Shared.Services;
 using Rise.Shared.Users;
+using Rise.Shared.Boats;
 
 namespace Rise.Services.Bookings;
 
@@ -38,6 +39,10 @@ public class BookingService : IBookingService
         };
     }
 
+    /// <summary>
+    /// Retrieves all bookings.
+    /// </summary>
+    /// <returns>A collection of all bookings.</returns>
     public async Task<IEnumerable<BookingDto.ViewBooking>> GetAllAsync()
     {
         // Changed method so that DTO creation is out of the LINQ Query
@@ -57,6 +62,12 @@ public class BookingService : IBookingService
         return query.Select(MapToDto);
     }
 
+    /// <summary>
+    /// Retrieves a booking by its ID.
+    /// </summary>
+    /// <param name="id">The ID of the booking to retrieve.</param>
+    /// <returns>The booking details if found; otherwise, null.</returns>
+    /// <exception cref="ArgumentException">Thrown when the booking ID is null or empty.</exception>
     public async Task<BookingDto.ViewBooking> GetBookingById(string id)
     {
         CheckBookingIdNullOrWhiteSpace(id);
@@ -76,23 +87,35 @@ public class BookingService : IBookingService
         return MapToDto(query);
     }
 
+    /// <summary>
+    /// Creates a new booking.
+    /// </summary>
+    /// <param name="booking">The booking details to create.</param>
+    /// <returns>The created booking details.</returns>
+    /// <exception cref="ArgumentException">
+    /// Thrown when the user ID is null or empty, or when the booking date is invalid.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the user has reached the maximum number of bookings allowed, or when the booking already exists on the specified date.
+    /// </exception>
+    /// <exception cref="UserNotFoundException">Thrown when the user does not exist.</exception>
     public async Task<BookingDto.ViewBooking> CreateBookingAsync(BookingDto.NewBooking booking)
     {
         await ValidateUser(booking.userId); // Await the call to ensure exceptions are caught
 
-        //Check if user has not reached the maximum allowed bookings
+        // Check if user has not reached the maximum allowed bookings
         if (await _validationService.CheckUserMaxBookings(booking.userId))
         {
             throw new InvalidOperationException("You have reached the maximum number of bookings allowed.");
         }
 
-        //Check if the requested booking is still available
+        // Check if the requested booking is still available
         if (await _validationService.BookingExists(booking.bookingDate))
         {
             throw new InvalidOperationException("Booking already exists on this date");
         }
 
-        //Check if requested booking is within the set timerange
+        // Check if requested booking is within the set time range
         if (!CheckWithinDateRange(booking.bookingDate))
         {
             throw new ArgumentException(
@@ -111,6 +134,17 @@ public class BookingService : IBookingService
         return MapToDto(created.Entity);
     }
 
+    /// <summary>
+    /// Updates an existing booking.
+    /// </summary>
+    /// <param name="booking">The booking details to update.</param>
+    /// <returns>A boolean indicating whether the update was successful.</returns>
+    /// <exception cref="ArgumentException">Thrown when the booking ID is null or empty.</exception>
+    /// <exception cref="Exception">Thrown when the booking is not found.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown when the new booking date is outside the allowed range.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">Thrown when a booking already exists on the new date.</exception>
     public async Task<bool> UpdateBookingAsync(BookingDto.UpdateBooking booking)
     {
         CheckBookingIdNullOrWhiteSpace(booking.bookingId);
@@ -135,15 +169,19 @@ public class BookingService : IBookingService
             entity.BookingDate = booking.bookingDate.Value;
         }
 
-        //         /*entity.Boat = booking.boat ?? entity.Boat;
-        //         entity.Battery = booking.battery ?? entity.Battery;
-        //
         _dbContext.Bookings.Update(entity);
         int response = await _dbContext.SaveChangesAsync();
 
         return response > 0;
     }
 
+    /// <summary>
+    /// Deletes a booking by its ID.
+    /// </summary>
+    /// <param name="bookingId">The ID of the booking to delete.</param>
+    /// <returns>A boolean indicating whether the deletion was successful.</returns>
+    /// <exception cref="ArgumentException">Thrown when the booking ID is null or empty.</exception>
+    /// <exception cref="Exception">Thrown when the booking is not found.</exception>
     public async Task<bool> DeleteBookingAsync(string bookingId)
     {
         CheckBookingIdNullOrWhiteSpace(bookingId);
@@ -156,6 +194,11 @@ public class BookingService : IBookingService
         return true;
     }
 
+    /// <summary>
+    /// Checks if the booking ID is null or whitespace.
+    /// </summary>
+    /// <param name="bookingId">The booking ID to check.</param>
+    /// <exception cref="ArgumentException">Thrown when the booking ID is null or empty.</exception>
     private static void CheckBookingIdNullOrWhiteSpace(string bookingId)
     {
         if (string.IsNullOrWhiteSpace(bookingId))
@@ -165,6 +208,13 @@ public class BookingService : IBookingService
     }
 
 
+    /// <summary>
+    /// Retrieves all bookings for a specific user.
+    /// </summary>
+    /// <param name="userId">The ID of the user whose bookings are to be retrieved.</param>
+    /// <returns>A collection of the user's bookings, or null if no bookings are found.</returns>
+    /// <exception cref="ArgumentException">Thrown when the user ID is null or empty.</exception>
+    /// <exception cref="UserNotFoundException">Thrown when the user does not exist.</exception>
     public async Task<IEnumerable<BookingDto.ViewBooking>?> GetAllUserBookings(string userId)
     {
         await ValidateUser(userId); // Await the call to ensure exceptions are caught
@@ -184,11 +234,18 @@ public class BookingService : IBookingService
             return null;
         }
 
-        return query.Select(MapToDto).OrderByDescending(b => b.status == BookingStatus.OPEN) 
+        return query.Select(MapToDto).OrderByDescending(b => b.status == BookingStatus.OPEN)
             .ThenByDescending(b => b.bookingDate)
             .ToList();;
     }
 
+    /// <summary>
+    /// Retrieves all future bookings for a specific user.
+    /// </summary>
+    /// <param name="userId">The ID of the user whose future bookings are to be retrieved.</param>
+    /// <returns>A collection of the user's future bookings, or null if no bookings are found.</returns>
+    /// <exception cref="ArgumentException">Thrown when the user ID is null or empty.</exception>
+    /// <exception cref="UserNotFoundException">Thrown when the user does not exist.</exception>
     public async Task<IEnumerable<BookingDto.ViewBooking>?> GetFutureUserBookings(string userId)
     {
         await ValidateUser(userId); // Await the call to ensure exceptions are caught
@@ -211,6 +268,13 @@ public class BookingService : IBookingService
         return query.Select(MapToDto);
     }
 
+    /// <summary>
+    /// Retrieves all past bookings for a specific user.
+    /// </summary>
+    /// <param name="userId">The ID of the user whose past bookings are to be retrieved.</param>
+    /// <returns>A collection of the user's past bookings, or null if no bookings are found.</returns>
+    /// <exception cref="ArgumentException">Thrown when the user ID is null or empty.</exception>
+    /// <exception cref="UserNotFoundException">Thrown when the user does not exist.</exception>
     public async Task<IEnumerable<BookingDto.ViewBooking>?> GetPastUserBookings(string userId)
     {
         await ValidateUser(userId); // Await the call to ensure exceptions are caught
@@ -230,6 +294,11 @@ public class BookingService : IBookingService
         return query.Select(MapToDto);
     }
 
+    /// <summary>
+    /// Maps a Booking entity to a BookingDto.ViewBooking.
+    /// </summary>
+    /// <param name="booking">The booking entity to map.</param>
+    /// <returns>A BookingDto.ViewBooking object containing the mapped details.</returns>
     private BookingDto.ViewBooking MapToDto(Booking booking)
     {
         var battery = new BatteryDto.ViewBattery();
@@ -244,11 +313,11 @@ public class BookingService : IBookingService
         }
 
         var boat = new BoatDto.ViewBoat();
-        
-        
+
+
         //todo status toevoegen aan DB for refunded
         BookingStatus status = BookingStatusHelper.GetBookingStatus(booking.IsDeleted, false, booking.BookingDate,booking.Boat != null && !booking.Boat.Name.IsNullOrEmpty());
-        
+
         if (booking.Boat != null && !booking.Boat.Name.IsNullOrEmpty())
         {
             boat = new BoatDto.ViewBoat()
@@ -258,7 +327,7 @@ public class BookingService : IBookingService
                 listComments = booking.Boat.ListComments,
             };
         }
-         
+
 
         var contact = new UserDto.UserDetails
         (
@@ -276,8 +345,8 @@ public class BookingService : IBookingService
             [new RoleDto() { Name = RolesEnum.User }],
             new DateTime(1990, 1, 1)
         );
-        
-        
+
+
         return new BookingDto.ViewBooking()
         {
             userId = booking.UserId,
@@ -290,7 +359,15 @@ public class BookingService : IBookingService
             timeSlot = TimeSlotEnumExtensions.ToTimeSlot(booking.BookingDate.Hour),
         };
     }
-    
+
+    /// <summary>
+    /// Retrieves all taken timeslots within a specified date range.
+    /// </summary>
+    /// <param name="startDate">The start date of the range.</param>
+    /// <param name="endDate">The end date of the range.</param>
+    /// <returns>A collection of taken timeslots within the specified date range.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when the start date or end date is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when the start date is after the end date.</exception>
     public async Task<IEnumerable<BookingDto.ViewBookingCalender>?> GetTakenTimeslotsInDateRange(DateTime? startDate,
         DateTime? endDate)
     {
@@ -320,6 +397,14 @@ public class BookingService : IBookingService
         return bookings.Select(booking => ViewBookingCalenderFromBooking(booking, true)).ToList();
     }
 
+    /// <summary>
+    /// Retrieves all free timeslots within a specified date range.
+    /// </summary>
+    /// <param name="startDate">The start date of the range.</param>
+    /// <param name="endDate">The end date of the range.</param>
+    /// <returns>A collection of free timeslots within the specified date range.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when the start date or end date is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when the start date is after the end date.</exception>
     public async Task<IEnumerable<BookingDto.ViewBookingCalender>?> GetFreeTimeslotsInDateRange(DateTime? startDate,
         DateTime? endDate)
     {
@@ -388,6 +473,12 @@ public class BookingService : IBookingService
             .ToList();
     }
 
+    /// <summary>
+    /// Maps a Booking entity to a BookingDto.ViewBookingCalender.
+    /// </summary>
+    /// <param name="booking">The booking entity to map.</param>
+    /// <param name="Available">Indicates whether the timeslot is available.</param>
+    /// <returns>A BookingDto.ViewBookingCalender object containing the mapped details.</returns>
     private static BookingDto.ViewBookingCalender ViewBookingCalenderFromBooking(Booking booking, bool Available)
     {
         return new BookingDto.ViewBookingCalender
@@ -398,12 +489,24 @@ public class BookingService : IBookingService
         };
     }
 
+    /// <summary>
+    /// Checks if the given booking date is within the allowed reservation date range.
+    /// </summary>
+    /// <param name="bookingDate">The booking date to check.</param>
+    /// <returns>True if the booking date is within the allowed range; otherwise, false.</returns>
     private bool CheckWithinDateRange(DateTime bookingDate)
     {
         return DateTime.Now.AddDays(_minReservationDays) <= bookingDate &&
                bookingDate <= DateTime.Now.AddDays(_maxReservationDays);
     }
 
+
+    /// <summary>
+    /// Validates the existence of a user by their ID.
+    /// </summary>
+    /// <param name="userId">The ID of the user to validate.</param>
+    /// <exception cref="ArgumentException">Thrown when the user ID is null or empty.</exception>
+    /// <exception cref="UserNotFoundException">Thrown when the user does not exist.</exception>
     private async Task ValidateUser(string userId)
     {
         CheckUserIdNullOrWhiteSpace(userId);
@@ -415,6 +518,11 @@ public class BookingService : IBookingService
         }
     }
 
+    /// <summary>
+    /// Checks if the user ID is null or whitespace.
+    /// </summary>
+    /// <param name="userId">The user ID to check.</param>
+    /// <exception cref="ArgumentException">Thrown when the user ID is null or empty.</exception>
     private static void CheckUserIdNullOrWhiteSpace(string userId)
     {
         if (string.IsNullOrWhiteSpace(userId))

@@ -156,11 +156,17 @@ public class UserService : IUserService
     /// <returns>A boolean indicating whether the update was successful.</returns>
     public async Task<bool> UpdateUserAsync(UserDto.UpdateUser userDetails)
     {
+        if (userDetails == null)
+        {
+            throw new ArgumentNullException(nameof(userDetails));
+        }
+
         // Fetch the user entity from the database, including the related roles
         var entity = await _dbContext.Users
             .Include(u => u.Roles).Include(u => u.Address)
             .FirstOrDefaultAsync(u => u.Id == userDetails.Id)
             ?? throw new Exception("User not found");
+
 
         // Update user details only if they are provided
         if (userDetails.FirstName != null) entity.FirstName = userDetails.FirstName;
@@ -182,6 +188,8 @@ public class UserService : IUserService
             {
                 entity.Address.Bus = userDetails.Address.Bus;
             }
+            // Handle null value for Bus field
+            entity.Address.Bus = userDetails.Address.Bus ?? entity.Address.Bus;
         }
 
         // Update roles only if they are provided

@@ -14,4 +14,13 @@
     <data name="DlgBookingCompleteTtl" xml:space="preserve">
         <value />
     </data>
+    <data name="DlgBookingCompletePt1" xml:space="preserve">
+        <value />
+    </data>
+    <data name="DlgBookingEditedPt1" xml:space="preserve">
+        <value />
+    </data>
+    <data name="DlgBookingEditedTtl" xml:space="preserve">
+        <value />
+    </data>
 </root>
