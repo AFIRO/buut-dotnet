@@ -21,25 +21,15 @@
     
     [Parameter] public EventCallback<string> OnUserSelected { get; set; }
     private IEnumerable<UserDto.UserBase>? users;
-    private UserDto.UserBase? user;
+  
     private bool _isLoading = false;
-    private string? userIdAuth0;
-
+    
     [Inject] public required IUserService UserService { get; set; }
     [Inject] public required AuthenticationStateProvider AuthenticationStateProvider { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         _isLoading = true;
-        // Get the current user's authentication state
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        userIdAuth0 = authState.User.Claims.FirstOrDefault(c => c.Type == "sub").Value;
-
-        if (!string.IsNullOrEmpty(userIdAuth0))
-        {
-            user = await UserService.GetUserByIdAsync(userIdAuth0);
-        }
-
         users = await UserService.GetAllAsync();
         _isLoading = false;
     }

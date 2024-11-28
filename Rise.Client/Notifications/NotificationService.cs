@@ -4,6 +4,7 @@ namespace Rise.Client.Notifications;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Rise.Shared.Users;
 
 public class NotificationService : INotificationService
 {
@@ -18,6 +19,8 @@ public class NotificationService : INotificationService
         {
             PropertyNameCaseInsensitive = true
         };
+                  // Add the immutable converters for System.Collections.Immutable types
+        this._jsonSerializerOptions.Converters.Add(new ImmutableListJsonConverter<RoleDto>());
         this._jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     }
 

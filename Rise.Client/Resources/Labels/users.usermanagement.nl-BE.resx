@@ -65,9 +65,6 @@
 <data name="Admin" xml:space="preserve">
 <value>Administrator</value>
 </data>
-<data name="User" xml:space="preserve">
-<value>Gebruiker</value>
-</data>
 <data name="BUUTAgent" xml:space="preserve">
 <value>Meter/Peter</value>
 </data>

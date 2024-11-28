@@ -88,6 +88,7 @@ public class FakeUserService : IUserService
         return Task.FromResult(userDetails ?? null);
     }
 
+
     // public Task<bool> UpdateUserAsync(int id, UserDto.UpdateUser userDetails)
     // {
     //     return Task.FromResult(true);

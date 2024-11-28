@@ -21,12 +21,15 @@ using Rise.Services.Events.Booking;
 using AngleSharp.Text;
 using Rise.Domain.Bookings;
 using Rise.Shared.Boats;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
+        // Add the immutable converters for System.Collections.Immutable types
+        options.JsonSerializerOptions.Converters.Add(new ImmutableListJsonConverter<RoleDto>());
         // This ensures enums are serialized as strings
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });

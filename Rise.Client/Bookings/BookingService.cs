@@ -3,35 +3,38 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using MudBlazor.Extensions;
 using Rise.Shared.Bookings;
+using Rise.Shared.Users;
 
 namespace Rise.Client.Bookings;
 
 public class BookingService : IBookingService
 {
     private readonly HttpClient httpClient;
-    private readonly JsonSerializerOptions jsonSerializerOptions;
+    private readonly JsonSerializerOptions _jsonSerializerOptions;
 
 
     public BookingService(HttpClient httpClient)
     {
         this.httpClient = httpClient;
-        this.jsonSerializerOptions = new JsonSerializerOptions
+        this._jsonSerializerOptions = new JsonSerializerOptions
         {
-            PropertyNameCaseInsensitive = true,
-            Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
+            PropertyNameCaseInsensitive = true
         };
+        // Add the immutable converters for System.Collections.Immutable types
+        this._jsonSerializerOptions.Converters.Add(new ImmutableListJsonConverter<RoleDto>());
+        this._jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     }
 
     public async Task<IEnumerable<BookingDto.ViewBooking>?> GetAllAsync()
     {
         var jsonResponse = await httpClient.GetStringAsync("booking");
-        return JsonSerializer.Deserialize<IEnumerable<BookingDto.ViewBooking>>(jsonResponse, jsonSerializerOptions);
+        return JsonSerializer.Deserialize<IEnumerable<BookingDto.ViewBooking>>(jsonResponse, _jsonSerializerOptions);
     }
 
     public async Task<BookingDto.ViewBooking?> GetBookingById(string id)
     {
         var jsonResponse = await httpClient.GetStringAsync($"booking/{id}");
-        return JsonSerializer.Deserialize<BookingDto.ViewBooking>(jsonResponse, jsonSerializerOptions);
+        return JsonSerializer.Deserialize<BookingDto.ViewBooking>(jsonResponse, _jsonSerializerOptions);
     }
 
     public async Task<BookingDto.ViewBooking> CreateBookingAsync(BookingDto.NewBooking booking)
@@ -45,7 +48,7 @@ public class BookingService : IBookingService
                 $"Failed to create booking. Status Code: {response.StatusCode}, Message: {errorMessage}");
         }
 
-        var bookingAsync = await response.Content.ReadFromJsonAsync<BookingDto.ViewBooking>(jsonSerializerOptions);
+        var bookingAsync = await response.Content.ReadFromJsonAsync<BookingDto.ViewBooking>(_jsonSerializerOptions);
 
         return bookingAsync;
     }
@@ -65,29 +68,29 @@ public class BookingService : IBookingService
     public async Task<IEnumerable<BookingDto.ViewBooking>?> GetAllUserBookings(string userid)
     {
         var bookings = await httpClient.GetStringAsync($"booking/user/{userid}");
-        return JsonSerializer.Deserialize<IEnumerable<BookingDto.ViewBooking>>(bookings, jsonSerializerOptions);
+        return JsonSerializer.Deserialize<IEnumerable<BookingDto.ViewBooking>>(bookings, _jsonSerializerOptions);
     }
 
     public async Task<IEnumerable<BookingDto.ViewBooking>?> GetFutureUserBookings(string userid)
     {
         var bookings = await httpClient.GetStringAsync($"booking/user/{userid}/future");
-        return JsonSerializer.Deserialize<IEnumerable<BookingDto.ViewBooking>>(bookings, jsonSerializerOptions);
+        return JsonSerializer.Deserialize<IEnumerable<BookingDto.ViewBooking>>(bookings, _jsonSerializerOptions);
     }
 
     public async Task<IEnumerable<BookingDto.ViewBooking>?> GetPastUserBookings(string userid)
     {
         var bookings = await httpClient.GetStringAsync($"booking/user/{userid}/past");
-        return JsonSerializer.Deserialize<IEnumerable<BookingDto.ViewBooking>>(bookings, jsonSerializerOptions);
+        return JsonSerializer.Deserialize<IEnumerable<BookingDto.ViewBooking>>(bookings, _jsonSerializerOptions);
     }
 
     public async Task<IEnumerable<BookingDto.ViewBookingCalender>?> GetTakenTimeslotsInDateRange(DateTime? startDate,
         DateTime? endDate)
     {
         var baseUrl = $"/api/Booking/byDateRange";
-        
+
         var timeslots = await httpClient.GetStringAsync(BuildQuery(baseUrl, startDate, endDate));
         return JsonSerializer.Deserialize<IEnumerable<BookingDto.ViewBookingCalender>>(timeslots,
-            jsonSerializerOptions);
+            _jsonSerializerOptions);
     }
 
     public async Task<IEnumerable<BookingDto.ViewBookingCalender>?> GetFreeTimeslotsInDateRange(DateTime? startDate,
@@ -109,8 +112,8 @@ public class BookingService : IBookingService
 
         return convertedTimeSlots;
     }
-    
-    private string BuildQuery(string baseUrl, DateTime? startDate, DateTime? endDate)  
+
+    private string BuildQuery(string baseUrl, DateTime? startDate, DateTime? endDate)
     {
         var query = baseUrl;
         if (startDate.HasValue || endDate.HasValue)
