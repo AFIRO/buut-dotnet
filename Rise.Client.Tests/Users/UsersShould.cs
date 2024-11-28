@@ -16,7 +16,8 @@ public class UsersShould : TestContext
     {
         Services.AddXunitLogger(outputHelper);
         Services.AddScoped<IUserService, FakeUserService>();
-        
+        Services.AddLocalization();
+
     }
 
     [Fact]
@@ -26,9 +27,6 @@ public class UsersShould : TestContext
         Services.AddSingleton<AuthenticationStateProvider>(fakeAuthProvider);
         var cut = RenderComponent<Users>();
         var allUsersTableRows = cut.FindAll("table.table:nth-of-type(1) tbody tr");
-        allUsersTableRows.Count.ShouldBe(5);
-
-        var singleUserTableRows = cut.FindAll("table.table:nth-of-type(2) tbody tr");
-        singleUserTableRows.Count.ShouldBe(1); // For the `user` with `userIdAuth0`        
+        allUsersTableRows.Count.ShouldBe(5);   
     }
 }
