@@ -21,6 +21,7 @@ using Rise.Services.Events.Booking;
 using AngleSharp.Text;
 using Rise.Domain.Bookings;
 using Rise.Shared.Boats;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
