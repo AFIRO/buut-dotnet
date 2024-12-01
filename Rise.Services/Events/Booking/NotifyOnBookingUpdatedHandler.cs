@@ -94,6 +94,7 @@ public class NotifyOnBookingUpdatedHandler : IEventHandler<BookingUpdatedEvent>
         try
         {
             await _notificationService.CreateNotificationAsync(notification);
+            _logger.LogInformation("Notification created for {RecipientType} with ID: {RecipientId}", recipientType, recipientId ?? notification.UserId);
         }
         catch (Exception ex)
         {

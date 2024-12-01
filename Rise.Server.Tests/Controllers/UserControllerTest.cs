@@ -18,7 +18,6 @@ using Rise.Services.Events;
 using Rise.Services.Events.User;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
-using Castle.Core.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace Rise.Server.Tests.Controllers;

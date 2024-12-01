@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Rise.Domain.Notifications;
 using Rise.Persistence;
 using Rise.Services.Notifications;
@@ -12,6 +14,7 @@ namespace Rise.Services.Tests.Notifications;
 public class NotificationServiceTests
 {
     private readonly ApplicationDbContext _dbContext;
+    private readonly Mock<ILogger<NotificationService>> _logger;
     private readonly NotificationService _notificationService;
 
     public NotificationServiceTests()
@@ -22,7 +25,8 @@ public class NotificationServiceTests
             .Options;
 
         _dbContext = new ApplicationDbContext(options);
-        _notificationService = new NotificationService(_dbContext);
+        _logger = new Mock<ILogger<NotificationService>>();
+        _notificationService = new NotificationService(_dbContext, _logger.Object);
     }
 
     [Fact]

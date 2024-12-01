@@ -2,8 +2,15 @@ using Auth0.ManagementApi.Models;
 using Rise.Client.Utils.Navigation;
 using Rise.Shared.Enums;
 
+/// <summary>
+/// Provides navigation services for the application.
+/// </summary>
 public static class NavigationService
 {
+    /// <summary>
+    /// Gets the navigation links for the application.
+    /// </summary>
+    /// <returns>A list of navigation links.</returns>
     public static List<NavigationLink> GetNavigationLinks() => new()
     {
         new NavigationLink("userspage", "ManageUsers", authenticated: true, role: RolesEnum.Admin),
@@ -17,6 +24,10 @@ public static class NavigationService
         new NavigationLink("mybookings", "MyBookings", authenticated: true, role: RolesEnum.User),
     };
 
+    /// <summary>
+    /// Gets the page information for the application.
+    /// </summary>
+    /// <returns>A list of page information.</returns>
     public static List<PageInfo> GetPageInfos() => new()
     {
         new PageInfo("", backgroundImage: "img/Buut_BG.png", renderHeader: false),

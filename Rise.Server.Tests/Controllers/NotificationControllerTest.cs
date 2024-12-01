@@ -7,16 +7,19 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
+using Microsoft.Extensions.Logging;
 
 public class NotificationControllerTests
 {
     private readonly Mock<INotificationService> _mockNotificationService;
     private readonly NotificationController _controller;
+    private readonly Mock<ILogger<NotificationController>> _mockLogger;
 
     public NotificationControllerTests()
     {
         _mockNotificationService = new Mock<INotificationService>();
-        _controller = new NotificationController(_mockNotificationService.Object);
+        _mockLogger = new Mock<ILogger<NotificationController>>();
+        _controller = new NotificationController(_mockNotificationService.Object, _mockLogger.Object);
     }
 
     /// <summary>

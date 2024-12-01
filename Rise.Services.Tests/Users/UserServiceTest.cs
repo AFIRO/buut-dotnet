@@ -17,7 +17,7 @@ public class UserServiceTests
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly UserService _userService;
-    private readonly ILogger<UserService> _logger = Mock.Of<ILogger<UserService>>();
+    private readonly Mock<ILogger<UserService>> _logger;
 
     public UserServiceTests()
     {
@@ -28,7 +28,8 @@ public class UserServiceTests
             .Options;
 
         _dbContext = new ApplicationDbContext(options);
-        _userService = new UserService(_dbContext, _logger);
+        _logger = new Mock<ILogger<UserService>>();
+        _userService = new UserService(_dbContext, _logger.Object);
     }
 
     private User CreateUser(string id, string firstname, string lastname)
@@ -341,7 +342,7 @@ public class UserServiceTests
         // Arrange
         string userId = null;
 
-      // Act & Assert
+        // Act & Assert
         await Assert.ThrowsAsync<ArgumentException>(() => _userService.GetUserByIdAsync(userId));
     }
 
@@ -421,8 +422,8 @@ public class UserServiceTests
     [InlineData(" ")]
     public async Task GetUserDetailsByIdAsync_ShouldReturnNull_WhenUserIdIsNullOrEmpty(string userId)
     {
-      // Act & Assert
-    await Assert.ThrowsAsync<ArgumentException>(() => _userService.GetUserDetailsByIdAsync(userId));
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(() => _userService.GetUserDetailsByIdAsync(userId));
     }
 
     [Fact]
@@ -604,7 +605,7 @@ public class UserServiceTests
         Assert.Equal(updatedUserDetails.PhoneNumber, updatedUser.PhoneNumber);
         Assert.Equal(updatedUserDetails.Address.Street.ToString().ToLower(), updatedUser.Address.Street.ToLower());
         Assert.Equal(updatedUserDetails.Address.HouseNumber, updatedUser.Address.HouseNumber);
-        Assert.Equal(updatedUserDetails.Address.Bus, updatedUser.Address.Bus);;
+        Assert.Equal(updatedUserDetails.Address.Bus, updatedUser.Address.Bus); ;
     }
 
 
@@ -692,7 +693,7 @@ public class UserServiceTests
         Assert.Equal(originalUser.Address.Bus, updatedUser.Address.Bus);
         Assert.Equal(originalUser.Roles.Count, updatedUser.Roles.Count);
     }
-    
+
 
     [Fact]
     public async Task UpdateUserAsync_ShouldHandleConcurrency_WhenMultipleUpdatesOccurSimultaneously()
