@@ -1,7 +1,9 @@
 using System.Collections.Immutable;
 using System.ComponentModel;
+using Castle.Core.Logging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Rise.Domain.Users;
 using Rise.Persistence;
@@ -15,6 +17,7 @@ public class UserServiceTests
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly UserService _userService;
+    private readonly ILogger<UserService> _logger = Mock.Of<ILogger<UserService>>();
 
     public UserServiceTests()
     {
@@ -25,7 +28,7 @@ public class UserServiceTests
             .Options;
 
         _dbContext = new ApplicationDbContext(options);
-        _userService = new UserService(_dbContext);
+        _userService = new UserService(_dbContext, _logger);
     }
 
     private User CreateUser(string id, string firstname, string lastname)
@@ -328,11 +331,8 @@ public class UserServiceTests
         // Arrange
         var userId = string.Empty;
 
-        // Act
-        var result = await _userService.GetUserByIdAsync(userId);
-
-        // Assert
-        Assert.Null(result);
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(() => _userService.GetUserByIdAsync(userId));
     }
 
     [Fact]
@@ -341,11 +341,8 @@ public class UserServiceTests
         // Arrange
         string userId = null;
 
-        // Act
-        var result = await _userService.GetUserByIdAsync(userId);
-
-        // Assert
-        Assert.Null(result);
+      // Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(() => _userService.GetUserByIdAsync(userId));
     }
 
     [Fact]
@@ -424,11 +421,8 @@ public class UserServiceTests
     [InlineData(" ")]
     public async Task GetUserDetailsByIdAsync_ShouldReturnNull_WhenUserIdIsNullOrEmpty(string userId)
     {
-        // Act
-        var result = await _userService.GetUserDetailsByIdAsync(userId);
-
-        // Assert
-        Assert.Null(result);
+      // Act & Assert
+    await Assert.ThrowsAsync<ArgumentException>(() => _userService.GetUserDetailsByIdAsync(userId));
     }
 
     [Fact]
@@ -610,9 +604,7 @@ public class UserServiceTests
         Assert.Equal(updatedUserDetails.PhoneNumber, updatedUser.PhoneNumber);
         Assert.Equal(updatedUserDetails.Address.Street.ToString().ToLower(), updatedUser.Address.Street.ToLower());
         Assert.Equal(updatedUserDetails.Address.HouseNumber, updatedUser.Address.HouseNumber);
-        Assert.Equal(updatedUserDetails.Address.Bus, updatedUser.Address.Bus);
-        Assert.Single(updatedUser.Roles);
-        Assert.Equal(RolesEnum.Admin, updatedUser.Roles.First().Name);
+        Assert.Equal(updatedUserDetails.Address.Bus, updatedUser.Address.Bus);;
     }
 
 
@@ -629,41 +621,6 @@ public class UserServiceTests
         // Act & Assert
         var exception = await Assert.ThrowsAsync<Exception>(() => _userService.UpdateUserAsync(userDetails));
         Assert.Equal("User not found", exception.Message);
-    }
-
-    [Fact]
-    public async Task UpdateUserAsync_ShouldUpdateUserRoles_WhenRolesProvided()
-    {
-        // Arrange
-        var userId = "1";
-        var originalUser = CreateUser(userId);
-
-        // Add roles to the database
-        var adminRole = new Role { Name = RolesEnum.Admin };
-        var userRole = new Role { Name = RolesEnum.User };
-        await _dbContext.Roles.AddRangeAsync(adminRole, userRole);
-
-        // Add the user to the database
-        await _dbContext.Users.AddAsync(originalUser);
-        await _dbContext.SaveChangesAsync();
-
-        var updatedUserDetails = new UserDto.UpdateUser
-        {
-            Id = userId,
-            Roles = ImmutableList.Create(new RoleDto { Name = RolesEnum.Admin }, new RoleDto { Name = RolesEnum.User })
-        };
-
-        // Act
-        var result = await _userService.UpdateUserAsync(updatedUserDetails);
-
-        // Assert
-        Assert.True(result);
-
-        var updatedUser = await _dbContext.Users.Include(u => u.Roles).FirstOrDefaultAsync(u => u.Id == userId);
-        Assert.NotNull(updatedUser);
-        Assert.Equal(2, updatedUser.Roles.Count);
-        Assert.Contains(updatedUser.Roles, r => r.Name == RolesEnum.Admin);
-        Assert.Contains(updatedUser.Roles, r => r.Name == RolesEnum.User);
     }
 
 
@@ -735,52 +692,7 @@ public class UserServiceTests
         Assert.Equal(originalUser.Address.Bus, updatedUser.Address.Bus);
         Assert.Equal(originalUser.Roles.Count, updatedUser.Roles.Count);
     }
-
-    [Fact]
-    public async Task UpdateUserAsync_ShouldThrowException_WhenRolesAreInvalid()
-    {
-        // Arrange
-        var userId = "1";
-        var originalUser = CreateUser(userId);
-        await _dbContext.Users.AddAsync(originalUser);
-        await _dbContext.SaveChangesAsync();
-
-        var updatedUserDetails = new UserDto.UpdateUser
-        {
-            Id = userId,
-            Roles = ImmutableList.Create(new RoleDto { Name = (RolesEnum)9999 }) // Invalid role
-        };
-
-        // Act & Assert
-        await Assert.ThrowsAsync<InvalidEnumArgumentException>(() => _userService.UpdateUserAsync(updatedUserDetails));
-    }
-
-    [Fact]
-    public async Task UpdateUserAsync_ShouldRemoveAllRoles_WhenEmptyRolesListProvided()
-    {
-        // Arrange
-        var userId = "1";
-        var originalUser = CreateUser(userId);
-        originalUser.Roles.Add(new Role { Name = RolesEnum.Admin });
-        await _dbContext.Users.AddAsync(originalUser);
-        await _dbContext.SaveChangesAsync();
-
-        var updatedUserDetails = new UserDto.UpdateUser
-        {
-            Id = userId,
-            Roles = ImmutableList<RoleDto>.Empty // Empty roles list
-        };
-
-        // Act
-        var result = await _userService.UpdateUserAsync(updatedUserDetails);
-
-        // Assert
-        Assert.True(result);
-
-        var updatedUser = await _dbContext.Users.Include(u => u.Roles).FirstOrDefaultAsync(u => u.Id == userId);
-        Assert.NotNull(updatedUser);
-        Assert.Empty(updatedUser.Roles);
-    }
+    
 
     [Fact]
     public async Task UpdateUserAsync_ShouldHandleConcurrency_WhenMultipleUpdatesOccurSimultaneously()

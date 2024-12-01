@@ -5,18 +5,33 @@ using Auth0.ManagementApi.Models;
 using Auth0.ManagementApi.Paging;
 using Auth0.Core.Exceptions;
 using Rise.Shared.Enums;
+using Microsoft.Extensions.Logging;
 namespace Rise.Services.Users;
 
 
+/// <summary>
+/// Service for managing Auth0 users.
+/// </summary>
 public class Auth0UserService : IAuth0UserService
 {
     private readonly IManagementApiClient _managementApiClient;
+    private readonly ILogger<Auth0UserService> _logger;
 
-    public Auth0UserService(IManagementApiClient managementApiClient)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Auth0UserService"/> class.
+    /// </summary>
+    /// <param name="managementApiClient">The Auth0 management API client.</param>
+    /// <param name="logger">The logger instance.</param>
+    public Auth0UserService(IManagementApiClient managementApiClient, ILogger<Auth0UserService> logger)
     {
         _managementApiClient = managementApiClient;
+        _logger = logger;
     }
 
+    /// <summary>
+    /// Retrieves all users from Auth0.
+    /// </summary>
+    /// <returns>A collection of Auth0 users.</returns>
     public async Task<IEnumerable<UserDto.Auth0User>> GetAllUsersAsync()
     {
         try
@@ -31,148 +46,192 @@ public class Auth0UserService : IAuth0UserService
                 x.LastName,
                 x.Blocked ?? false
             ));
+            _logger.LogInformation("Successfully fetched {Count} users from Auth0.", auth0Users.Count());
             return auth0Users;
         }
         catch (ApiException ex)
         {
+            _logger.LogError(ex, "Auth0 API error occurred while fetching all users.");
             throw new ExternalServiceException("ExternalServiceUnavailable", ex); // Localization key
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Unexpected error occurred while fetching all users from Auth0.");
             throw new ExternalServiceException("UnexpectedErrorOccurred", ex); // Localization key
         }
     }
 
 
-    public async Task<UserDto.Auth0User> GetUserByIdAsync(String id)
+    /// <summary>
+    /// Retrieves a user from Auth0 by their ID.
+    /// </summary>
+    /// <param name="id">The ID of the user to retrieve.</param>
+    /// <returns>An Auth0 user.</returns>
+    public async Task<UserDto.Auth0User> GetUserByIdAsync(string id)
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                _logger.LogWarning("Invalid user ID provided for fetching user by ID.");
+                throw new ArgumentNullException(nameof(id), "User ID cannot be null or empty.");
+            }
             // Fetch the user from Auth0
             var user = await _managementApiClient.Users.GetAsync(id);
 
             // Transform and return the user if successful
-            return new UserDto.Auth0User(
+            var result = new UserDto.Auth0User(
                 user.Email,
                 user.FirstName,
                 user.LastName,
                 user.Blocked ?? false
             );
+            _logger.LogInformation("Successfully fetched user with ID {UserId} from Auth0.", id);
+            return result;
+
+        }
+        catch (ArgumentNullException ex)
+        {
+            _logger.LogWarning(ex, "Invalid input provided.");
+            throw;
         }
         catch (ApiException ex)
         {
+            _logger.LogError(ex, "Auth0 API error occurred while fetching user with ID {UserId}.", id);
             throw new ExternalServiceException("ExternalServiceUnavailable", ex); // Localization key
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Unexpected error occurred while fetching user with ID {UserId} from Auth0.", id);
             throw new ExternalServiceException("UnexpectedErrorOccurred", ex); // Localization key
         }
     }
 
 
+    /// <summary>
+    /// Registers a new user in Auth0.
+    /// </summary>
+    /// <param name="user">The user details for registration.</param>
+    /// <returns>The registered user details.</returns>
     public async Task<UserDto.RegistrationUser> RegisterUserAuth0(UserDto.RegistrationUser user)
     {
-        var userCreateRequest = new UserCreateRequest
-        {
-            Email = user.Email,
-            Password = user.Password,
-            Connection = "Username-Password-Authentication",
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-        };
         try
         {
+            if (user is null)
+            {
+                _logger.LogWarning("Null user object provided for registration.");
+                throw new ArgumentNullException(nameof(user), "User data cannot be null.");
+            }
             // Check if the user already exists in Auth0
             var usersWithEmail = await _managementApiClient.Users.GetAllAsync(new GetUsersRequest { Query = $"email:\"{user.Email}\"" });
             if (usersWithEmail.Any())
             {
+                _logger.LogWarning("User with email {Email} already exists in Auth0.", user.Email);
                 throw new UserAlreadyExistsException("UserAlreadyExists"); // Localization key
             }
+            var userCreateRequest = new UserCreateRequest
+            {
+                Email = user.Email,
+                Password = user.Password,
+                Connection = "Username-Password-Authentication",
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+            };
 
             var response = await _managementApiClient.Users.CreateAsync(userCreateRequest);
 
             // Fetch the "Pending" role ID
             var pendingRoleId = await GetAuth0RoleIdByEnum(RolesEnum.Pending) ?? throw new ExternalServiceException("PendingRoleNotFound", new Exception("The 'Pending' role was not found in Auth0."));
-
+            _logger.LogInformation("Successfully fetched 'Pending' role ID.");
             // Assign the "Pending" role to the newly created user
-            var assignRolesRequest = new AssignRolesRequest
-            {
-                Roles = new[] { pendingRoleId } // Assign the "Pending" role
-            };
+            var assignRolesRequest = new AssignRolesRequest { Roles = new[] { pendingRoleId } }; // Assign the "Pending" role
+
             await _managementApiClient.Users.AssignRolesAsync(response.UserId, assignRolesRequest);
+            _logger.LogInformation("Assigned 'Pending' role to user with ID {UserId}.", response.UserId);
 
-
-            // Console.WriteLine("Created user: " + response.UserId);
             return new UserDto.RegistrationUser(response.FirstName, response.LastName, response.Email, user.PhoneNumber, null, response.UserId, user.Address, user.BirthDate);
 
         }
-        catch (UserAlreadyExistsException)
+        catch (UserAlreadyExistsException ex)
         {
+            _logger.LogWarning(ex, "User with email {Email} already exists.", user.Email);
             throw;
         }
         catch (ApiException ex)
         {
-            throw new ExternalServiceException("ExternalServiceUnavailable", ex); // Localization key
+            _logger.LogError(ex, "Auth0 API error occurred during user registration for email {Email}.", user.Email);
+            throw new ExternalServiceException("ExternalServiceUnavailable", ex);
         }
         catch (Exception ex)
         {
-            throw new ExternalServiceException("UnexpectedErrorOccurred", ex); // Localization key
+            _logger.LogError(ex, "Unexpected error occurred during user registration for email {Email}.", user.Email);
+            throw new ExternalServiceException("UnexpectedErrorOccurred", ex);
         }
     }
 
+    /// <summary>
+    /// Updates a user in Auth0.
+    /// </summary>
+    /// <param name="user">The user details to update.</param>
+    /// <returns>True if the user was successfully updated, otherwise false.</returns>
     public async Task<bool> UpdateUserAuth0(UserDto.UpdateUser user)
     {
-        // // Create the UserUpdateRequest and set properties
-        // var userUpdateRequest = new UserUpdateRequest
-        // {
-        //     Email = !string.IsNullOrWhiteSpace(user.Email) ? user.Email : null,
-        //     FirstName = !string.IsNullOrWhiteSpace(user.FirstName) ? user.FirstName : null,
-        //     LastName = !string.IsNullOrWhiteSpace(user.LastName) ? user.LastName : null,
-        //     Password = !string.IsNullOrWhiteSpace(user.Password) ? user.Password : null,
-        //     Blocked = false,
-        //     EmailVerified = false,
-        // };
-        // Create the UserUpdateRequest and set properties only when they are provided
-        var userUpdateRequest = new UserUpdateRequest();
-
-        if (!string.IsNullOrWhiteSpace(user.Email))
-            userUpdateRequest.Email = user.Email;
-
-        if (!string.IsNullOrWhiteSpace(user.FirstName))
-            userUpdateRequest.FirstName = user.FirstName;
-
-        if (!string.IsNullOrWhiteSpace(user.LastName))
-            userUpdateRequest.LastName = user.LastName;
-
-        if (!string.IsNullOrWhiteSpace(user.Password))
-            userUpdateRequest.Password = user.Password;
-
-        // Fields like Blocked and EmailVerified are explicitly se
-        userUpdateRequest.Blocked = false;
-        userUpdateRequest.EmailVerified = false;
         try
         {
+            if (user == null || string.IsNullOrWhiteSpace(user.Id))
+            {
+                _logger.LogWarning("Invalid user data provided for update.");
+                throw new ArgumentNullException(nameof(user), "User data or ID cannot be null.");
+            }
+
+            _logger.LogInformation("Attempting to update user with ID {UserId} in Auth0.", user.Id);
+            var userUpdateRequest = new UserUpdateRequest
+            {
+                Email = string.IsNullOrWhiteSpace(user.Email) ? null : user.Email,
+                FirstName = string.IsNullOrWhiteSpace(user.FirstName) ? null : user.FirstName,
+                LastName = string.IsNullOrWhiteSpace(user.LastName) ? null : user.LastName,
+                Password = string.IsNullOrWhiteSpace(user.Password) ? null : user.Password,
+                Blocked = false,
+                EmailVerified = false
+            };
+
             var response = await _managementApiClient.Users.UpdateAsync(user.Id, userUpdateRequest);
+            _logger.LogInformation("Successfully updated user with ID {UserId} in Auth0.", user.Id);
             return response != null;
+        }
+        catch (ArgumentNullException ex)
+        {
+            _logger.LogWarning(ex, "Invalid input provided for user update.");
+            throw;
         }
         catch (ApiException ex)
         {
-            throw new ExternalServiceException("ExternalServiceUnavailable", ex); // Localization key
+            _logger.LogError(ex, "Auth0 API error occurred during update for user ID {UserId}.", user.Id);
+            throw new ExternalServiceException("ExternalServiceUnavailable", ex);
         }
         catch (Exception ex)
         {
-            throw new ExternalServiceException("UnexpectedErrorOccurred", ex); // Localization key
+            _logger.LogError(ex, "Unexpected error occurred during user update for user ID {UserId}.", user.Id);
+            throw new ExternalServiceException("UnexpectedErrorOccurred", ex);
         }
     }
 
+    /// <summary>
+    /// Assigns roles to a user in Auth0.
+    /// </summary>
+    /// <param name="user">The user details including roles to assign.</param>
+    /// <returns>True if the roles were successfully assigned, otherwise false.</returns>
     public async Task<bool> AssignRoleToUser(UserDto.UpdateUser user)
     {
         try
         {
+            if (user is null || user.Roles is null || string.IsNullOrWhiteSpace(user.Id))
+            {
+                _logger.LogWarning("Invalid user data provided for role assignment.");
+                throw new ArgumentNullException(nameof(user), "User data or ID cannot be null.");
+            }
             // Fetch the Auth0 Role IDs for the roles in the UpdateUser object
             var auth0RoleIds = new List<string>();
-
-            var pendingRoleId = await GetAuth0RoleIdByEnum(RolesEnum.Pending);
 
             foreach (var role in user.Roles)
             {
@@ -185,31 +244,35 @@ public class Auth0UserService : IAuth0UserService
 
             if (!auth0RoleIds.Any())
             {
+                _logger.LogWarning("No valid roles found to assign to user with ID {UserId}.", user.Id);
                 throw new ArgumentException("No valid roles found to assign to the user.");
             }
 
-            var assignRolesRequest = new AssignRolesRequest
-            {
-                Roles = auth0RoleIds.ToArray() // Convert the list to an array
-            };
+            var assignRolesRequest = new AssignRolesRequest { Roles = auth0RoleIds.ToArray() }; // Convert the list to an array
 
-            var removeRolesRequest = new AssignRolesRequest
-            {
-                Roles = [pendingRoleId]
-            };
+            var pendingRoleId = await GetAuth0RoleIdByEnum(RolesEnum.Pending);
+            var removeRolesRequest = new AssignRolesRequest { Roles = [pendingRoleId] };
 
             //remove pending role
             await _managementApiClient.Users.RemoveRolesAsync(user.Id, removeRolesRequest);
-
             await _managementApiClient.Users.AssignRolesAsync(user.Id, assignRolesRequest);
+
+            _logger.LogInformation("Successfully assigned roles to user with ID {UserId}.", user.Id);
             return true;
+        }
+        catch (ArgumentNullException ex)
+        {
+            _logger.LogWarning(ex, "Invalid input provided for role assignment.");
+            throw;
         }
         catch (ApiException ex)
         {
+            _logger.LogError(ex, "Auth0 API error occurred during role assignment for user ID {UserId}.", user.Id);
             throw new ExternalServiceException("Failed to assign role", ex);
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Unexpected error occurred during role assignment for user ID {UserId}.", user.Id);
             throw new ExternalServiceException("Unexpected error occurred", ex);
         }
     }
@@ -223,6 +286,11 @@ public class Auth0UserService : IAuth0UserService
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                _logger.LogWarning("Invalid user ID provided for soft deletion.");
+                throw new ArgumentNullException(nameof(userId), "User ID cannot be null or empty.");
+            }
             // Retrieve the existing user to ensure it exists in Auth0
             var user = await _managementApiClient.Users.GetAsync(userId) ?? throw new Exception($"User with ID {userId} not found in Auth0.");
 
@@ -238,34 +306,65 @@ public class Auth0UserService : IAuth0UserService
             var response = await _managementApiClient.Users.UpdateAsync(userId, userUpdateRequest);
 
             // Return true if the update was successful
-            return response != null;
+            if (response != null)
+            {
+                _logger.LogInformation("Successfully soft deleted user with ID {UserId} in Auth0.", userId);
+                return true;
+            }
+
+            _logger.LogWarning("Soft deletion failed for user with ID {UserId} in Auth0.", userId);
+            return false;
+        }
+        catch (ArgumentNullException ex)
+        {
+            _logger.LogWarning(ex, "Invalid input provided for soft deletion.");
+            throw;
         }
         catch (ApiException ex)
         {
+            _logger.LogError(ex, "Auth0 API error occurred while attempting to soft delete user with ID {UserId}.", userId);
             throw new ExternalServiceException("Failed to soft delete user in Auth0.", ex);
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Unexpected error occurred during soft deletion for user with ID {UserId}.", userId);
             throw new ExternalServiceException("Unexpected error occurred during soft delete.", ex);
         }
     }
 
 
-    public async Task<bool> IsEmailTakenAsync(String email)
+    /// <summary>
+    /// Checks if an email is already taken in Auth0.
+    /// </summary>
+    /// <param name="email">The email to check.</param>
+    /// <returns>True if the email is taken, otherwise false.</returns>
+    public async Task<bool> IsEmailTakenAsync(string email)
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                _logger.LogWarning("Invalid email provided for email availability check.");
+                throw new ArgumentNullException(nameof(email), "Email cannot be null or empty.");
+            }
             // Check if any user exists with this email in Auth0
             var usersWithEmail = await _managementApiClient.Users.GetAllAsync(new GetUsersRequest { Query = $"email:\"{email}\"" });
             return usersWithEmail.Any();
         }
+        catch (ArgumentNullException ex)
+        {
+            _logger.LogWarning(ex, "Invalid input provided for email availability check.");
+            throw;
+        }
         catch (ApiException ex)
         {
-            throw new ExternalServiceException("Auth0 service is unavailable", ex); // Custom exception
+            _logger.LogError(ex, "Auth0 API error occurred while checking email availability for {Email}.", email);
+            throw new ExternalServiceException("Auth0 service is unavailable", ex);
         }
         catch (Exception ex)
         {
-            throw new ExternalServiceException("Unexpected error occurred", ex); // Custom exception
+            _logger.LogError(ex, "Unexpected error occurred while checking email availability for {Email}.", email);
+            throw new ExternalServiceException("Unexpected error occurred", ex);
         }
     }
 
@@ -281,14 +380,23 @@ public class Auth0UserService : IAuth0UserService
             var roleName = role.ToString(); // Assuming your RolesEnum values match the Auth0 role names
             var auth0Role = roles.FirstOrDefault(r => r.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
 
-            return auth0Role?.Id;
+            if (auth0Role != null)
+            {
+                _logger.LogInformation("Successfully found Auth0 role ID for {Role}: {RoleId}.", role, auth0Role.Id);
+                return auth0Role.Id;
+            }
+
+            _logger.LogWarning("No Auth0 role found for {Role}.", role);
+            return null;
         }
         catch (ApiException ex)
         {
+            _logger.LogError(ex, "Auth0 API error occurred while fetching roles for {Role}.", role);
             throw new ExternalServiceException("Failed to fetch roles from Auth0", ex);
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Unexpected error occurred while fetching roles for {Role}.", role);
             throw new ExternalServiceException("Unexpected error occurred while fetching roles", ex);
         }
     }

@@ -22,8 +22,25 @@ using AngleSharp.Text;
 using Rise.Domain.Bookings;
 using Rise.Shared.Boats;
 using System.Text.Json.Serialization;
+using NLog.Web;
+using Rise.Server.LoggingEnrichers;
+using NLog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add NLog as the logging provider
+builder.Logging.ClearProviders();
+builder.Host.UseNLog();
+
+// Register HttpContextAccessor and enrichers
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<UserIdEnricher>();
+builder.Services.AddScoped<ClientIpAddressEnricher>();
+
+// Configure NLog globally to include custom enrichers
+LogManager.Setup().LoadConfigurationFromFile("nlog.config");
+
+
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -134,6 +151,8 @@ builder.Services.AddScoped<IEventHandler<BookingDeletedEvent>, NotifyOnBookingDe
 
 var app = builder.Build();
 
+
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -146,6 +165,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+
 app.UseHttpsRedirection();
 
 app.UseBlazorFrameworkFiles();
@@ -154,6 +174,36 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+
+
+// Middleware to enrich logs
+app.Use(async (context, next) =>
+{
+    IDisposable? userIdScope = null;
+    IDisposable? clientIpScope = null;
+
+    if (!context.Request.Path.StartsWithSegments("/swagger")) // Skip Swagger requests
+    {
+        var userIdEnricher = context.RequestServices.GetRequiredService<UserIdEnricher>();
+        var clientIpEnricher = context.RequestServices.GetRequiredService<ClientIpAddressEnricher>();
+
+        // Use ScopeContext.PushProperty to set the properties
+        userIdScope = ScopeContext.PushProperty("UserId", userIdEnricher.Enrich());
+        clientIpScope = ScopeContext.PushProperty("ClientIpAddress", clientIpEnricher.Enrich());
+    }
+
+    try
+    {
+        await next();
+    }
+    finally
+    {
+        // Dispose of the scope after the request
+        userIdScope?.Dispose();
+        clientIpScope?.Dispose();
+    }
+});
+
 
 app.MapControllers();
 app.MapFallbackToFile("index.html");

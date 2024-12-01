@@ -18,6 +18,8 @@ using Rise.Services.Events;
 using Rise.Services.Events.User;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
+using Castle.Core.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace Rise.Server.Tests.Controllers;
 
@@ -28,7 +30,9 @@ public class UserControllerTests
     private readonly Mock<IValidationService> _validationServiceMock;
 
     private readonly Mock<IEventDispatcher> _eventDispatcherMock;
+
     private readonly UserController _userController;
+    private readonly Mock<ILogger<UserController>> _loggerMock;
 
     public UserControllerTests()
     {
@@ -36,8 +40,9 @@ public class UserControllerTests
         _auth0UserServiceMock = new Mock<IAuth0UserService>();
         _validationServiceMock = new Mock<IValidationService>();
         _eventDispatcherMock = new Mock<IEventDispatcher>();
+        _loggerMock = new Mock<ILogger<UserController>>();
         _userController = new UserController(_userServiceMock.Object, _auth0UserServiceMock.Object,
-            _validationServiceMock.Object, _eventDispatcherMock.Object);
+            _validationServiceMock.Object, _eventDispatcherMock.Object, _loggerMock.Object);
     }
 
     private UserDto.RegistrationUser CreateRegistrationUser(int id)
@@ -204,7 +209,7 @@ public class UserControllerTests
 
         var message = responseObject.GetType().GetProperty("message")?.GetValue(responseObject, null)?.ToString();
 
-        Assert.Equal("An unexpected error occurred while fetching the user details.", message);
+        Assert.Equal("An unexpected error occurred while fetching the user.", message);
 
     }
 
@@ -683,6 +688,7 @@ public class UserControllerTests
 
         var userBase = CreateUserBase(userDetails.Id);
         _userServiceMock.Setup(s => s.GetUserByIdAsync(userDetails.Id)).ReturnsAsync(userBase);
+        _auth0UserServiceMock.Setup(s => s.UpdateUserAuth0(It.IsAny<UserDto.UpdateUser>())).ReturnsAsync(true);
         _userServiceMock.Setup(s => s.UpdateUserAsync(It.IsAny<UserDto.UpdateUser>())).ReturnsAsync(true);
 
         // Mock user identity
@@ -714,6 +720,7 @@ public class UserControllerTests
         userBase = userBase with { Roles = [new RoleDto { Name = RolesEnum.Pending }] }; // Original role is Pending
 
         _userServiceMock.Setup(s => s.GetUserByIdAsync(userDetails.Id)).ReturnsAsync(userBase);
+        _auth0UserServiceMock.Setup(s => s.UpdateUserAuth0(It.IsAny<UserDto.UpdateUser>())).ReturnsAsync(true);
         _userServiceMock.Setup(s => s.UpdateUserAsync(It.IsAny<UserDto.UpdateUser>())).ReturnsAsync(true);
         _auth0UserServiceMock.Setup(a => a.AssignRoleToUser(userDetails)).ReturnsAsync(true);
         _userServiceMock.Setup(s => s.UpdateUserRolesAsync(userDetails.Id, userDetails.Roles)).ReturnsAsync(true);
@@ -754,6 +761,7 @@ public class UserControllerTests
         };
 
         _userServiceMock.Setup(s => s.GetUserByIdAsync(userDetails.Id)).ReturnsAsync(userBase);
+        _auth0UserServiceMock.Setup(s => s.UpdateUserAuth0(It.IsAny<UserDto.UpdateUser>())).ReturnsAsync(true);
         _userServiceMock.Setup(s => s.UpdateUserAsync(It.IsAny<UserDto.UpdateUser>())).ReturnsAsync(true);
         _auth0UserServiceMock.Setup(a => a.AssignRoleToUser(userDetails)).ReturnsAsync(true);
         _userServiceMock.Setup(s => s.UpdateUserRolesAsync(userDetails.Id, userDetails.Roles)).ReturnsAsync(true);
@@ -799,6 +807,7 @@ public class UserControllerTests
 
         // Properly mock service methods
         _userServiceMock.Setup(s => s.GetUserByIdAsync(userDetails.Id)).ReturnsAsync(userBase); // User exists
+        _auth0UserServiceMock.Setup(a => a.UpdateUserAuth0(It.IsAny<UserDto.UpdateUser>())).ReturnsAsync(true); // User updated in Auth0
         _auth0UserServiceMock.Setup(a => a.AssignRoleToUser(userDetails)).ReturnsAsync(true); // Roles assigned in Auth0
         _userServiceMock.Setup(s => s.UpdateUserAsync(It.IsAny<UserDto.UpdateUser>())).ReturnsAsync(true); // User updated in the database
         _userServiceMock.Setup(s => s.UpdateUserRolesAsync(userDetails.Id, userDetails.Roles)).ReturnsAsync(false); // Role update fails in the database
