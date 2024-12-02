@@ -1,6 +1,4 @@
-using System.Collections.Immutable;
 using System.Text.Json;
-using Auth0.ManagementApi.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -9,13 +7,16 @@ using Rise.Persistence;
 using Rise.Server.Settings;
 using Rise.Shared.Bookings;
 using Rise.Shared.Enums;
-using Rise.Services.Users;
 using Rise.Shared.Services;
 using Rise.Shared.Users;
 using Rise.Shared.Boats;
+using Microsoft.Extensions.Logging;
 
 namespace Rise.Services.Bookings;
 
+/// <summary>
+/// Provides services for managing bookings.
+/// </summary>
 public class BookingService : IBookingService
 {
     private readonly ApplicationDbContext _dbContext;
@@ -23,14 +24,23 @@ public class BookingService : IBookingService
     private readonly int _minReservationDays;
     private readonly int _maxReservationDays;
     private readonly IValidationService _validationService;
+    private readonly ILogger<BookingService> _logger;
 
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BookingService"/> class.
+    /// </summary>
+    /// <param name="dbContext">The database context.</param>
+    /// <param name="options">The booking settings options.</param>
+    /// <param name="validationService">The validation service.</param>
+    /// <param name="logger">The logger.</param>
     public BookingService(ApplicationDbContext dbContext, IOptions<BookingSettings> options,
-        IValidationService validationService)
+        IValidationService validationService, ILogger<BookingService> logger)
     {
         _minReservationDays = options.Value.MinReservationDays;
         _maxReservationDays = options.Value.MaxReservationDays;
         _validationService = validationService;
+        _logger = logger;
 
         this._dbContext = dbContext;
         this._jsonSerializerOptions = new JsonSerializerOptions
@@ -39,27 +49,37 @@ public class BookingService : IBookingService
         };
     }
 
+
     /// <summary>
     /// Retrieves all bookings.
     /// </summary>
     /// <returns>A collection of all bookings.</returns>
-    public async Task<IEnumerable<BookingDto.ViewBooking>> GetAllAsync()
+    public async Task<IEnumerable<BookingDto.ViewBooking>?> GetAllAsync()
     {
-        // Changed method so that DTO creation is out of the LINQ Query
-        // You need to avoid using methods with optional parameters directly
-        // in the LINQ query that EF is trying to translate
-        var query = await _dbContext.Bookings
-            .Include(b => b.Battery)
-            .Include(b => b.Boat)
-            .Where(x => x.IsDeleted == false)
-            .ToListAsync();
-
-        if (query is null)
+        try
         {
-            return null;
-        }
+            // Changed method so that DTO creation is out of the LINQ Query
+            // You need to avoid using methods with optional parameters directly
+            // in the LINQ query that EF is trying to translate
+            var query = await _dbContext.Bookings
+                .Include(b => b.Battery)
+                .Include(b => b.Boat)
+                .Where(x => x.IsDeleted == false)
+                .ToListAsync();
 
-        return query.Select(MapToDto);
+            if (query is null)
+            {
+                _logger.LogWarning("No bookings found");
+                return Enumerable.Empty<BookingDto.ViewBooking>();
+            }
+            _logger.LogInformation("Successfully fetched {Count} bookings.", query.Count);
+            return query.Select(MapToDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while fetching all bookings.");
+            throw;
+        }
     }
 
     /// <summary>
@@ -68,23 +88,38 @@ public class BookingService : IBookingService
     /// <param name="id">The ID of the booking to retrieve.</param>
     /// <returns>The booking details if found; otherwise, null.</returns>
     /// <exception cref="ArgumentException">Thrown when the booking ID is null or empty.</exception>
-    public async Task<BookingDto.ViewBooking> GetBookingById(string id)
+    public async Task<BookingDto.ViewBooking?> GetBookingById(string id)
     {
-        CheckBookingIdNullOrWhiteSpace(id);
-        // Changed method so that DTO creation is out of the LINQ Query
-        // You need to avoid using methods with optional parameters directly
-        // in the LINQ query that EF is trying to translate
-        var query = await _dbContext.Bookings
-            .Include(x => x.Battery)
-            .Include(x => x.Boat)
-            .FirstOrDefaultAsync(x => x.Id.Equals(id) && x.IsDeleted == false);
-
-        if (query == null)
+        try
         {
-            return null;
-        }
+            CheckBookingIdNullOrWhiteSpace(id);
+            // Changed method so that DTO creation is out of the LINQ Query
+            // You need to avoid using methods with optional parameters directly
+            // in the LINQ query that EF is trying to translate
+            var query = await _dbContext.Bookings
+                .Include(x => x.Battery)
+                .Include(x => x.Boat)
+                .FirstOrDefaultAsync(x => x.Id.Equals(id) && x.IsDeleted == false);
 
-        return MapToDto(query);
+            if (query is null)
+            {
+                _logger.LogWarning("Booking with ID {Id} not found.", id);
+                return null;
+            }
+
+            _logger.LogInformation("Successfully fetched booking with ID {Id}.", id);
+            return MapToDto(query);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid booking ID provided.");
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while fetching booking with ID {Id}.", id);
+            throw new Exception("Error occurred while fetching booking.", ex);
+        }
     }
 
     /// <summary>
@@ -101,37 +136,60 @@ public class BookingService : IBookingService
     /// <exception cref="UserNotFoundException">Thrown when the user does not exist.</exception>
     public async Task<BookingDto.ViewBooking> CreateBookingAsync(BookingDto.NewBooking booking)
     {
-        await ValidateUser(booking.userId); // Await the call to ensure exceptions are caught
-
-        // Check if user has not reached the maximum allowed bookings
-        if (await _validationService.CheckUserMaxBookings(booking.userId))
+        try
         {
-            throw new InvalidOperationException("You have reached the maximum number of bookings allowed.");
-        }
+            await ValidateUser(booking.userId); // Await the call to ensure exceptions are caught
 
-        // Check if the requested booking is still available
-        if (await _validationService.BookingExists(booking.bookingDate))
+            // Check if user has not reached the maximum allowed bookings
+            if (await _validationService.CheckUserMaxBookings(booking.userId))
+            {
+                throw new InvalidOperationException("You have reached the maximum number of bookings allowed.");
+            }
+
+            // Check if the requested booking is still available
+            if (await _validationService.BookingExists(booking.bookingDate))
+            {
+                throw new InvalidOperationException("Booking already exists on this date");
+            }
+
+            // Check if requested booking is within the set time range
+            if (!CheckWithinDateRange(booking.bookingDate))
+            {
+                throw new ArgumentException(
+                    $"Invalid date selection. Please choose a date that is at least {_minReservationDays} days from " +
+                    $"today and no more than {_maxReservationDays} days ahead.");
+            }
+
+            var entity = new Booking(
+                timeSlot: TimeSlotEnumExtensions.ToTimeSlot(booking.bookingDate.Hour),
+                bookingDate: booking.bookingDate,
+                userId: booking.userId
+            );
+            var created = _dbContext.Bookings.Add(entity);
+            int response = await _dbContext.SaveChangesAsync();
+
+            return MapToDto(created.Entity);
+        }
+        catch (ArgumentException ex)
         {
-            throw new InvalidOperationException("Booking already exists on this date");
+            _logger.LogWarning(ex, "Invalid booking details provided.");
+            throw;
         }
-
-        // Check if requested booking is within the set time range
-        if (!CheckWithinDateRange(booking.bookingDate))
+        catch (UserNotFoundException ex)
         {
-            throw new ArgumentException(
-                $"Invalid date selection. Please choose a date that is at least {_minReservationDays} days from " +
-                $"today and no more than {_maxReservationDays} days ahead.");
+            _logger.LogWarning(ex, "User with ID {Id} was not found.", booking.userId);
+            throw;
         }
-
-        var entity = new Booking(
-            timeSlot: TimeSlotEnumExtensions.ToTimeSlot(booking.bookingDate.Hour),
-            bookingDate: booking.bookingDate,
-            userId: booking.userId
-        );
-        var created = _dbContext.Bookings.Add(entity);
-        int response = await _dbContext.SaveChangesAsync();
-
-        return MapToDto(created.Entity);
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Booking already exists on this date.");
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while creating a new booking.");
+            throw new Exception("Error occurred while creating a new booking.", ex);
+        }
     }
 
     /// <summary>
@@ -147,33 +205,54 @@ public class BookingService : IBookingService
     /// <exception cref="InvalidOperationException">Thrown when a booking already exists on the new date.</exception>
     public async Task<bool> UpdateBookingAsync(BookingDto.UpdateBooking booking)
     {
-        CheckBookingIdNullOrWhiteSpace(booking.bookingId);
-
-        var entity = await _dbContext.Bookings.FindAsync(booking.bookingId) ?? throw new Exception("Booking not found");
-
-        if (booking.bookingDate != null && booking.bookingDate != entity.BookingDate)
+        try
         {
-            // Check if the new booking date is within the allowed range (+3 to +30 days from today)
-            if (booking.bookingDate.Value < DateTime.UtcNow.Date.AddDays(_minReservationDays) ||
-                booking.bookingDate.Value > DateTime.UtcNow.Date.AddDays(_maxReservationDays))
+            CheckBookingIdNullOrWhiteSpace(booking.bookingId);
+
+            var entity = await _dbContext.Bookings.FindAsync(booking.bookingId) ?? throw new Exception("Booking not found");
+
+            if (booking.bookingDate != null && booking.bookingDate != entity.BookingDate)
             {
-                throw new ArgumentOutOfRangeException(nameof(booking.bookingDate),
-                    $"Booking date must be between {_minReservationDays} and {_maxReservationDays} days from today.");
+                // Check if the new booking date is within the allowed range (+3 to +30 days from today)
+                if (booking.bookingDate.Value < DateTime.UtcNow.Date.AddDays(_minReservationDays) ||
+                    booking.bookingDate.Value > DateTime.UtcNow.Date.AddDays(_maxReservationDays))
+                {
+                    throw new ArgumentOutOfRangeException(nameof(booking.bookingDate),
+                        $"Booking date must be between {_minReservationDays} and {_maxReservationDays} days from today.");
+                }
+
+                if (await _validationService.BookingExists(booking.bookingDate.Value))
+                {
+                    throw new InvalidOperationException("Booking already exists on this date");
+                }
+
+                entity.BookingDate = booking.bookingDate.Value;
             }
 
-            if (await _validationService.BookingExists(booking.bookingDate.Value))
-            {
-                throw new InvalidOperationException("Booking already exists on this date");
-            }
+            _dbContext.Bookings.Update(entity);
+            int response = await _dbContext.SaveChangesAsync();
 
-            entity.BookingDate = booking.bookingDate.Value;
+            _logger.LogInformation("Booking with ID {BookingId} updated successfully.", booking.bookingId);
+            return response > 0;
         }
-
-        _dbContext.Bookings.Update(entity);
-        int response = await _dbContext.SaveChangesAsync();
-
-        return response > 0;
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid booking details provided.");
+            throw;
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Booking already exists on this date.");
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while updating booking with ID {Id}.", booking.bookingId);
+            throw new Exception("Error occurred while updating booking.", ex);
+        }
     }
+
+
 
     /// <summary>
     /// Deletes a booking by its ID.
@@ -184,14 +263,28 @@ public class BookingService : IBookingService
     /// <exception cref="Exception">Thrown when the booking is not found.</exception>
     public async Task<bool> DeleteBookingAsync(string bookingId)
     {
-        CheckBookingIdNullOrWhiteSpace(bookingId);
+        try
+        {
+            CheckBookingIdNullOrWhiteSpace(bookingId);
 
-        var entity = await _dbContext.Bookings.FindAsync(bookingId) ?? throw new Exception("Booking not found");
+            var entity = await _dbContext.Bookings.FindAsync(bookingId) ?? throw new Exception("Booking not found");
 
-        entity.SoftDelete();
-        _dbContext.Bookings.Update(entity);
-        await _dbContext.SaveChangesAsync();
-        return true;
+            entity.SoftDelete();
+            _dbContext.Bookings.Update(entity);
+            int response = await _dbContext.SaveChangesAsync();
+            _logger.LogInformation("Booking with ID {BookingId} deleted successfully.", bookingId);
+            return response > 0;
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid booking ID provided for booking deletion.");
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while deleting booking with ID {Id}.", bookingId);
+            throw new Exception("Error occurred while deleting booking.", ex);
+        }
     }
 
     /// <summary>
@@ -217,26 +310,46 @@ public class BookingService : IBookingService
     /// <exception cref="UserNotFoundException">Thrown when the user does not exist.</exception>
     public async Task<IEnumerable<BookingDto.ViewBooking>?> GetAllUserBookings(string userId)
     {
-        await ValidateUser(userId); // Await the call to ensure exceptions are caught
-
-        // Changed method so that DTO creation is out of the LINQ Query
-        // You need to avoid using methods with optional parameters directly
-        // in the LINQ query that EF is trying to translate
-        var query = await _dbContext.Bookings
-            .Include(b => b.Battery)
-            .Include(b => b.Boat)
-            .Where(x => x.UserId.Equals(userId))
-            .OrderByDescending(x => x.BookingDate)
-            .ToListAsync();
-
-        if (query == null)
+        try
         {
-            return null;
-        }
+            await ValidateUser(userId); // Await the call to ensure exceptions are caught
 
-        return query.Select(MapToDto).OrderByDescending(b => b.status == BookingStatus.OPEN)
-            .ThenByDescending(b => b.bookingDate)
-            .ToList();;
+            // Changed method so that DTO creation is out of the LINQ Query
+            // You need to avoid using methods with optional parameters directly
+            // in the LINQ query that EF is trying to translate
+            var query = await _dbContext.Bookings
+                .Include(b => b.Battery)
+                .Include(b => b.Boat)
+                .Where(x => x.UserId.Equals(userId))
+                .OrderByDescending(x => x.BookingDate)
+                .ToListAsync();
+
+            if (query is null)
+            {
+                _logger.LogInformation("No bookings found for user {UserId}.", userId);
+                return Enumerable.Empty<BookingDto.ViewBooking>();
+            }
+
+            _logger.LogInformation("{Count} bookings retrieved for user {UserId}.", query.Count, userId);
+            return query.Select(MapToDto).OrderByDescending(b => b.status == BookingStatus.OPEN)
+                .ThenByDescending(b => b.bookingDate)
+                .ToList();
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid input provided for fetching user bookings.");
+            throw;
+        }
+        catch (UserNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "User with ID {Id} was not found.", userId);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while fetching all bookings for user with ID {Id}.", userId);
+            throw new Exception("Error occurred while fetching all bookings for user.", ex);
+        }
     }
 
     /// <summary>
@@ -248,24 +361,44 @@ public class BookingService : IBookingService
     /// <exception cref="UserNotFoundException">Thrown when the user does not exist.</exception>
     public async Task<IEnumerable<BookingDto.ViewBooking>?> GetFutureUserBookings(string userId)
     {
-        await ValidateUser(userId); // Await the call to ensure exceptions are caught
-
-        // Changed method so that DTO creation is out of the LINQ Query
-        // You need to avoid using methods with optional parameters directly
-        // in the LINQ query that EF is trying to translate
-        var query = await _dbContext.Bookings
-            .Include(x => x.Battery)
-            .Include(x => x.Boat)
-            .Where(x => x.UserId.Equals(userId) && x.IsDeleted == false && x.BookingDate.Date >= DateTime.Now.Date)
-            .OrderByDescending(x => x.BookingDate)
-            .ToListAsync();
-
-        if (query == null)
+        try
         {
-            return null;
-        }
+            await ValidateUser(userId); // Await the call to ensure exceptions are caught
 
-        return query.Select(MapToDto);
+            // Changed method so that DTO creation is out of the LINQ Query
+            // You need to avoid using methods with optional parameters directly
+            // in the LINQ query that EF is trying to translate
+            var query = await _dbContext.Bookings
+                .Include(x => x.Battery)
+                .Include(x => x.Boat)
+                .Where(x => x.UserId.Equals(userId) && x.IsDeleted == false && x.BookingDate.Date >= DateTime.Now.Date)
+                .OrderByDescending(x => x.BookingDate)
+                .ToListAsync();
+
+            if (query is null)
+            {
+                _logger.LogInformation("No future bookings found for user {UserId}.", userId);
+                return Enumerable.Empty<BookingDto.ViewBooking>();
+            }
+
+            _logger.LogInformation("{Count} future bookings retrieved for user {UserId}.", query.Count, userId);
+            return query.Select(MapToDto);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid input provided for fetching future user bookings.");
+            throw;
+        }
+        catch (UserNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "User with ID {Id} was not found.", userId);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while fetching future bookings for user with ID {Id}.", userId);
+            throw new Exception("Error occurred while fetching future bookings for user.", ex);
+        }
     }
 
     /// <summary>
@@ -277,21 +410,41 @@ public class BookingService : IBookingService
     /// <exception cref="UserNotFoundException">Thrown when the user does not exist.</exception>
     public async Task<IEnumerable<BookingDto.ViewBooking>?> GetPastUserBookings(string userId)
     {
-        await ValidateUser(userId); // Await the call to ensure exceptions are caught
-
-        var query = await _dbContext.Bookings
-            .Include(x => x.Battery)
-            .Include(x => x.Boat)
-            .Where(x => x.UserId.Equals(userId) && x.IsDeleted == false && x.BookingDate < DateTime.Now)
-            .OrderByDescending(x => x.BookingDate)
-            .ToListAsync();
-
-        if (query == null)
+        try
         {
-            return null;
-        }
+            await ValidateUser(userId); // Await the call to ensure exceptions are caught
 
-        return query.Select(MapToDto);
+            var query = await _dbContext.Bookings
+                .Include(x => x.Battery)
+                .Include(x => x.Boat)
+                .Where(x => x.UserId.Equals(userId) && x.IsDeleted == false && x.BookingDate < DateTime.Now)
+                .OrderByDescending(x => x.BookingDate)
+                .ToListAsync();
+
+            if (query is null)
+            {
+                _logger.LogInformation("No past bookings found for user {UserId}.", userId);
+                return Enumerable.Empty<BookingDto.ViewBooking>();
+            }
+
+            _logger.LogInformation("{Count} past bookings retrieved for user {UserId}.", query.Count, userId);
+            return query.Select(MapToDto);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid input provided for fetching past user bookings.");
+            throw;
+        }
+        catch (UserNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "User with ID {Id} was not found.", userId);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while fetching past bookings for user with ID {Id}.", userId);
+            throw new Exception("Error occurred while fetching past bookings for user.", ex);
+        }
     }
 
     /// <summary>
@@ -302,7 +455,7 @@ public class BookingService : IBookingService
     private BookingDto.ViewBooking MapToDto(Booking booking)
     {
         var battery = new BatteryDto.ViewBattery();
-        if (booking.Battery != null)
+        if (booking.Battery is not null)
         {
             battery = new BatteryDto.ViewBattery()
             {
@@ -316,9 +469,9 @@ public class BookingService : IBookingService
 
 
         //todo status toevoegen aan DB for refunded
-        BookingStatus status = BookingStatusHelper.GetBookingStatus(booking.IsDeleted, false, booking.BookingDate,booking.Boat != null && !booking.Boat.Name.IsNullOrEmpty());
+        BookingStatus status = BookingStatusHelper.GetBookingStatus(booking.IsDeleted, false, booking.BookingDate, booking.Boat != null && !booking.Boat.Name.IsNullOrEmpty());
 
-        if (booking.Boat != null && !booking.Boat.Name.IsNullOrEmpty())
+        if (booking.Boat is not null && !booking.Boat.Name.IsNullOrEmpty())
         {
             boat = new BoatDto.ViewBoat()
             {
@@ -371,31 +524,57 @@ public class BookingService : IBookingService
     public async Task<IEnumerable<BookingDto.ViewBookingCalender>?> GetTakenTimeslotsInDateRange(DateTime? startDate,
         DateTime? endDate)
     {
-        // Check validity of parameters
-        if (startDate == null)
+        try
         {
-            throw new ArgumentNullException(nameof(startDate));
-        }
+            // Check validity of parameters
+            if (startDate == null || endDate == null)
+            {
+                _logger.LogWarning("Invalid date range provided for fetching taken timeslots.");
+                throw new ArgumentNullException(startDate == null ? nameof(startDate) : nameof(endDate));
+            }
 
-        if (endDate == null)
+
+            // Validate the date range
+            if (startDate.Value.Date > endDate.Value.Date)
+            {
+                _logger.LogWarning("Start date {StartDate} is after end date {EndDate}.", startDate, endDate);
+                throw new ArgumentException("Start date must be before the end date.", nameof(startDate));
+            }
+
+            _logger.LogInformation("Fetching taken timeslots between {StartDate} and {EndDate}.", startDate, endDate);
+
+            // Get all bookings from the db that are between start and enddate (limits included)
+            var bookings = await _dbContext.Bookings
+                  .Where(booking => booking.BookingDate.Date >= startDate && booking.BookingDate.Date <= endDate &&
+                                    booking.IsDeleted == false)
+                  .ToListAsync();
+
+            if (bookings is null)
+            {
+                _logger.LogInformation("No taken timeslots found between {StartDate} and {EndDate}.", startDate, endDate);
+                return Enumerable.Empty<BookingDto.ViewBookingCalender>();
+            }
+
+            _logger.LogInformation("{Count} taken timeslots retrieved between {StartDate} and {EndDate}.", bookings.Count, startDate, endDate);
+            return bookings.Select(booking => ViewBookingCalenderFromBooking(booking, true)).ToList();
+        }
+        catch (ArgumentNullException ex)
         {
-            throw new ArgumentNullException(nameof(endDate));
+            _logger.LogWarning(ex, "Invalid input provided for fetching taken timeslots.");
+            throw;
         }
-
-        // Validate the date range
-        if (startDate.Value.Date > endDate.Value.Date)
+        catch (ArgumentException ex)
         {
-            throw new ArgumentException("Start date must be before the end date.", nameof(startDate));
+            _logger.LogWarning(ex, "Invalid date range provided.");
+            throw;
         }
-
-        // Get all bookings from the db that are between start and enddate (limits included)
-        List<Booking> bookings = await _dbContext.Bookings
-            .Where(booking => booking.BookingDate.Date >= startDate && booking.BookingDate.Date <= endDate &&
-                              booking.IsDeleted == false)
-            .ToListAsync();
-
-        return bookings.Select(booking => ViewBookingCalenderFromBooking(booking, true)).ToList();
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An unexpected error occurred while fetching taken timeslots.");
+            throw new Exception("An unexpected error occurred while retrieving taken timeslots.", ex);
+        }
     }
+
 
     /// <summary>
     /// Retrieves all free timeslots within a specified date range.
@@ -408,69 +587,88 @@ public class BookingService : IBookingService
     public async Task<IEnumerable<BookingDto.ViewBookingCalender>?> GetFreeTimeslotsInDateRange(DateTime? startDate,
         DateTime? endDate)
     {
-        int NON_BOOKABLE_DAYS_AFTER_TODAY = 2;
-
-        // Check validity of parameters
-        if (startDate == null)
+        try
         {
-            throw new ArgumentNullException(nameof(startDate));
-        }
+            const int NON_BOOKABLE_DAYS_AFTER_TODAY = 2;
 
-        if (endDate == null)
-        {
-            throw new ArgumentNullException(nameof(endDate));
-        }
-
-        // Validate the date range
-        if (startDate.Value.Date > endDate.Value.Date)
-        {
-            throw new ArgumentException("Start date must be before the end date.", nameof(startDate));
-        }
-
-        // if there is no possible free timeslot. (cannot book before or on the enddate) return empty list (shortcut)
-        if (endDate <= DateTime.Now.AddDays(NON_BOOKABLE_DAYS_AFTER_TODAY))
-        {
-            return new List<BookingDto.ViewBookingCalender>();
-        }
-
-        // Get all bookings from the db that are between startdate and enddate (limits included)
-        List<Booking> bookings = await _dbContext.Bookings
-            .Where(booking => booking.BookingDate.Date >= startDate && booking.BookingDate.Date <= endDate &&
-                              booking.IsDeleted == false)
-            .ToListAsync();
-
-        //generate all possible timeslots
-        List<BookingDto.ViewBookingCalender> allPossibleTimeslotsInRange = new List<BookingDto.ViewBookingCalender>();
-        for (DateTime date = startDate.Value; date <= endDate; date = date.AddDays(1))
-        {
-            if (date <= DateTime.Now.AddDays(NON_BOOKABLE_DAYS_AFTER_TODAY))
+            // Check validity of parameters
+            if (startDate == null || endDate == null)
             {
-                continue;
+                _logger.LogWarning("Invalid date range provided for fetching free timeslots.");
+                throw new ArgumentNullException(startDate == null ? nameof(startDate) : nameof(endDate));
             }
 
-            foreach (TimeSlot timeSlot in Enum.GetValues(typeof(TimeSlot)))
+            // Validate the date range
+            if (startDate.Value.Date > endDate.Value.Date)
             {
-                if (timeSlot == TimeSlot.None)
+                _logger.LogWarning("Start date {StartDate} is after end date {EndDate}.", startDate, endDate);
+                throw new ArgumentException("Start date must be before the end date.", nameof(startDate));
+            }
+
+            // if there is no possible free timeslot. (cannot book before or on the enddate) return empty list (shortcut)
+            if (endDate <= DateTime.Now.AddDays(NON_BOOKABLE_DAYS_AFTER_TODAY))
+            {
+                _logger.LogInformation("No free timeslots available before {EndDate}.", endDate);
+                return Enumerable.Empty<BookingDto.ViewBookingCalender>();
+            }
+
+            // Get all bookings from the db that are between startdate and enddate (limits included)
+            var bookings = await _dbContext.Bookings
+                .Where(booking => booking.BookingDate.Date >= startDate && booking.BookingDate.Date <= endDate &&
+                                  booking.IsDeleted == false)
+                .ToListAsync();
+
+            //generate all possible timeslots
+            List<BookingDto.ViewBookingCalender> allPossibleTimeslotsInRange = new List<BookingDto.ViewBookingCalender>();
+            for (DateTime date = startDate.Value; date <= endDate; date = date.AddDays(1))
+            {
+                if (date <= DateTime.Now.AddDays(NON_BOOKABLE_DAYS_AFTER_TODAY))
                 {
                     continue;
                 }
 
-                allPossibleTimeslotsInRange.Add(
-                    new BookingDto.ViewBookingCalender
+                foreach (TimeSlot timeSlot in Enum.GetValues(typeof(TimeSlot)))
+                {
+                    if (timeSlot == TimeSlot.None)
                     {
-                        BookingDate = date,
-                        TimeSlot = timeSlot,
-                        Available = true
+                        continue;
                     }
-                );
-            }
-        }
 
-        // return all possible timeslots without the occupied ones
-        return allPossibleTimeslotsInRange
-            .Where(slot => !bookings.Exists(booking =>
-                booking.BookingDate.Date == slot.BookingDate.Date && booking.GetTimeSlot() == slot.TimeSlot))
-            .ToList();
+                    allPossibleTimeslotsInRange.Add(
+                        new BookingDto.ViewBookingCalender
+                        {
+                            BookingDate = date,
+                            TimeSlot = timeSlot,
+                            Available = true
+                        }
+                    );
+                }
+            }
+
+            // return all possible timeslots without the occupied ones
+            var freeTimeslots = allPossibleTimeslotsInRange
+                .Where(slot => !bookings.Exists(booking =>
+                    booking.BookingDate.Date == slot.BookingDate.Date && booking.GetTimeSlot() == slot.TimeSlot))
+                .ToList();
+
+            _logger.LogInformation("{Count} free timeslots retrieved between {StartDate} and {EndDate}.", freeTimeslots.Count, startDate, endDate);
+            return freeTimeslots;
+        }
+        catch (ArgumentNullException ex)
+        {
+            _logger.LogWarning(ex, "Invalid input provided for fetching free timeslots.");
+            throw;
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid date range provided.");
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An unexpected error occurred while fetching free timeslots.");
+            throw new Exception("An unexpected error occurred while retrieving free timeslots.", ex);
+        }
     }
 
     /// <summary>
@@ -514,6 +712,7 @@ public class BookingService : IBookingService
         bool userExists = await _validationService.CheckUserExistsAsync(userId);
         if (!userExists)
         {
+            _logger.LogWarning("User with ID {Id} was not found.", userId);
             throw new UserNotFoundException("User with given id was not found.");
         }
     }

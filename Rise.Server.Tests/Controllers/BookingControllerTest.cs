@@ -16,6 +16,8 @@ using Rise.Shared.Enums;
 using Shouldly;
 using Rise.Services.Events;
 using Rise.Services.Events.Booking;
+using Castle.Core.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace Rise.Server.Tests.Controllers;
 
@@ -24,11 +26,13 @@ public class BookingControllerTest
     private readonly Mock<IBookingService> _mockBookingService;
     private readonly Mock<IEventDispatcher> _mockEventDispatcher;
     private readonly BookingController _controller;
+    private readonly Mock<ILogger<BookingController>> _mockLogger;
 
     public BookingControllerTest()
     {
         _mockBookingService = new Mock<IBookingService>();
         _mockEventDispatcher = new Mock<IEventDispatcher>();
+        _mockLogger = new Mock<ILogger<BookingController>>();
 
         var bookingSettings = Options.Create(new BookingSettings
         {
@@ -36,7 +40,7 @@ public class BookingControllerTest
             MaxReservationDays = 30
         });
 
-        _controller = new BookingController(_mockBookingService.Object, bookingSettings, _mockEventDispatcher.Object);
+        _controller = new BookingController(_mockBookingService.Object, bookingSettings, _mockEventDispatcher.Object, _mockLogger.Object);
 
         // Set up a fake user with authorization roles
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
@@ -190,7 +194,7 @@ public class BookingControllerTest
         var statusCodeResult = result as ObjectResult;
         statusCodeResult.ShouldNotBeNull();
         statusCodeResult.StatusCode.ShouldBe(StatusCodes.Status500InternalServerError);
-        statusCodeResult.Value.ShouldBe("An error occurred while processing your request: Database error");
+        statusCodeResult.Value.ShouldBe("An error occurred while processing your request.");
     }
 
     [Fact]

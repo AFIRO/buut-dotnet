@@ -14,6 +14,8 @@ using Rise.Shared.Bookings;
 using Rise.Shared.Enums;
 using Rise.Services.Users;
 using Rise.Shared.Services;
+using Microsoft.Extensions.Logging;
+
 
 namespace Rise.Services.Tests.Bookings;
 
@@ -24,6 +26,7 @@ public class BookingServiceTest
     private readonly BookingService _bookingService;
 
     private readonly Mock<IValidationService> _validationServiceMock;
+    private readonly Mock<ILogger<BookingService>> _loggerMock;
 
     public BookingServiceTest()
     {
@@ -33,6 +36,7 @@ public class BookingServiceTest
 
         _dbContext = new ApplicationDbContext(options);
         _validationServiceMock = new Mock<IValidationService>();
+        _loggerMock = new Mock<ILogger<BookingService>>();
 
         var bookingSettings = new BookingSettings
         {
@@ -42,7 +46,7 @@ public class BookingServiceTest
         };
         _bookingSettings = Options.Create(bookingSettings);
 
-        _bookingService = new BookingService(_dbContext, _bookingSettings, _validationServiceMock.Object);
+        _bookingService = new BookingService(_dbContext, _bookingSettings, _validationServiceMock.Object, _loggerMock.Object);
     }
 
     #region GetAllAsync

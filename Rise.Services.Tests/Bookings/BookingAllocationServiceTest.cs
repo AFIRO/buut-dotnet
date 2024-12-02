@@ -9,6 +9,8 @@ using Rise.Domain.Bookings;
 using Rise.Persistence;
 using Rise.Server.Settings;
 using Rise.Services.Bookings;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace Rise.Services.Tests.Bookings;
 
@@ -16,13 +18,15 @@ public class BookingAllocationServiceTests
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly BookingAllocationService _service;
+    private readonly Mock<ILogger<BookingAllocationService>>_logger;
 
     public BookingAllocationServiceTests()
     {
         // Configure an in-memory database
         var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString());
-        _dbContext = new ApplicationDbContext(optionsBuilder.Options);
+        _dbContext = new ApplicationDbContext(optionsBuilder.Options); 
+        _logger = new Mock<ILogger<BookingAllocationService>>();
 
         // Configure BookingSettings
         var bookingSettings = new BookingSettings
@@ -33,7 +37,7 @@ public class BookingAllocationServiceTests
         var options = Options.Create(bookingSettings);
 
         // Initialize the service
-        _service = new BookingAllocationService(new BookingAllocator(), _dbContext, options);
+        _service = new BookingAllocationService(new BookingAllocator(), _dbContext, options, _logger.Object);
     }
 
     [Fact]
