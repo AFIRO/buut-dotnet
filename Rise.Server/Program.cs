@@ -4,6 +4,7 @@ using Rise.Persistence.Triggers;
 using Rise.Services.Users;
 using Rise.Shared.Users;
 using System.Security.Claims;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Auth0Net.DependencyInjection;

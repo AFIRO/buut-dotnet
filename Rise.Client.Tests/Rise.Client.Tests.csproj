@@ -51,8 +51,4 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\Rise.Client\Rise.Client.csproj" />
 	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Pages\" />
-	</ItemGroup>
 </Project>

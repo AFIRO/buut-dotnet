@@ -85,4 +85,14 @@ public class FakeBookingService : IBookingService
     {
         return Task.FromResult(_freeTimeslots);
     }
+
+    public Task<int> GetAmountOfFreeTimeslotsForWeek()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<BookingDto.ViewBookingCalender> GetFirstFreeTimeSlot()
+    {
+        throw new NotImplementedException();
+    }
 }

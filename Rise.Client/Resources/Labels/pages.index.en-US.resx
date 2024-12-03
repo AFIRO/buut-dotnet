@@ -22,6 +22,38 @@
   <data name="HeaderText" xml:space="preserve">
     <value>Share boats for Muide - Meulestede -  Afrikalaan</value>
   </data>
-  
+    <data name="Prompt" xml:space="preserve">
+    <value>Discover your inner water tourist!!</value>
+  </data>
+    <data name="RemainingSlots0" xml:space="preserve">
+    <value>There are no </value>
+  </data>
+    <data name="RemainingSlots1" xml:space="preserve">
+    <value>Only </value>
+  </data>
+    <data name="RemainingSlots2" xml:space="preserve">
+    <value> remaining slots open for booking this week!</value>
+  </data>
+    <data name="NextSlot" xml:space="preserve">
+    <value>Next open slot</value>
+  </data>
+    <data name="Login" xml:space="preserve">
+    <value>Login</value>
+  </data>
+    <data name="Register" xml:space="preserve">
+    <value>Register</value>
+  </data>
+  <data name="BookNow" xml:space="preserve">
+    <value>Book now!</value>
+  </data>
+ <data name="Morning" xml:space="preserve">
+        <value>10 am</value>
+    </data>
+    <data name="Afternoon" xml:space="preserve">
+        <value>2 pm</value>
+    </data>
+    <data name="Evening" xml:space="preserve">
+        <value>5 pm</value>
+    </data>
 
 </root>

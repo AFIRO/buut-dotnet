@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.VisualBasic.CompilerServices;
 using MudBlazor.Extensions;
 using Rise.Shared.Bookings;
 using Rise.Shared.Users;
@@ -113,7 +114,30 @@ public class BookingService : IBookingService
         return convertedTimeSlots;
     }
 
-    private string BuildQuery(string baseUrl, DateTime? startDate, DateTime? endDate)
+    public async Task<int> GetAmountOfFreeTimeslotsForWeek()
+    {
+        var url = $"/api/Booking/free/count";
+        return IntegerType.FromString( await httpClient.GetStringAsync(url));
+    }
+
+    public async Task<BookingDto.ViewBookingCalender> GetFirstFreeTimeSlot()
+    {
+        var baseUrl = $"/api/Booking/free/first-timeslot";
+        var timeslots = await httpClient
+            .GetStringAsync(baseUrl);
+
+        // to make the json serializer work correctly
+        var options = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            Converters = { new JsonStringEnumConverter() }
+        };
+
+        return JsonSerializer.Deserialize<BookingDto.ViewBookingCalender>(timeslots, options);
+
+    }
+
+    private string BuildQuery(string baseUrl, DateTime? startDate, DateTime? endDate)  
     {
         var query = baseUrl;
         if (startDate.HasValue || endDate.HasValue)

@@ -23,9 +23,9 @@ public class BookingService : IBookingService
     private readonly JsonSerializerOptions _jsonSerializerOptions;
     private readonly int _minReservationDays;
     private readonly int _maxReservationDays;
-    private readonly IValidationService _validationService;
+    private readonly IValidationService _validationService;    
+    private static readonly int NonBookableDaysAfterToday = 2;
     private readonly ILogger<BookingService> _logger;
-
 
     /// <summary>
     /// Initializes a new instance of the <see cref="BookingService"/> class.
@@ -671,6 +671,94 @@ public class BookingService : IBookingService
         }
     }
 
+    public async Task<int> GetAmountOfFreeTimeslotsForWeek()
+    {
+        DateTime today = DateTime.Today;
+        DateTime endOfWeek = GetSundayForCurrentOrNextWeek();
+        int freeTimeSlots = 0;
+        
+        var targetDate = today.AddDays(NonBookableDaysAfterToday);
+
+        // Check if the target date is in the next week
+        if (targetDate.DayOfWeek < today.DayOfWeek)
+        {
+            return 0;
+        }
+
+        // Iterate over each day in the current week
+        for (DateTime date = today; date <= endOfWeek; date = date.AddDays(1))
+        {
+            // Iterate over each timeslot
+            foreach (TimeSlot timeSlot in Enum.GetValues(typeof(TimeSlot)))
+            {
+                if (timeSlot == TimeSlot.None)
+                    continue;
+
+                // Check if the timeslot is booked
+                if (!IsBooked(date, timeSlot))
+                {
+                    freeTimeSlots++;
+                }
+            }
+        }
+
+        return freeTimeSlots;
+    }
+    
+    private DateTime GetSundayForCurrentOrNextWeek()
+    {
+        DateTime today = DateTime.Today;
+
+        // Calculate how many days to add to get to the next Sunday
+        int daysUntilSunday = ((int)DayOfWeek.Sunday - (int)today.DayOfWeek + 7) % 7;
+
+        if (daysUntilSunday == 0)
+        {
+            daysUntilSunday = 7; // if today is Sunday, take next Sunday
+        }
+
+        return today.AddDays(daysUntilSunday);
+    }
+
+    public async Task<BookingDto.ViewBookingCalender> GetFirstFreeTimeSlot()
+    {
+        DateTime bookingDate = DateTime.Today.AddDays(NonBookableDaysAfterToday);
+
+        while (true) // Keep iterating through dates until a free slot is found
+        {
+            foreach (TimeSlot timeSlot in Enum.GetValues(typeof(TimeSlot)))
+            {
+                if (timeSlot == TimeSlot.None)
+                    continue;
+
+                // Check if the current date and time slot is booked
+                if (!IsBooked(bookingDate, timeSlot))
+                {
+                    // Return the first free booking
+                    return new BookingDto.ViewBookingCalender
+                    {
+                        BookingDate = bookingDate,
+                        TimeSlot = timeSlot,
+                        Available = true
+                    };
+                }
+            }
+
+            // Move to the next day
+            bookingDate = bookingDate.AddDays(1);
+        }
+    }
+
+    private bool IsBooked(DateTime date, TimeSlot timeSlot)
+    {
+        // Adjust the date to match the specific time slot's hour
+        var startHour = timeSlot.GetStartHour();
+        var bookingStartTime = date.Date.AddHours(startHour);
+
+        // Query the database to check if a booking exists for this date and time slot
+        return _dbContext.Bookings.Any(b => b.BookingDate == bookingStartTime && !b.IsDeleted);
+    }
+    
     /// <summary>
     /// Maps a Booking entity to a BookingDto.ViewBookingCalender.
     /// </summary>

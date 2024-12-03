@@ -60,6 +60,26 @@ public class BookingController : ControllerBase
             return StatusCode(500, "An error occurred while processing your request.");
         }
     }
+    
+    /// <summary>
+    /// Retrieves the first free timeslot.
+    /// </summary>
+    /// <returns><see cref="BookingDto"/> viewBookingCalender object or <c>null</c> if no free slot is found.</returns>
+    [HttpGet("free/first-timeslot")]
+    [AllowAnonymous]
+    public async Task<ActionResult<BookingDto.ViewBookingCalender>> GetFirstFreeTimeSlot()
+    {
+        try
+        {
+            var timeSlot = await _bookingService.GetFirstFreeTimeSlot();
+            return Ok(timeSlot);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                "An error occurred while processing your request.");
+        }
+    }
 
     /// <summary>
     /// Retrieves a booking by their ID asynchronously.
@@ -335,6 +355,29 @@ public class BookingController : ControllerBase
         {
             _logger.LogError(ex, "An error occurred while retrieving free timeslots by date range.");
             return StatusCode(500, "An error occurred while processing your request.");
+        }
+    }
+    
+    /// <summary>
+    /// Retrieves the amount free timeslots for the week
+    /// </summary>
+    /// <returns>An <see cref="IActionResult"/> containing the amount of free timeslots or an error message if the input is invalid.</returns>
+    /// <response code="200">Returns the amount of free timeslots.</response>
+    /// <response code="400">If the date range is invalid or any other argument exception occurs.</response>
+    [HttpGet("free/count")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetAmountOfFreeTimeslotsForWeek()
+    { 
+        try
+        {
+            var freeTimeslots = await _bookingService.GetAmountOfFreeTimeslotsForWeek();
+            Console.WriteLine("free: " + freeTimeslots);
+            return Ok(freeTimeslots);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                "An error occurred while processing your request.");
         }
     }
 

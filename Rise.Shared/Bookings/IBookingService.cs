@@ -15,4 +15,8 @@ public interface IBookingService
 
     Task<IEnumerable<BookingDto.ViewBookingCalender>?> GetTakenTimeslotsInDateRange(DateTime? startDate, DateTime? endDate);
     Task<IEnumerable<BookingDto.ViewBookingCalender>?> GetFreeTimeslotsInDateRange(DateTime? startDate, DateTime? endDate);
+    
+    Task<int> GetAmountOfFreeTimeslotsForWeek();
+    Task<BookingDto.ViewBookingCalender> GetFirstFreeTimeSlot();
+
 }

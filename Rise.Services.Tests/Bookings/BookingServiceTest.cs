@@ -45,7 +45,6 @@ public class BookingServiceTest
             MaxReservationDays = 30
         };
         _bookingSettings = Options.Create(bookingSettings);
-
         _bookingService = new BookingService(_dbContext, _bookingSettings, _validationServiceMock.Object, _loggerMock.Object);
     }
 
@@ -2103,5 +2102,102 @@ public class BookingServiceTest
             r => r.BookingDate == DateTime.Now.AddDays(4) && r.TimeSlot == TimeSlot.Afternoon);
     }
 
+    #endregion
+    
+    #region GetFirstFreeTimeSlot
+    [Fact]
+    public async Task GetFirstFreeTimeSlot_ShouldReturnFirstFreeSlot()
+    {
+        // Arrange
+        int nonBookableDaysAfterToday = 2;
+
+        // Act
+        var result = await _bookingService.GetFirstFreeTimeSlot();
+
+        // Assert
+        Assert.Equal(DateTime.Today.AddDays(nonBookableDaysAfterToday), result.BookingDate);
+        Assert.Equal(TimeSlot.Morning, result.TimeSlot);
+        Assert.True(result.Available);
+    }
+    
+    [Fact]
+    public async Task GetFirstFreeTimeSlot_ShouldReturnFirstFreeSlot_OnNextDay()
+    {
+        // Arrange
+        var userId = "user1";
+        int nonBookableDaysAfterToday = 2;
+        
+        var userBooking1 = new Booking(DateTime.UtcNow.AddDays(nonBookableDaysAfterToday), userId, TimeSlot.Morning)
+        {
+            Id = Guid.NewGuid().ToString(),
+            IsDeleted = false
+        };
+        var userBooking2 = new Booking(DateTime.UtcNow.AddDays(nonBookableDaysAfterToday), userId, TimeSlot.Afternoon)
+        {
+            Id = Guid.NewGuid().ToString(),
+            IsDeleted = false
+        };
+        var userBooking3 = new Booking(DateTime.UtcNow.AddDays(nonBookableDaysAfterToday), userId, TimeSlot.Evening)
+        {
+            Id = Guid.NewGuid().ToString(),
+            IsDeleted = false
+        };
+
+        await _dbContext.Bookings.AddAsync(userBooking1);
+        await _dbContext.Bookings.AddAsync(userBooking2);
+        await _dbContext.Bookings.AddAsync(userBooking3);
+        await _dbContext.SaveChangesAsync();
+
+        _validationServiceMock.Setup(v => v.CheckUserExistsAsync(userId)).ReturnsAsync(true);
+
+
+        // Act
+        var result = await _bookingService.GetFirstFreeTimeSlot();
+
+        // Assert
+        Assert.Equal(DateTime.Today.AddDays(nonBookableDaysAfterToday).AddDays(1), result.BookingDate);
+        Assert.Equal(TimeSlot.Morning, result.TimeSlot);
+        Assert.True(result.Available);
+    }
+    #endregion
+    
+    #region GetAmountOfFreeTimeslotsForWeek
+    
+    
+    [Fact]
+    public async Task GetAmountOfFreeTimeslotsForWeek_ShouldReturnZero_WhenAllTimeslotsAreBooked()
+    {
+        // Arrange
+        var userId = "user1";
+        DateTime today = DateTime.Today;
+        int daysToMonday = ((int)today.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7;
+        DateTime mondayOfCurrentWeek = today.AddDays(-daysToMonday);
+        
+        for (int i = 0; i <= 7; i++)
+        {
+           foreach (TimeSlot timeSlot in Enum.GetValues(typeof(TimeSlot)) )
+           {
+               if (timeSlot.Equals(TimeSlot.None)) continue;
+               var userBooking = new Booking(mondayOfCurrentWeek.AddDays(i), userId, timeSlot)
+               {
+                   Id = Guid.NewGuid().ToString(),
+                   IsDeleted = false
+               };
+               await _dbContext.Bookings.AddAsync(userBooking);
+           }
+
+        }
+
+        await _dbContext.SaveChangesAsync();
+
+        _validationServiceMock.Setup(v => v.CheckUserExistsAsync(userId)).ReturnsAsync(true);
+
+        // Act
+        var result = await _bookingService.GetAmountOfFreeTimeslotsForWeek();
+
+        // Assert
+        Assert.Equal(0, result);
+    }
+    
     #endregion
 }

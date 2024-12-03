@@ -7,7 +7,8 @@
 @attribute [Authorize(Roles = "User")]
 @inject IStringLocalizer<MyUserInfo> Localizer
 @inject AuthenticationStateProvider AuthenticationStateProvider
-
+@inject NavigationManager Navigation
+    
 <PageTitle>@Localizer["MyInfo"]</PageTitle>
 
 <h2>@Localizer["Title"]</h2>
@@ -140,7 +141,7 @@ else
     private bool _isActiveEdit = false;
 
     [Inject] public required IUserService UserService { get; set; }
-    @inject NavigationManager Navigation
+
     
     protected override async Task OnInitializedAsync()
     {

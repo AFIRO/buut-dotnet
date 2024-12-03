@@ -22,4 +22,37 @@
   <data name="HeaderText" xml:space="preserve">
     <value>Deelbootjes voor Muide - Meulestede -  Afrikalaan</value>
   </data>
+      <data name="Prompt" xml:space="preserve">
+    <value>Ontdek de watertoerist in jezelf!!</value>
+  </data>
+    <data name="RemainingSlots0" xml:space="preserve">
+    <value>Helaas, geen </value>
+  </data>
+    <data name="RemainingSlots1" xml:space="preserve">
+    <value>Nog slechts </value>
+  </data>
+    <data name="RemainingSlots2" xml:space="preserve">
+    <value> vrije tijdsloten deze week!</value>
+  </data>
+    <data name="NextSlot" xml:space="preserve">
+    <value>Volgende vrije tijdslot</value>
+  </data>
+    <data name="Login" xml:space="preserve">
+    <value>Meld aan</value>
+  </data>
+    <data name="Register" xml:space="preserve">
+    <value>Registreer</value>
+  </data>
+  <data name="BookNow" xml:space="preserve">
+    <value>Boek nu!</value>
+  </data>
+	<data name="Morning" xml:space="preserve">
+        <value>10:00</value>
+    </data>
+    <data name="Afternoon" xml:space="preserve">
+        <value>14:00</value>
+    </data>
+    <data name="Evening" xml:space="preserve">
+        <value>17:00</value>
+    </data>
 </root>
