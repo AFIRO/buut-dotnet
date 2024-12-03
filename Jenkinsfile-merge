@@ -162,7 +162,7 @@ def sendDiscordNotification(status) {
             """,
             footer: "Merge test Duration: ${currentBuild.durationString.replace(' and counting', '')}",
             webhookURL: DISCORD_WEBHOOK_URL,
-            result: status == "Build Success" ? 'SUCCESS' : 'FAILURE'
+            result: status == "PR test Success" ? 'SUCCESS' : 'FAILURE'
         )
     }
 }
