@@ -25,3 +25,6 @@ header {
 
 }
 
+.min-h {
+    min-height: 95vh;
+}

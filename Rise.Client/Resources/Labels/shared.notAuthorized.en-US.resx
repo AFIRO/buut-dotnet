@@ -19,8 +19,8 @@
     </xsd:element>
   </xsd:schema>
 
-<data name="PageNotFound" xml:space="preserve">
-  <value>Erm. Pagina niet gevonden</value>
+<data name="NotAuthorized" xml:space="preserve">
+  <value>Oops.. you do not have the required authorization for that page</value>
 </data>
 
 

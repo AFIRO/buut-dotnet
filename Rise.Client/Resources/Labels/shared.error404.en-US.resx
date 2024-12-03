@@ -22,12 +22,7 @@
 <data name="PageNotFound" xml:space="preserve">
   <value>Erm. Page not found</value>
 </data>
-<data name="BackToHome" xml:space="preserve">
-  <value>We suggest you to go to the homepage while we solve this issue.</value>
-</data>
-<data name="Home" xml:space="preserve">
-  <value>Go to Homepage</value>
-</data>
+
 
 
 </root>

@@ -1,12 +1,11 @@
+let el;
+const distance = 68;
 
-    let el;
-    const distance = 68;
-
-    function scrollNavbarShadow() {
-    if (this.pageYOffset > distance) {
-        el = document.getElementById('navbar');
-        el?.classList?.remove('navbar-transparent');
-        el?.classList?.add('bg-dark');
+function scrollNavbarShadow() {
+if (this.pageYOffset > distance) {
+    el = document.getElementById('navbar');
+    el?.classList?.remove('navbar-transparent');
+    el?.classList?.add('bg-dark');
 } else {
         el = document.getElementById('navbar');
         el?.classList?.add('navbar-transparent');

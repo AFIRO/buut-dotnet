@@ -19,10 +19,13 @@
     </xsd:element>
   </xsd:schema>
 
-<data name="PageNotFound" xml:space="preserve">
-  <value>Erm. Pagina niet gevonden</value>
-</data>
 
+<data name="BackToHome" xml:space="preserve">
+  <value>We suggest you to go to the homepage</value>
+</data>
+<data name="Home" xml:space="preserve">
+  <value>Go to Homepage</value>
+</data>
 
 
 </root>
