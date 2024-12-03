@@ -20,7 +20,7 @@
   </xsd:schema>
 
 <data name="NotAuthorized" xml:space="preserve">
-  <value>Oops.. you do not have the required authorization for that page</value>
+  <value>Oops.. you do not have the required authorization to view this page</value>
 </data>
 
 
