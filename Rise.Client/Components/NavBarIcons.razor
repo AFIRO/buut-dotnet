@@ -1,0 +1,216 @@
+@using Rise.Client.Utils.Navigation
+@using Rise.Shared.Notifications
+@inject Microsoft.Extensions.Localization.IStringLocalizer<NavBar> Localizer
+@inject NavigationManager NavigationManager
+@inject INotificationService NotificationService
+@inject NotificationStateService NotificationState
+@inject AuthenticationStateProvider AuthStateProvider
+@using System.Globalization
+@using Rise.Shared.Enums
+@using Microsoft.JSInterop
+@inject IJSRuntime js
+ 
+  <ul id="icons" class="navbar-nav navbar-nav-hover d-flex flex-row align-items-center justify-content-end ml-auto">
+    <AuthorizeView>
+      <Authorized>
+        <li class="nav-item dropdown dropdown-hover mx-2">
+          <a href="MyInfo" class="nav-link ps-2 d-flex justify-content-between cursor-pointer align-items-center"
+             aria-expanded="false" role="button">
+            <i class="ni ni-circle-08 text-muted"></i>
+            <div></div>
+          </a>
+        </li>
+      </Authorized>
+    </AuthorizeView>
+
+
+    <li class="nav-item dropdown dropdown-hover mx-2">
+      <a class="nav-link ps-2 d-flex justify-content-between cursor-pointer align-items-center"
+         data-bs-toggle="dropdown" aria-expanded="false" role="button">
+        <i class="ni ni-settings-gear-65 text-muted"></i>
+        <img src="img/down-arrow-white.svg" alt="down-arrow" class="arrow ms-1 d-lg-block d-none">
+      </a>
+      <div class="dropdown-menu dropdown-menu-animation dropdown-lg mt-0 mt-lg-3 p-1 border-radius-lg">
+        <div class="d-none d-lg-block">
+          <ul class="list-group">
+            <li class="nav-item list-group-item border-0 p-0">
+              <a class="dropdown-item py-2 ps-3 border-radius-md" @onclick='() => ChangeLanguage("en-US")'>
+                <div class="d-flex align-items-center">
+                  <div class="icon me-3 d-flex align-items-center">
+                    <i class="ni ni-bold-right"></i>
+                  </div>
+                  <div>
+                    <h6 class="dropdown-header text-dark font-weight-bold m-0">English</h6>
+                  </div>
+                </div>
+              </a>
+            </li>
+            <li class="nav-item list-group-item border-0 p-0">
+              <a class="dropdown-item py-2 ps-3 border-radius-md" @onclick='() => ChangeLanguage("nl-BE")'>
+                <div class="d-flex align-items-center">
+                  <div class="icon me-3 d-flex align-items-center">
+                    <i class="ni ni-bold-right"></i>
+                  </div>
+                  <div>
+                    <h6 class="dropdown-header text-dark font-weight-bold m-0">Nederlands</h6>
+                  </div>
+                </div>
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div class="row d-lg-none">
+          <div class="col-md-12 g-0">
+            <a class="dropdown-item py-2 ps-3 border-radius-md" @onclick='() => ChangeLanguage("en-US")'>
+              <div class="d-flex align-items-center">
+                <div class="icon me-3 d-flex align-items-center">
+                  <i class="ni ni-bold-right"></i>
+                </div>
+                <div>
+                  <h6 class="dropdown-header text-dark font-weight-bold m-0">English</h6>
+                </div>
+              </div>
+            </a>
+            <a class="dropdown-item py-2 ps-3 border-radius-md" @onclick='() => ChangeLanguage("nl-BE")'>
+              <div class="d-flex align-items-center">
+                <div class="icon me-3 d-flex align-items-center">
+                  <i class="ni ni-bold-right"></i>
+                </div>
+                <div>
+                  <h6 class="dropdown-header text-dark font-weight-bold m-0">Nederlands</h6>
+                </div>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </li>
+
+    <AuthorizeView>
+      <Authorized>
+        <li class="nav-item dropdown dropdown-hover mx-2">
+          <a href="notifications"
+             class="nav-link ps-2 d-flex justify-content-between cursor-pointer align-items-center"
+             aria-expanded="false" role="button">
+            <i class="ni ni-bell-55 text-muted"></i>
+            @if (notificationCount?.Count > 0)
+            {
+              <span
+                class="position-absolute top-5 start-100 translate-middle badge rounded-pill bg-danger border border-white small py-1 px-2">
+                <span class="small">@notificationCount.Count</span>
+                <span class="visually-hidden">unread notifications</span>
+              </span>
+            }
+          </a>
+        </li>
+        <li class="nav-item dropdown dropdown-hover mx-2">
+          <a @onclick="BeginLogOut"
+             class="nav-link ps-2 d-flex justify-content-between cursor-pointer align-items-center"
+             data-bs-toggle="dropdown" aria-expanded="false" role="button">
+            <i class="oi oi-account-logout text-muted"></i>
+            <div></div>
+          </a>
+        </li>
+      </Authorized>
+
+      <NotAuthorized>
+        <li class="nav-item px-3">
+          <NavLink class="px-1 py-0 nav-link line-height-0 auth" href="embedded-login">
+            <span class="oi oi-account-login auth text-muted" aria-hidden="true"></span>
+          </NavLink>
+        </li>
+        <li class="nav-item">
+          <a href="register" class="px-1 py-0 nav-link line-height-0">
+            <i class="ni ni-badge text-muted"></i>
+          </a>
+        </li>
+      </NotAuthorized>
+    </AuthorizeView>
+    
+    
+    
+    
+  </ul>
+
+@code {
+    
+    private string selectedCulture = "en-US";
+    private NotificationDto.NotificationCount? notificationCount;
+    private string? errorMessage;
+    
+    protected override async Task OnInitializedAsync()
+    {
+      AuthStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
+      NotificationState.NotificationCountChanged += OnNotificationCountChanged;
+
+      var storedCulture = await js.InvokeAsync<string>("blazorCulture.get");
+      if (!string.IsNullOrEmpty(storedCulture))
+      {
+        selectedCulture = storedCulture;
+      }
+
+      await LoadUnreadNotifications();
+    }
+
+    private async Task LoadUnreadNotifications()
+    {
+      var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+      var user = authState.User;
+
+      if (user.Identity?.IsAuthenticated == true)
+      {
+        var userId = user.FindFirst(c => c.Type == "sub")?.Value;
+        if (!string.IsNullOrEmpty(userId))
+        {
+          try
+          {
+            notificationCount = await NotificationService.GetUnreadUserNotificationsCount(userId);
+            NotificationState.UpdateNotificationCount(notificationCount.Count);
+          }
+          catch (Exception ex)
+          {
+            errorMessage = ex.Message;
+          }
+        }
+      }
+    }
+
+    private void OnNotificationCountChanged()
+    {
+      notificationCount = new NotificationDto.NotificationCount
+      {
+        Count = NotificationState.NotificationCount
+      };
+      StateHasChanged();
+    }
+
+    private async void OnAuthenticationStateChanged(Task<AuthenticationState> task)
+    {
+      await LoadUnreadNotifications();
+    }
+
+    public void Dispose()
+    {
+      AuthStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
+      NotificationState.NotificationCountChanged -= OnNotificationCountChanged;
+    }
+    private async Task ChangeLanguage(string cultureName)
+    {
+      var culture = new CultureInfo(cultureName);
+
+      await js.InvokeVoidAsync("blazorCulture.set", culture.Name);
+
+      NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+    }
+    
+    private async void BeginLogOut()
+    {
+      if (AuthStateProvider is CustomAuthStateProvider customAuthStateProvider)
+      {
+        customAuthStateProvider.NotifyUserLogout();
+      }
+      NavigationManager.NavigateTo("/", true);
+    }
+
+    
+}

@@ -1,0 +1,37 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<ErrorPage> Localizer
+
+
+<main class="main-content mt-0 background-overlay">
+    <div class="page-header align-items-center min-vh-95">
+        <div class="container my-auto">
+            <div class="row">
+                <div class="col-lg-12 col-md-12 col-12 mx-auto">
+                    <div class="card z-index-0 fadeIn3 fadeInBottom">
+                        <div class="card-body">
+                            <section class=" d-flex align-items-center">
+                                <div class="container">
+                                    <div class="row">
+                                        <div class="col-lg-6 my-auto">
+                                            <h1 class="display-1 font-weight-bold">@Title</h1>
+                                            <h2>@Message</h2>
+                                            <p class="lead">@Localizer["BackToHome"]</p>
+                                            <a href="/" class="btn bg-gradient-dark mt-4">@Localizer["Home"]</a>
+                                        </div>
+                                        <div class="col-lg-6 my-auto position-relative">
+                                            <img class="w-100 position-relative" src="@Image" alt="error">
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+@code {
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Message { get; set; }
+    [Parameter] public string? Image { get ; set; }  
+}
