@@ -1,4 +1,6 @@
 using Rise.Domain.Bookings;
+using Rise.Domain.Users;
+using Rise.Shared.Enums;
 using Shouldly;
 
 namespace Rise.Domain.Tests.Bookings;
@@ -72,6 +74,22 @@ public class BatteryShould
         Battery battery = new Battery("battery");
         battery.AddComment("String");
         battery.ListComments.Count.ShouldBe(1);
+    }
+
+    [Fact]
+    public void ShouldAddCurrentUser()
+    {
+        Battery battery = new Battery("battery");
+        battery.ChangeCurrentUser(new User("1", "f", "d", "fd@mail.com", DateTime.Now, new Address(StreetEnumExtensions.GetStreetName(StreetEnum.DOKNOORD), "3"), "12346579"));
+        battery.CurrentUser.ShouldNotBeNull();
+    }
+
+    [Fact]
+    public void ShouldAddBuutAgent()
+    {
+        Battery battery = new Battery("battery");
+        battery.ChangeBuutAgent(new User("1", "f", "d", "fd@mail.com", DateTime.Now, new Address(StreetEnumExtensions.GetStreetName(StreetEnum.DOKNOORD), "3"), "12346579"));
+        battery.BatteryBuutAgent.ShouldNotBeNull();
     }
 
     [Fact]

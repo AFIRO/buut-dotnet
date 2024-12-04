@@ -1,4 +1,6 @@
+using System.Collections.Immutable;
 using System.Text.Json;
+using Auth0.ManagementApi.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -48,7 +50,6 @@ public class BookingService : IBookingService
             PropertyNameCaseInsensitive = true
         };
     }
-
 
     /// <summary>
     /// Retrieves all bookings.
@@ -252,8 +253,6 @@ public class BookingService : IBookingService
         }
     }
 
-
-
     /// <summary>
     /// Deletes a booking by its ID.
     /// </summary>
@@ -454,34 +453,13 @@ public class BookingService : IBookingService
     /// <returns>A BookingDto.ViewBooking object containing the mapped details.</returns>
     private BookingDto.ViewBooking MapToDto(Booking booking)
     {
-        var battery = new BatteryDto.ViewBattery();
-        if (booking.Battery is not null)
-        {
-            battery = new BatteryDto.ViewBattery()
-            {
-                name = booking.Battery.Name,
-                countBookings = booking.Battery.CountBookings,
-                listComments = booking.Battery.ListComments,
-            };
-        }
-
-        var boat = new BoatDto.ViewBoat();
-
-
+        var battery = MapBatteryDto(booking, booking.BookingDate.Date >= DateTime.Now.Date);
+                
         //todo status toevoegen aan DB for refunded
         BookingStatus status = BookingStatusHelper.GetBookingStatus(booking.IsDeleted, false, booking.BookingDate, booking.Boat != null && !booking.Boat.Name.IsNullOrEmpty());
 
-        if (booking.Boat is not null && !booking.Boat.Name.IsNullOrEmpty())
-        {
-            boat = new BoatDto.ViewBoat()
-            {
-                name = booking.Boat.Name,
-                countBookings = booking.Boat.CountBookings,
-                listComments = booking.Boat.ListComments,
-            };
-        }
-
-
+        var boat = MapBoatDto(booking);
+        
         var contact = new UserDto.UserDetails
         (
             "auth0|6713ad784fda04f4b9ae2165",
@@ -508,11 +486,73 @@ public class BookingService : IBookingService
             boat = boat,
             battery = battery,
             status = status,
-            contact = contact,
             timeSlot = TimeSlotEnumExtensions.ToTimeSlot(booking.BookingDate.Hour),
         };
     }
 
+    private BatteryDto.ViewBattery MapBatteryDto(Booking booking, bool includeContactUser)
+    {
+        var battery = new BatteryDto.ViewBattery();
+        if (booking.Battery != null)
+        {
+            battery = includeContactUser
+                ? MapBatteryDtoWithCurrentUser(booking)
+                : MapBatteryWithoutCurrentUser(booking);
+        }
+
+        return battery;
+    }
+
+    private BatteryDto.ViewBatteryWithCurrentUser MapBatteryDtoWithCurrentUser(Booking booking)
+    {
+        UserDto.ContactUser? currentUser = null;
+        if (booking.Battery.CurrentUser != null)
+        {
+            currentUser = new UserDto.ContactUser
+            (
+                booking.Battery.CurrentUser.FirstName,
+                booking.Battery.CurrentUser.LastName,
+                booking.Battery.CurrentUser.Email,
+                booking.Battery.CurrentUser.PhoneNumber
+            );
+        }
+            
+        return new BatteryDto.ViewBatteryWithCurrentUser()
+        {
+            name = booking.Battery.Name,
+            countBookings = booking.Battery.CountBookings,
+            listComments = booking.Battery.ListComments,
+            currentUser = currentUser
+        };
+    }
+
+    private BatteryDto.ViewBattery MapBatteryWithoutCurrentUser(Booking booking)
+    {
+        return new BatteryDto.ViewBattery()
+        {
+            name = booking.Battery.Name,
+            countBookings = booking.Battery.CountBookings,
+            listComments = booking.Battery.ListComments
+        };
+    }
+
+    private BoatDto.ViewBoat MapBoatDto(Booking booking)
+    {
+        var boat = new BoatDto.ViewBoat();
+
+        if (booking.Boat != null && !booking.Boat.Name.IsNullOrEmpty())
+        {
+            boat = new BoatDto.ViewBoat()
+            {
+                name = booking.Boat.Name,
+                countBookings = booking.Boat.CountBookings,
+                listComments = booking.Boat.ListComments,
+            };
+        }
+
+        return boat;
+    }
+    
     /// <summary>
     /// Retrieves all taken timeslots within a specified date range.
     /// </summary>
@@ -574,7 +614,6 @@ public class BookingService : IBookingService
             throw new Exception("An unexpected error occurred while retrieving taken timeslots.", ex);
         }
     }
-
 
     /// <summary>
     /// Retrieves all free timeslots within a specified date range.
@@ -758,7 +797,7 @@ public class BookingService : IBookingService
         // Query the database to check if a booking exists for this date and time slot
         return _dbContext.Bookings.Any(b => b.BookingDate == bookingStartTime && !b.IsDeleted);
     }
-    
+
     /// <summary>
     /// Maps a Booking entity to a BookingDto.ViewBookingCalender.
     /// </summary>
@@ -800,7 +839,6 @@ public class BookingService : IBookingService
         bool userExists = await _validationService.CheckUserExistsAsync(userId);
         if (!userExists)
         {
-            _logger.LogWarning("User with ID {Id} was not found.", userId);
             throw new UserNotFoundException("User with given id was not found.");
         }
     }

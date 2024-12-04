@@ -28,6 +28,10 @@ public class User : Entity
 
     private List<Notification> _notifications = [];
 
+    private Battery? _currentBattery;
+    private Battery? _isBuutAgentOfBattery;
+    
+
     #endregion
 
     #region Constructors
@@ -146,6 +150,22 @@ public class User : Entity
     {
         get => _phoneNumber;
         set => _phoneNumber = Guard.Against.NullOrWhiteSpace(value, nameof(PhoneNumber));
+    }
+
+    public string? IsBuutAgentOfBatteryId;
+
+    public Battery? IsBuutAgentOfBattery
+    {
+        get => _isBuutAgentOfBattery;
+        set => Guard.Against.Null(value, nameof(IsBuutAgentOfBattery));
+    }
+
+    public string? CurrentBatteryId;
+
+    public Battery? CurrentBattery
+    {
+        get => _currentBattery;
+        set => Guard.Against.Null(value, nameof(CurrentBattery));
     }
 
     #endregion

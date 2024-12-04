@@ -159,6 +159,28 @@ public class UserDto
     }
 
     /// <summary>
+    /// DTO used to get a contact for a battery
+    /// </summary>
+    public sealed record ContactUser
+    {
+        public string FirstName { get; init; }
+        public string LastName { get; init; }
+        public string? Email { get; init; }
+        public string? PhoneNumber { get; init; }
+
+        // Parameterless constructor for deserialization
+        public ContactUser() { }
+
+        public ContactUser(string firstName, string lastName, string? email, string? phoneNumber)
+        {
+            FirstName = firstName;
+            LastName = lastName;
+            Email = email ?? null;
+            PhoneNumber = phoneNumber ?? null;
+        }
+    }
+
+    /// <summary>
     /// DTO used for registrationform
     /// </summary>
     public sealed record RegistrationUser(
@@ -231,6 +253,5 @@ public class UserDto
     /// DTO used for showing users in the table on the AuthUsers page
     /// </summary>
     public sealed record Auth0User(string Email, string FirstName, string LastName, bool Blocked);
-
 
 }

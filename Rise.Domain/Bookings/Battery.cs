@@ -1,3 +1,5 @@
+using Rise.Domain.Users;
+
 namespace Rise.Domain.Bookings;
 
 public class Battery : Entity
@@ -6,6 +8,9 @@ public class Battery : Entity
     private string _name = default!;
     private int _countBookings = default!;
     private List<string> _listComments = new List<string>();
+    
+    private User? _currentUser;
+    private User? _batteryBuutAgent;
 
     /// <summary>
     ///Private constructor for Entity Framework Core
@@ -70,6 +75,24 @@ public class Battery : Entity
         set => _listComments = value ?? throw new ArgumentException("ListComments cannot be null", nameof(ListComments));
     }
 
+    /// <summary>
+    /// Gets or sets the user who has the battery.
+    /// </summary>
+    public User? CurrentUser
+    {
+        get => _currentUser;
+        private set => _currentUser = value;
+    }
+
+    /// <summary>
+    /// Gets or sets the user who is responsible for the battery.
+    /// </summary>
+    public User? BatteryBuutAgent
+    {
+        get => _batteryBuutAgent;
+        private set => _batteryBuutAgent = value;
+    }
+
     #endregion
 
     #region Methods
@@ -90,6 +113,18 @@ public class Battery : Entity
     {
         Guard.Against.NullOrWhiteSpace(comment, nameof(comment));
         _listComments.Add(comment);
+    }
+
+    public void ChangeCurrentUser(User user)
+    {
+        Guard.Against.Null(user, nameof(user));
+        CurrentUser = user;
+    }
+
+    public void ChangeBuutAgent(User user)
+    {
+        Guard.Against.Null(user, nameof(user));
+        BatteryBuutAgent = user;
     }
 
     #endregion

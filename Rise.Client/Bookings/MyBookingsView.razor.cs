@@ -70,16 +70,30 @@ public partial class MyBookingsView
         
         foreach (var booking in bookings)
         {
-            var row = new List<RenderFragment>
+            var row = new List<RenderFragment>();
+            
+            var userCell = TableCellService.UserCell();
+            if (booking.battery is BatteryDto.ViewBatteryWithCurrentUser batteryWithCurrentUser)
+            {
+                userCell = TableCellService.UserCell(
+                    batteryWithCurrentUser.currentUser.FirstName,
+                    batteryWithCurrentUser.currentUser.LastName,
+                    batteryWithCurrentUser.currentUser.PhoneNumber);
+            }
+
+            row = new List<RenderFragment>
             {
                 TableCellService.DefaultTableCell(booking.bookingDate.ToString("D")),
                 TableCellService.DefaultTableCell(Localizer[booking.timeSlot.ToString()]),
                 TableCellService.BadgeCell(Localizer[booking.status.ToString()], "badge bg-gradient-" + GetBadgeBackground(booking.status)),
                 TableCellService.DefaultTableCell(booking.boat.name),
-                TableCellService.UserCell(booking.contact.FirstName, booking.contact.LastName, booking.contact.PhoneNumber),
+                userCell,
                 TableCellService.DefaultTableCell("Todo"),
-                booking.status == BookingStatus.OPEN ? TableCellService.ActionCell(booking.bookingId, this,  EditBooking, DeleteBooking) : TableCellService.DefaultTableCell("")
+                booking.status == BookingStatus.OPEN 
+                    ? TableCellService.ActionCell(booking.bookingId, this, EditBooking, DeleteBooking) 
+                    : TableCellService.DefaultTableCell("")
             };
+
 
             rows.Add(row);
         }
