@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Rise.Domain.Bookings;
 using Rise.Services.Bookings;
 
@@ -10,18 +11,22 @@ namespace Rise.Shared.Services;
 /// </summary>
 public class DailyTaskService : IHostedService, IDisposable
 {
-    private Timer _timer;
+    private Timer? _timer;
     private readonly IServiceProvider _serviceProvider;
+    private readonly ILogger<DailyTaskService> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DailyTaskService"/> class.
     /// </summary>
     /// <param name="serviceProvider">The service provider.</param>
-    public DailyTaskService(IServiceProvider serviceProvider)
+    /// <param name="logger">The logger instance.</param>
+    public DailyTaskService(IServiceProvider serviceProvider, ILogger<DailyTaskService> logger)
     {
         _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
-    
+
+
     /// <summary>
     /// Starts the daily task service.
     /// </summary>
@@ -35,14 +40,14 @@ public class DailyTaskService : IHostedService, IDisposable
         var nextRunTime = now.Date.AddMinutes(1);
 
         var initialDelay = (nextRunTime - now).TotalMilliseconds;
-        
+
         // Ensure the delay is valid
         if (initialDelay < 0)
         {
             // initialDelay = TimeSpan.FromDays(1).TotalMilliseconds; // Default to 24 hours
             initialDelay = TimeSpan.FromMinutes(1).TotalMilliseconds; // Default to 1 minute
 
-            Console.WriteLine($"Initial delay: {initialDelay} milliseconds");
+            _logger.LogWarning("Initial delay: {InitialDelay} milliseconds", initialDelay);
         }
 
         // _timer = new Timer(ExecuteTask, null, (long)initialDelay, (long)TimeSpan.FromDays(1).TotalMilliseconds);
@@ -54,23 +59,21 @@ public class DailyTaskService : IHostedService, IDisposable
     /// Executes the daily task.
     /// </summary>
     /// <param name="state">The state object passed to the timer.</param>
-    private async void ExecuteTask(object state)
+    private async void ExecuteTask(object? state)
     {
-        Console.WriteLine("Start running daily task at " + DateTime.Now);
+        _logger.LogInformation("Start running daily task at {DateTime}", DateTime.Now);
 
         try
         {
+            _logger.LogInformation("Running daily task at {DateTime}", DateTime.Now);
             await RunTaskAsync();
-            
-            Console.WriteLine("Running daily task at " + DateTime.Now);
-            
         }
         catch (Exception ex)
         {
-            Console.WriteLine("An error occurred while running the daily task: " + ex.Message);
+            _logger.LogError(ex, "An error occurred while running the daily task");
         }
     }
-    
+
     /// <summary>
     /// Runs the daily task asynchronously.
     /// </summary>
@@ -85,8 +88,7 @@ public class DailyTaskService : IHostedService, IDisposable
             // Allocate resources asynchronously
             await bookingAllocationService.AllocateDailyBookingAsync(DateTime.Now.Date.AddDays(5));
         }
-
-        Console.WriteLine("Daily task completed successfully at " + DateTime.Now);
+        _logger.LogInformation("Daily task completed successfully at {DateTime}", DateTime.Now);
     }
 
     /// <summary>
