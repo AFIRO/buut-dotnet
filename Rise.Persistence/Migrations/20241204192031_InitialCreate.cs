@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Rise.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class changeRelationBookingBatteryBoat : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -71,6 +71,8 @@ namespace Rise.Persistence.Migrations
                     Email = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: false),
                     BirthDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     PhoneNumber = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: false),
+                    IsBuutAgentOfBatteryId = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: true),
+                    CurrentBatteryId = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
@@ -78,6 +80,16 @@ namespace Rise.Persistence.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_User", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_User_Battery_CurrentBatteryId",
+                        column: x => x.CurrentBatteryId,
+                        principalTable: "Battery",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_User_Battery_IsBuutAgentOfBatteryId",
+                        column: x => x.IsBuutAgentOfBatteryId,
+                        principalTable: "Battery",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -248,10 +260,24 @@ namespace Rise.Persistence.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_User_CurrentBatteryId",
+                table: "User",
+                column: "CurrentBatteryId",
+                unique: true,
+                filter: "[CurrentBatteryId] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_User_Id",
                 table: "User",
                 column: "Id",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_User_IsBuutAgentOfBatteryId",
+                table: "User",
+                column: "IsBuutAgentOfBatteryId",
+                unique: true,
+                filter: "[IsBuutAgentOfBatteryId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserRole_UserId",
@@ -275,9 +301,6 @@ namespace Rise.Persistence.Migrations
                 name: "UserRole");
 
             migrationBuilder.DropTable(
-                name: "Battery");
-
-            migrationBuilder.DropTable(
                 name: "Boat");
 
             migrationBuilder.DropTable(
@@ -285,6 +308,9 @@ namespace Rise.Persistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "User");
+
+            migrationBuilder.DropTable(
+                name: "Battery");
         }
     }
 }

@@ -28,10 +28,6 @@ namespace Rise.Persistence.Migrations
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
-                    b.Property<string>("BatteryBuutAgentId")
-                        .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
-
                     b.Property<int>("CountBookings")
                         .HasColumnType("int");
 
@@ -39,10 +35,6 @@ namespace Rise.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<string>("CurrentUserId")
-                        .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
@@ -64,10 +56,6 @@ namespace Rise.Persistence.Migrations
                         .HasDefaultValueSql("GETUTCDATE()");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("BatteryBuutAgentId");
-
-                    b.HasIndex("CurrentUserId");
 
                     b.HasIndex("Id")
                         .IsUnique();
@@ -333,6 +321,10 @@ namespace Rise.Persistence.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
+                    b.Property<string>("CurrentBatteryId")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(4000)
@@ -340,6 +332,10 @@ namespace Rise.Persistence.Migrations
 
                     b.Property<string>("FirstName")
                         .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<string>("IsBuutAgentOfBatteryId")
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
@@ -365,8 +361,16 @@ namespace Rise.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CurrentBatteryId")
+                        .IsUnique()
+                        .HasFilter("[CurrentBatteryId] IS NOT NULL");
+
                     b.HasIndex("Id")
                         .IsUnique();
+
+                    b.HasIndex("IsBuutAgentOfBatteryId")
+                        .IsUnique()
+                        .HasFilter("[IsBuutAgentOfBatteryId] IS NOT NULL");
 
                     b.ToTable("User", (string)null);
                 });
@@ -385,21 +389,6 @@ namespace Rise.Persistence.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("UserRole");
-                });
-
-            modelBuilder.Entity("Rise.Domain.Bookings.Battery", b =>
-                {
-                    b.HasOne("Rise.Domain.Users.User", "BatteryBuutAgent")
-                        .WithMany()
-                        .HasForeignKey("BatteryBuutAgentId");
-
-                    b.HasOne("Rise.Domain.Users.User", "CurrentUser")
-                        .WithMany()
-                        .HasForeignKey("CurrentUserId");
-
-                    b.Navigation("BatteryBuutAgent");
-
-                    b.Navigation("CurrentUser");
                 });
 
             modelBuilder.Entity("Rise.Domain.Bookings.Booking", b =>
@@ -443,6 +432,21 @@ namespace Rise.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Rise.Domain.Users.User", b =>
+                {
+                    b.HasOne("Rise.Domain.Bookings.Battery", "CurrentBattery")
+                        .WithOne("CurrentUser")
+                        .HasForeignKey("Rise.Domain.Users.User", "CurrentBatteryId");
+
+                    b.HasOne("Rise.Domain.Bookings.Battery", "IsBuutAgentOfBattery")
+                        .WithOne("BatteryBuutAgent")
+                        .HasForeignKey("Rise.Domain.Users.User", "IsBuutAgentOfBatteryId");
+
+                    b.Navigation("CurrentBattery");
+
+                    b.Navigation("IsBuutAgentOfBattery");
+                });
+
             modelBuilder.Entity("UserRole", b =>
                 {
                     b.HasOne("Rise.Domain.Users.Role", null)
@@ -456,6 +460,13 @@ namespace Rise.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Rise.Domain.Bookings.Battery", b =>
+                {
+                    b.Navigation("BatteryBuutAgent");
+
+                    b.Navigation("CurrentUser");
                 });
 
             modelBuilder.Entity("Rise.Domain.Users.User", b =>
