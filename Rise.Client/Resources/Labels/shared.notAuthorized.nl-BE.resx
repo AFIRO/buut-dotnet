@@ -19,10 +19,9 @@
     </xsd:element>
   </xsd:schema>
 
-<data name="PageNotFound" xml:space="preserve">
-  <value>Erm. Pagina niet gevonden</value>
+<data name="NotAuthorized" xml:space="preserve">
+  <value>Oeps.. onvoldoende rechten om deze pagina te bezoeken</value>
 </data>
-
 
 
 </root>
