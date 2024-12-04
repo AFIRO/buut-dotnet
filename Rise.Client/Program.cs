@@ -19,7 +19,7 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddAuthorizationCore(); 
+builder.Services.AddAuthorizationCore();
 
 // Load configuration settings
 var config = builder.Configuration.GetSection("Auth0Settings");

@@ -5,36 +5,40 @@ using System.Threading.Tasks;
 using Shouldly;
 using Microsoft.Extensions.Localization;
 using System;
+using Rise.Client.Components.Table;
 
 namespace Rise.Client.Tests
 {
     public class BoatsTest : TestContext
     {
         private Mock<IEquipmentService<BoatDto.ViewBoat, BoatDto.NewBoat>> _boatServiceMock;
-        private Mock<IStringLocalizer<Boats.Boat>> _localizerMock;
+        private Mock<IStringLocalizer<GenericTable>> _localizerMock;
+        private Mock<IStringLocalizer<Boats.Boat>> _boatLocalizerMock;
 
         public BoatsTest()
         {
             // Maak een mock van IBoatService met Moq
             _boatServiceMock = new Mock<IEquipmentService<BoatDto.ViewBoat, BoatDto.NewBoat>>();
-            _localizerMock = new Mock<IStringLocalizer<Boats.Boat>>();
+            _localizerMock = new Mock<IStringLocalizer<GenericTable>>();
+            _boatLocalizerMock = new Mock<IStringLocalizer<Boats.Boat>>();
 
             // Voeg de mock toe aan de dependency injection container
             Services.AddSingleton(_boatServiceMock.Object);
             Services.AddSingleton(_localizerMock.Object);
+            Services.AddSingleton(_boatLocalizerMock.Object);
         }
 
         [Fact]
         public async Task Should_Display_Title()
         {
             // Arrange
-             _localizerMock.Setup(l => l["Title"]).Returns(new LocalizedString("Title", "Botenlijst"));     
+            _boatLocalizerMock.Setup(l => l["Title"]).Returns(new LocalizedString("Title", "Botenlijst"));
 
             // Act
             var component = RenderComponent<Boats.Boat>();
 
             // Assert
-            component.Find("h1").MarkupMatches("<h1 class=\"text-white\">Botenlijst</h3>");            
+            component.Find("h1").MarkupMatches("<h1>Botenlijst</h1>");
         }
 
         [Fact]
@@ -50,7 +54,7 @@ namespace Rise.Client.Tests
             var component = RenderComponent<Boats.Boat>();
 
             // Assert
-            component.Find("span").MarkupMatches("<span>Boten aan het ophalen...</span>");
+            component.Find("span").MarkupMatches("<span class=\"visually-hidden\">Boten aan het ophalen...</span>");
         }
 
         [Fact]
@@ -62,9 +66,9 @@ namespace Rise.Client.Tests
                 new BoatDto.ViewBoat { name = "Boat 1", countBookings = 10},
                 new BoatDto.ViewBoat { name = "Boat 2", countBookings = 5}
             };
-            _localizerMock.Setup(l => l["Name"]).Returns(new LocalizedString("Name", "Naam"));
-            _localizerMock.Setup(l => l["CountBookings"]).Returns(new LocalizedString("CountBookings", "Aantal Vaarten"));
-            _localizerMock.Setup(l => l["Comments"]).Returns(new LocalizedString("Comments", "Opmerkingen"));
+            _boatLocalizerMock.Setup(l => l["Name"]).Returns(new LocalizedString("Name", "Naam"));
+            _boatLocalizerMock.Setup(l => l["CountBookings"]).Returns(new LocalizedString("CountBookings", "Aantal Vaarten"));
+            _boatLocalizerMock.Setup(l => l["Comments"]).Returns(new LocalizedString("Comments", "Opmerkingen"));
 
             // Stel in dat GetAllAsync de lijst van boten retourneert
             _boatServiceMock.Setup(service => service.GetAllAsync()).Returns(Task.FromResult<IEnumerable<BoatDto.ViewBoat>>(boats));
@@ -73,7 +77,7 @@ namespace Rise.Client.Tests
             var component = RenderComponent<Boats.Boat>();
 
             // Simuleer wachten tot de data geladen is
-            await Task.Delay(500); 
+            await Task.Delay(500);
 
             // Assert
             var headerItems = component.FindAll("th");
@@ -99,7 +103,7 @@ namespace Rise.Client.Tests
             var component = RenderComponent<Boats.Boat>();
 
             // Simuleer wachten tot de data geladen is
-            await Task.Delay(500); 
+            await Task.Delay(500);
 
             // Assert
             var boatItems = component.FindAll("tr");
@@ -124,10 +128,10 @@ namespace Rise.Client.Tests
             var component = RenderComponent<Boats.Boat>();
 
             // Assert
-            component.Find("button.btn-primary").ShouldNotBeNull();
+            component.Find("#show-form-button").ShouldNotBeNull();
             component.FindAll("input").ShouldBeEmpty();
-            component.FindAll("button.btn-success").ShouldBeEmpty();
-            component.FindAll("button.btn-danger").ShouldBeEmpty();
+            component.FindAll("#submit-button").ShouldBeEmpty();
+            component.FindAll("#cancel-button").ShouldBeEmpty();
         }
 
 
@@ -139,12 +143,12 @@ namespace Rise.Client.Tests
 
             // Act
             var component = RenderComponent<Boats.Boat>();
-            component.Find("button.btn-primary").Click(); // Show the form
+            component.Find("#show-form-button").Click(); // Show the form
 
             // Assert
             component.Find("input").ShouldNotBeNull();
-            component.Find("button.btn-success").ShouldNotBeNull();
-            component.Find("button.btn-danger").ShouldNotBeNull();
+            component.Find("#submit-button").ShouldNotBeNull();
+            component.Find("#cancel-button").ShouldNotBeNull();
         }
 
         [Fact]
@@ -155,14 +159,14 @@ namespace Rise.Client.Tests
 
             // Act
             var component = RenderComponent<Boats.Boat>();
-            component.Find("button.btn-primary").Click(); // Show the form
-            component.Find("button.btn-danger").Click(); // Hide the form
+            component.Find("#show-form-button").Click(); // Show the form
+            component.Find("#cancel-button").Click(); // Hide the form
 
             // Assert
-            component.Find("button.btn-primary").ShouldNotBeNull();
+            component.Find("#show-form-button").ShouldNotBeNull();
             component.FindAll("input").ShouldBeEmpty();
-            component.FindAll("button.btn-success").ShouldBeEmpty();
-            component.FindAll("button.btn-danger").ShouldBeEmpty();
+            component.FindAll("#submit-button").ShouldBeEmpty();
+            component.FindAll("#cancel-button").ShouldBeEmpty();
         }
 
 
@@ -179,9 +183,9 @@ namespace Rise.Client.Tests
 
             // Act
             var component = RenderComponent<Boats.Boat>();
-            component.Find("button.btn-primary").Click(); // Show the form
+            component.Find("#show-form-button").Click(); // Show the form
             component.Find("input").Change("New Boat");
-            component.Find("button.btn-success").Click(); // Submit
+            component.Find("#submit-button").Click(); // Submit
 
             // Assert
             await Task.Delay(500); // Wait for async operations
@@ -203,9 +207,9 @@ namespace Rise.Client.Tests
 
             // Act
             var component = RenderComponent<Boats.Boat>();
-            component.Find("button.btn-primary").Click(); // Show the form
+            component.Find("#show-form-button").Click(); // Show the form
             component.Find("input").Change("Existing Boat");
-            component.Find("button.btn-success").Click(); // Submit
+            component.Find("#submit-button").Click(); // Submit
 
             // Assert
             await Task.Delay(500); // Wait for async operations
@@ -220,8 +224,8 @@ namespace Rise.Client.Tests
 
             // Act
             var component = RenderComponent<Boats.Boat>();
-            component.Find("button.btn-primary").Click(); // Show the form
-            component.Find("button.btn-success").Click(); // Submit without input
+            component.Find("#show-form-button").Click(); // Show the form
+            component.Find("#submit-button").Click(); // Submit without input
 
             // Assert
             await Task.Delay(500); // Wait for async operations

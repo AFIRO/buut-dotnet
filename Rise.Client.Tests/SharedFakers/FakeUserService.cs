@@ -59,20 +59,20 @@ public class FakeUserService : IUserService
 
     Task<IEnumerable<UserDto.UserBase>?> IUserService.GetAllAsync()
     {
-        var users = Enumerable.Range(1, 5).Select(i => new UserDto.UserBase 
-            (i.ToString(), $"First {i}", $"Last {i}", $"test{i}@test.com", roles) );
+        var users = Enumerable.Range(1, 5).Select(i => new UserDto.UserBase
+            (i.ToString(), $"First {i}", $"Last {i}", $"test{i}@test.com", roles));
         return Task.FromResult(users);
     }
 
     public Task<UserDto.UserBase?> GetUserAsync()
     {
-        var user = new UserDto.UserBase ("1", "First", "Last", "test@test.com", roles );
+        var user = new UserDto.UserBase("1", "First", "Last", "test@test.com", roles);
         return Task.FromResult(user ?? null);
     }
 
     public Task<UserDto.UserBase?> GetUserByIdAsync(string id)
     {
-        var user = new UserDto.UserBase ( id,  $"First {id}", $"Last {id}", $"test{id}@test.com", roles );
+        var user = new UserDto.UserBase(id, $"First {id}", $"Last {id}", $"test{id}@test.com", roles);
         return Task.FromResult(user ?? null);
     }
 
@@ -83,7 +83,7 @@ public class FakeUserService : IUserService
 
     public Task<UserDto.UserDetails?> GetUserDetailsByIdAsync(string id)
     {
-        var userDetails = new UserDto.UserDetails(id, $"First {id}", $"Last {id}", $"test{id}@test.com","+32478457845",new AddressDto.GetAdress { Street = StreetEnum.AFRIKALAAN, HouseNumber = "1" },
+        var userDetails = new UserDto.UserDetails(id, $"First {id}", $"Last {id}", $"test{id}@test.com", "+32478457845", new AddressDto.GetAdress { Street = StreetEnum.AFRIKALAAN, HouseNumber = "1" },
             roles, DateTime.Now);
         return Task.FromResult(userDetails ?? null);
     }
@@ -93,4 +93,5 @@ public class FakeUserService : IUserService
     // {
     //     return Task.FromResult(true);
     // }
+
 }

@@ -56,8 +56,10 @@
                                    </tfoot>
                                }
                            </table>
+                           
                        </div>
                    } 
+                   @FormContent
                </div>
            </div>
        </div>
@@ -70,6 +72,7 @@
     [Parameter] public List<List<RenderFragment>>? Data { get; set; } = new();
     [Parameter] public string NoDataDisplay { get; set; } = string.Empty;
     [Parameter] public bool IsLoading { get; set; } = false;
+    [Parameter] public RenderFragment? FormContent { get; set; }
 
     
     private List<List<RenderFragment>> paginatedData = new();

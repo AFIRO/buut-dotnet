@@ -43,4 +43,7 @@
   <data name="Boats" xml:space="preserve">
     <value>Boats</value>
   </data>
+   <data name="Batteries" xml:space="preserve">
+    <value>Batteries</value>
+  </data>
 </root>

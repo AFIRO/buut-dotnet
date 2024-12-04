@@ -5,36 +5,40 @@ using Shouldly;
 using Microsoft.Extensions.Localization;
 using System;
 using Rise.Shared.Bookings;
+using Rise.Client.Components.Table;
 
 namespace Rise.Client.Tests
 {
-    public class BatterysTest : TestContext
+    public class BatteryTest : TestContext
     {
         private Mock<IEquipmentService<BatteryDto.ViewBattery, BatteryDto.NewBattery>> _batteryServiceMock;
-        private Mock<IStringLocalizer<Batteries.Battery>> _localizerMock;
+        private Mock<IStringLocalizer<GenericTable>> _localizerMock;
+        private Mock<IStringLocalizer<Batteries.Battery>> _batteryLocalizerMock;
 
-        public BatterysTest()
+        public BatteryTest()
         {
             // Maak een mock van IBatteryService met Moq
             _batteryServiceMock = new Mock<IEquipmentService<BatteryDto.ViewBattery, BatteryDto.NewBattery>>();
-            _localizerMock = new Mock<IStringLocalizer<Batteries.Battery>>();
+            _localizerMock = new Mock<IStringLocalizer<GenericTable>>();
+            _batteryLocalizerMock = new Mock<IStringLocalizer<Batteries.Battery>>();
 
             // Voeg de mock toe aan de dependency injection container
             Services.AddSingleton(_batteryServiceMock.Object);
             Services.AddSingleton(_localizerMock.Object);
+            Services.AddSingleton(_batteryLocalizerMock.Object);
         }
 
         [Fact]
         public async Task Should_Display_Title()
         {
             // Arrange
-             _localizerMock.Setup(l => l["Title"]).Returns(new LocalizedString("Title", "Batterijen"));     
+            _batteryLocalizerMock.Setup(l => l["Title"]).Returns(new LocalizedString("Title", "Batterijen"));
 
             // Act
             var component = RenderComponent<Batteries.Battery>();
 
             // Assert
-            component.Find("h1").MarkupMatches("<h1 class=\"text-white\">Batterijen</h3>");            
+            component.Find("h1").MarkupMatches("<h1>Batterijen</h1>");
         }
 
         [Fact]
@@ -50,7 +54,7 @@ namespace Rise.Client.Tests
             var component = RenderComponent<Batteries.Battery>();
 
             // Assert
-            component.Find("span").MarkupMatches("<span>Batterijen aan het ophalen...</span>");
+            component.Find("span").MarkupMatches("<span class=\"visually-hidden\">Batterijen aan het ophalen...</span>");
         }
 
         [Fact]
@@ -62,9 +66,9 @@ namespace Rise.Client.Tests
                 new BatteryDto.ViewBattery { name = "Battery 1", countBookings = 10},
                 new BatteryDto.ViewBattery { name = "Battery 2", countBookings = 5}
             };
-            _localizerMock.Setup(l => l["Name"]).Returns(new LocalizedString("Name", "Naam"));
-            _localizerMock.Setup(l => l["CountBookings"]).Returns(new LocalizedString("CountBookings", "Aantal Vaarten"));
-            _localizerMock.Setup(l => l["Comments"]).Returns(new LocalizedString("Comments", "Opmerkingen"));
+            _batteryLocalizerMock.Setup(l => l["Name"]).Returns(new LocalizedString("Name", "Naam"));
+            _batteryLocalizerMock.Setup(l => l["CountBookings"]).Returns(new LocalizedString("CountBookings", "Aantal Vaarten"));
+            _batteryLocalizerMock.Setup(l => l["Comments"]).Returns(new LocalizedString("Comments", "Opmerkingen"));
 
             // Stel in dat GetAllAsync de lijst van batterijen retourneert
             _batteryServiceMock.Setup(service => service.GetAllAsync()).Returns(Task.FromResult<IEnumerable<BatteryDto.ViewBattery>>(batteries));
@@ -73,7 +77,7 @@ namespace Rise.Client.Tests
             var component = RenderComponent<Batteries.Battery>();
 
             // Simuleer wachten tot de data geladen is
-            await Task.Delay(500); 
+            await Task.Delay(500);
 
             // Assert
             var headerItems = component.FindAll("th");
@@ -99,7 +103,7 @@ namespace Rise.Client.Tests
             var component = RenderComponent<Batteries.Battery>();
 
             // Simuleer wachten tot de data geladen is
-            await Task.Delay(500); 
+            await Task.Delay(500);
 
             // Assert
             var boatItems = component.FindAll("tr");
@@ -124,10 +128,10 @@ namespace Rise.Client.Tests
             var component = RenderComponent<Batteries.Battery>();
 
             // Assert
-            component.Find("button.btn-primary").ShouldNotBeNull();
+            component.Find("#show-form-button").ShouldNotBeNull();
             component.FindAll("input").ShouldBeEmpty();
-            component.FindAll("button.btn-success").ShouldBeEmpty();
-            component.FindAll("button.btn-danger").ShouldBeEmpty();
+            component.FindAll("#submit-button").ShouldBeEmpty();
+            component.FindAll("#cancel-button").ShouldBeEmpty();
         }
 
 
@@ -135,16 +139,18 @@ namespace Rise.Client.Tests
         public async Task Should_Show_Form_When_Add_Battery_Clicked()
         {
             // Arrange
+            _batteryLocalizerMock.Setup(l => l["Add"]).Returns(new LocalizedString("Add", "Add"));
             _batteryServiceMock.Setup(service => service.GetAllAsync()).ReturnsAsync(new List<BatteryDto.ViewBattery>());
 
             // Act
             var component = RenderComponent<Batteries.Battery>();
-            component.Find("button.btn-primary").Click(); // Show the form
+            Console.WriteLine(component.Markup);
+            component.Find("#show-form-button").Click(); // Show the form
 
             // Assert
             component.Find("input").ShouldNotBeNull();
-            component.Find("button.btn-success").ShouldNotBeNull();
-            component.Find("button.btn-danger").ShouldNotBeNull();
+            component.Find("#submit-button").ShouldNotBeNull();
+            component.Find("#cancel-button").ShouldNotBeNull();
         }
 
         [Fact]
@@ -155,14 +161,14 @@ namespace Rise.Client.Tests
 
             // Act
             var component = RenderComponent<Batteries.Battery>();
-            component.Find("button.btn-primary").Click(); // Show the form
-            component.Find("button.btn-danger").Click(); // Hide the form
+            component.Find("#show-form-button").Click(); // Show the form
+            component.Find("#cancel-button").Click(); // Hide the form
 
             // Assert
-            component.Find("button.btn-primary").ShouldNotBeNull();
+            component.Find("#show-form-button").ShouldNotBeNull();
             component.FindAll("input").ShouldBeEmpty();
-            component.FindAll("button.btn-success").ShouldBeEmpty();
-            component.FindAll("button.btn-danger").ShouldBeEmpty();
+            component.FindAll("#submit-button").ShouldBeEmpty();
+            component.FindAll("#cancel-button").ShouldBeEmpty();
         }
 
 
@@ -170,7 +176,7 @@ namespace Rise.Client.Tests
         [Fact]
         public async Task Should_Add_Battery_And_Display_In_List()
         {
-            // Arrange
+            // Arrange            
             var batteries = new List<BatteryDto.ViewBattery>();
             _batteryServiceMock.Setup(service => service.GetAllAsync()).ReturnsAsync(batteries);
             _batteryServiceMock.Setup(service => service.CreateAsync(It.IsAny<BatteryDto.NewBattery>()))
@@ -179,9 +185,9 @@ namespace Rise.Client.Tests
 
             // Act
             var component = RenderComponent<Batteries.Battery>();
-            component.Find("button.btn-primary").Click(); // Show the form
+            component.Find("#show-form-button").Click(); // Show the form
             component.Find("input").Change("New Battery");
-            component.Find("button.btn-success").Click(); // Submit
+            component.Find("#submit-button").Click(); // Submit
 
             // Assert
             await Task.Delay(500); // Wait for async operations
@@ -203,9 +209,9 @@ namespace Rise.Client.Tests
 
             // Act
             var component = RenderComponent<Batteries.Battery>();
-            component.Find("button.btn-primary").Click(); // Show the form
+            component.Find("#show-form-button").Click(); // Show the form
             component.Find("input").Change("Existing Battery");
-            component.Find("button.btn-success").Click(); // Submit
+            component.Find("#submit-button").Click(); // Submit
 
             // Assert
             await Task.Delay(500); // Wait for async operations
@@ -220,8 +226,8 @@ namespace Rise.Client.Tests
 
             // Act
             var component = RenderComponent<Batteries.Battery>();
-            component.Find("button.btn-primary").Click(); // Show the form
-            component.Find("button.btn-success").Click(); // Submit without input
+            component.Find("#show-form-button").Click(); // Show the form
+            component.Find("#submit-button").Click(); // Submit without input
 
             // Assert
             await Task.Delay(500); // Wait for async operations
