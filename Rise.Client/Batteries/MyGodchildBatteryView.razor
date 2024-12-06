@@ -44,7 +44,10 @@
                 <div class="d-flex justify-content-center">
                     <div class="battery-info d-inline-block p-4 border rounded shadow-lg bg-light">
                         <div class="mb-4">
-                            <h5 class="mb-0"><strong>@Localizer["CurrentHolderTitle"]</strong></h5>
+                            @if (@BuutagentHasBattery()){
+                                <h2 class="mb-5"><strong>@Localizer["BuutAgentIsCurrentHolderTitle"]</strong></h2>
+                            } 
+                            <h4 class="mb-0"><strong>@Localizer["CurrentHolderTitle"]</strong></h4>
                             <ul class="list-unstyled">
                                 <li class="fs-6"><strong>@Localizer["FirstName"]:</strong> @holderDetails.FirstName</li>
                                 <li class="fs-6"><strong>@Localizer["LastName"]:</strong> @holderDetails.LastName</li>
@@ -52,25 +55,27 @@
                                     <strong>@Localizer["PhoneNumber"]:</strong>
                                     <a href="tel:@holderDetails.PhoneNumber" class="text-primary text-decoration-none">@holderDetails.PhoneNumber</a>
                                 </li>
-                            <li class="fs-6"><strong>@Localizer["Address"]:</strong> @streetName @holderDetails.Address?.HouseNumber
-                                                @if(@holderDetails.Address?.Bus != null)
-                                                {
-                                                    <strong>@Localizer["AddressBox"]:</strong> @holderDetails.Address?.Bus
-                                                }
-                                            </li>
-                                        </ul>
-                                    </div>
+                                <li class="fs-6"><strong>@Localizer["Address"]:</strong> @streetName @holderDetails.Address?.HouseNumber
+                                    @if(@holderDetails.Address?.Bus != null)
+                                    {
+                                        <strong>@Localizer["AddressBox"]:</strong> @holderDetails.Address?.Bus
+                                    }
+                                </li>
+                            </ul>
+                        </div>
 
                         <div class="mb-4">
                             <h4 class="mb-0"><strong>@Localizer["BatteryInfo"]</strong></h4>
                             <p class="mb-0 fs-6"><strong>@Localizer["SailingsCount"]:</strong> @battery.countBookings</p>
                         </div>
+                        @if (!@BuutagentHasBattery()){
+                            <div class="text-center mt-3">
+                                <button class="btn btn-primary" @onclick="async () => await ClaimBattery(userIdAuth0 ?? string.Empty, battery.id)">
+                                    @Localizer["ClaimButtonText"]
+                                </button>
+                            </div>
+                        }
 
-                        <div class="text-center mt-3">
-                            <button class="btn btn-primary" @onclick="async () => await ClaimBattery(userIdAuth0 ?? string.Empty, battery.id)">
-                                @Localizer["ClaimButtonText"]
-                            </button>
-                        </div>
                     </div>
                 </div>
             }
