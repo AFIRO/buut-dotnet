@@ -11,9 +11,8 @@
         <div class="col-md-8 col-lg-6 justify-content-center text-dark">
             @if (_isLoading)
             {
-                <LoadingSpinner Message="@Localizer["LoadingSpinnerText"]" BackgroundColor="rgba(255, 255, 255, 0.3)" />
+                <LoadingSpinner Message="@Localizer["LoadingSpinnerText"]"/>
             }
-
             else if (@_hasTimeout)
             {
                 <div class="d-flex justify-content-center align-items-center">
