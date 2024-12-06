@@ -40,8 +40,8 @@
     <data name="Comments" xml:space="preserve">
         <value>Comments</value>
     </data> 
-        <data name="ClaimButtonText" xml:space="preserve">
-        <value>Confirm battery takeover</value>
+    <data name="ClaimButtonText" xml:space="preserve">
+        <value>Confirm possession of the battery</value>
     </data> 
     <data name="Submit" xml:space="preserve">
         <value>Submit</value>
@@ -76,11 +76,14 @@
     <data name="CurrentHolderTitle" xml:space="preserve">
         <value>Current Holder</value>
     </data>
+    <data name="BuutAgentIsCurrentHolderTitle" xml:space="preserve">
+        <value>the battery is already in your possession</value>
+    </data>
     <data name="PhoneNumber" xml:space="preserve">
         <value>Phone number</value>
     </data>
     <data name="SailingsCount" xml:space="preserve">
-        <value>Number of Uses</value>
+        <value>Number of trips completed/planned</value>
     </data>
     <data name="BatteryInfo" xml:space="preserve">
         <value>Info</value>
