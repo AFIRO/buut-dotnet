@@ -26,6 +26,12 @@ public class Seeder
     /// </summary>
     public void Seed()
     {
+        if (!UsersHasAlreadyBeenSeeded())
+        {
+            DropUsers();
+            SeedUsers();
+        }
+
         if (!BoatsHasAlreadyBeenSeeded())
         {
             DropBookings();
@@ -37,14 +43,16 @@ public class Seeder
             DropBookings();
             SeedBatteries();
         }
-        if (!UsersHasAlreadyBeenSeeded())
-            SeedUsers();
 
-        if (!BookingsHasAlreadyBeenSeeded())
+        if (!BookingsHasAlreadyBeenSeeded()){
+            DropBookings();
             SeedBookings();
+        }
 
-        if (!NotificationsHasAlreadyBeenSeeded())
+        if (!NotificationsHasAlreadyBeenSeeded()){
+            DropNotifications();
             SeedNotifications();
+        }
     }
 
     /// <summary>
@@ -151,16 +159,33 @@ public class Seeder
 
         var booking1 = new Booking(new DateTime(2025, 01, 01), "auth0|6713ad614fda04f4b9ae2156", TimeSlot.Morning);
         dbContext.Bookings.Add(booking1);
+
         var bookingBattery = new Booking(new DateTime(2023, 01, 01), "auth0|6713ad614fda04f4b9ae2156", TimeSlot.Morning);
         bookingBattery.AddBattery(dbContext.Batteries.First());
         dbContext.Bookings.Add(bookingBattery);
+
         var bookingBoat = new Booking(new DateTime(2022, 01, 01), "auth0|6713ad614fda04f4b9ae2156", TimeSlot.Morning);
         bookingBoat.AddBoat(dbContext.Boats.First());
         dbContext.Bookings.Add(bookingBoat);
-        var bookingAll = new Booking(new DateTime(2021, 01, 01), "auth0|6713ad614fda04f4b9ae2156", TimeSlot.Morning);
-        bookingAll.AddBattery(dbContext.Batteries.OrderBy(battery => battery.Name).Last());
-        bookingAll.AddBoat(dbContext.Boats.OrderBy(boat => boat.Name).Last());
-        dbContext.Bookings.Add(bookingAll);
+
+        var pastBookingAll = new Booking(new DateTime(2021, 01, 01), "auth0|6713ad614fda04f4b9ae2156", TimeSlot.Morning);
+        pastBookingAll.AddBattery(dbContext.Batteries.First(b => b.Name == "Battery1"));
+        pastBookingAll.AddBoat(dbContext.Boats.OrderBy(boat => boat.Name).Last());
+        dbContext.Bookings.Add(pastBookingAll);
+
+        var futureBookingAll = new Booking(DateTime.Now.AddDays(10), "auth0|6713ad614fda04f4b9ae2156", TimeSlot.Morning);
+        futureBookingAll.AddBattery(dbContext.Batteries.First(b => b.Name == "Battery1"));
+        futureBookingAll.AddBoat(dbContext.Boats.OrderBy(boat => boat.Name).Last());
+        dbContext.Bookings.Add(futureBookingAll);
+
+        var futureClosedBookingAll = new Booking(DateTime.Now.AddDays(1), "auth0|6713ad614fda04f4b9ae2156", TimeSlot.Morning);
+        futureClosedBookingAll.AddBattery(dbContext.Batteries.First(b => b.Name == "Battery3"));
+        futureClosedBookingAll.AddBoat(dbContext.Boats.OrderBy(boat => boat.Name).Last());
+        dbContext.Bookings.Add(futureClosedBookingAll);
+
+        var futureBookingToAssign = new Booking(DateTime.Now.AddDays(1), "auth0|6713ad614fda04f4b9ae2156", TimeSlot.Morning);
+        dbContext.Bookings.Add(futureBookingToAssign);
+
         dbContext.SaveChanges();
     }
 
@@ -179,12 +204,29 @@ public class Seeder
 
     private void SeedBatteries()
     {
+        // Check if user exists, if not, create one
+        User? godparent = dbContext.Users.Find("auth0|6713ad784fda04f4b9ae2165");
+
+        User? holder = dbContext.Users.Find("auth0|6713ad524e8a8907fbf0d57f");
+
+        // Now you can safely add the batteries
         for (int i = 1; i <= 10; i++)
         {
-            dbContext.Batteries.Add(new Battery("Battery" + i));
+            Battery battery = new Battery("Battery" + i);
+            battery.CurrentUser = holder;
+        
+            // If it's the first battery, assign the GodParent
+            if (i == 1 && godparent != null)
+            {
+                battery.SetBatteryBuutAgent(godparent);
+            }
+
+            dbContext.Batteries.Add(battery);
         }
+
         dbContext.SaveChanges();
     }
+
 
     private void SeedNotifications()
     {

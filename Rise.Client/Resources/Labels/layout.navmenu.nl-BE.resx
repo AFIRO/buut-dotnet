@@ -43,7 +43,10 @@
   <data name="Boats" xml:space="preserve">
     <value>Boten</value>
   </data>
-   <data name="Batteries" xml:space="preserve">
-    <value>Batterijen</value>
+  <data name="GodchildBattery" xml:space="preserve">
+    <value>Petekind Batterij</value>
+  </data>
+  <data name="MyBookings" xml:space="preserve">
+    <value>Petekind Batterij</value>
   </data>
 </root>

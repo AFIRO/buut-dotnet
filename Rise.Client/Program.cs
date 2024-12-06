@@ -13,6 +13,8 @@ using Rise.Shared.Bookings;
 using Rise.Shared.Notifications;
 using MudBlazor.Services;
 using Rise.Shared.Boats;
+using Rise.Client.Batteries;
+using Rise.Shared.Batteries;
 
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -51,16 +53,17 @@ builder.Services.AddHttpClient<INotificationService, NotificationService>(client
 {
     client.BaseAddress = new Uri($"{builder.HostEnvironment.BaseAddress}api/");
 }).AddHttpMessageHandler<CustomAuthorizationMessageHandler>();
+
 builder.Services.AddHttpClient<IEquipmentService<BoatDto.ViewBoat, BoatDto.NewBoat>, Rise.Client.Boats.BoatService>(client =>
 {
     client.BaseAddress = new Uri($"{builder.HostEnvironment.BaseAddress}api/");
 }).AddHttpMessageHandler<CustomAuthorizationMessageHandler>();
 
-builder.Services.AddHttpClient<IEquipmentService<BatteryDto.ViewBattery, BatteryDto.NewBattery>, Rise.Client.Batteries.BatteryService>(client =>
+
+builder.Services.AddHttpClient<IBatteryService, BatteryService>(client =>
 {
     client.BaseAddress = new Uri($"{builder.HostEnvironment.BaseAddress}api/");
 }).AddHttpMessageHandler<CustomAuthorizationMessageHandler>();
-
 var host = builder.Build();
 
 

@@ -1,0 +1,79 @@
+@page "/mygodchildbattery"
+@using Microsoft.Extensions.Localization
+@attribute [Authorize(Roles = "BUUTAgent")]
+@inject IStringLocalizer<MyGodchildBatteryView> Localizer
+@using Rise.Client.Components.Loading
+
+<PageTitle>@Localizer["Title"]</PageTitle>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6 justify-content-center text-dark">
+            @if (_isLoading)
+            {
+                <LoadingSpinner Message="@Localizer["LoadingSpinnerText"]" BackgroundColor="rgba(255, 255, 255, 0.3)" />
+            }
+
+            else if (@_hasTimeout)
+            {
+                <div class="d-flex justify-content-center align-items-center">
+                    <div class="alert alert-warning text-center p-4 shadow-lg">
+                        <p class="fs-5 fw-bold">@Localizer["TimeOutText"]</p>
+                        <button class="btn btn-primary px-4 py-2" @onclick="ReloadPage">@Localizer["RetryButton"]</button>
+                    </div>
+                </div>
+            }
+            else if (@_isInError)
+            {
+                <div class="d-flex justify-content-center align-items-centerbg-light">
+                    <div class="alert alert-danger text-center p-5 shadow-lg rounded">
+                        <p class="fs-3 fw-bold text-dark">@Localizer["InErrorText"]</p>
+                        <p class="fs-5 text-body">@_errorMessage</p>
+                        <button class="btn btn-outline-light bg-danger text-white fw-semibold px-4 py-2 mt-4" @onclick="ReloadPage">@Localizer["RetryButton"]</button>
+                    </div>
+                </div>
+            }
+            else if (@battery == null || @holderDetails == null)
+            {
+                <div class="alert alert-warning">
+                    <p>@Localizer["NotLoadedText"]</p>
+                </div>
+            }
+            else
+            {
+                <div class="d-flex justify-content-center">
+                    <div class="battery-info d-inline-block p-4 border rounded shadow-lg bg-light">
+                        <div class="mb-4">
+                            <h5 class="mb-0"><strong>@Localizer["CurrentHolderTitle"]</strong></h5>
+                            <ul class="list-unstyled">
+                                <li class="fs-6"><strong>@Localizer["FirstName"]:</strong> @holderDetails.FirstName</li>
+                                <li class="fs-6"><strong>@Localizer["LastName"]:</strong> @holderDetails.LastName</li>
+                                <li class="fs-6">
+                                    <strong>@Localizer["PhoneNumber"]:</strong>
+                                    <a href="tel:@holderDetails.PhoneNumber" class="text-primary text-decoration-none">@holderDetails.PhoneNumber</a>
+                                </li>
+                            <li class="fs-6"><strong>@Localizer["Address"]:</strong> @streetName @holderDetails.Address?.HouseNumber
+                                                @if(@holderDetails.Address?.Bus != null)
+                                                {
+                                                    <strong>@Localizer["AddressBox"]:</strong> @holderDetails.Address?.Bus
+                                                }
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                        <div class="mb-4">
+                            <h4 class="mb-0"><strong>@Localizer["BatteryInfo"]</strong></h4>
+                            <p class="mb-0 fs-6"><strong>@Localizer["SailingsCount"]:</strong> @battery.countBookings</p>
+                        </div>
+
+                        <div class="text-center mt-3">
+                            <button class="btn btn-primary" @onclick="async () => await ClaimBattery(userIdAuth0 ?? string.Empty, battery.id)">
+                                @Localizer["ClaimButtonText"]
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

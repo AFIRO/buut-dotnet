@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Collections.Immutable;
 using System.Text.Json;
 using Auth0.ManagementApi.Models;
 using Microsoft.EntityFrameworkCore;
@@ -317,8 +318,10 @@ public class BookingService : IBookingService
             // You need to avoid using methods with optional parameters directly
             // in the LINQ query that EF is trying to translate
             var query = await _dbContext.Bookings
-                .Include(b => b.Battery)
-                .Include(b => b.Boat)
+                .Include(booking => booking.Boat)
+                .Include(booking => booking.Battery)
+                .ThenInclude(battery => battery.CurrentUser)
+                .ThenInclude(currentUser => currentUser.Address)
                 .Where(x => x.UserId.Equals(userId))
                 .OrderByDescending(x => x.BookingDate)
                 .ToListAsync();
@@ -330,6 +333,7 @@ public class BookingService : IBookingService
             }
 
             _logger.LogInformation("{Count} bookings retrieved for user {UserId}.", query.Count, userId);
+
             return query.Select(MapToDto).OrderByDescending(b => b.status == BookingStatus.OPEN)
                 .ThenByDescending(b => b.bookingDate)
                 .ToList();
@@ -454,12 +458,10 @@ public class BookingService : IBookingService
     private BookingDto.ViewBooking MapToDto(Booking booking)
     {
         var battery = MapBatteryDto(booking, booking.BookingDate.Date >= DateTime.Now.Date);
-                
         //todo status toevoegen aan DB for refunded
         BookingStatus status = BookingStatusHelper.GetBookingStatus(booking.IsDeleted, false, booking.BookingDate, booking.Boat != null && !booking.Boat.Name.IsNullOrEmpty());
 
         var boat = MapBoatDto(booking);
-        
         var contact = new UserDto.UserDetails
         (
             "auth0|6713ad784fda04f4b9ae2165",
@@ -490,14 +492,12 @@ public class BookingService : IBookingService
         };
     }
 
-    private BatteryDto.ViewBattery MapBatteryDto(Booking booking, bool includeContactUser)
+    private BatteryDto.ViewBatteryWithCurrentUser MapBatteryDto(Booking booking, bool includeContactUser)
     {
-        var battery = new BatteryDto.ViewBattery();
+        var battery = new BatteryDto.ViewBatteryWithCurrentUser();
         if (booking.Battery != null)
         {
-            battery = includeContactUser
-                ? MapBatteryDtoWithCurrentUser(booking)
-                : MapBatteryWithoutCurrentUser(booking);
+            battery = MapBatteryDtoWithCurrentUser(booking);
         }
 
         return battery;
@@ -507,7 +507,7 @@ public class BookingService : IBookingService
     {
         UserDto.ContactUser? currentUser = null;
         if (booking.Battery.CurrentUser != null)
-        {
+        {   
             currentUser = new UserDto.ContactUser
             (
                 booking.Battery.CurrentUser.FirstName,
@@ -614,6 +614,7 @@ public class BookingService : IBookingService
             throw new Exception("An unexpected error occurred while retrieving taken timeslots.", ex);
         }
     }
+
 
     /// <summary>
     /// Retrieves all free timeslots within a specified date range.
@@ -797,7 +798,7 @@ public class BookingService : IBookingService
         // Query the database to check if a booking exists for this date and time slot
         return _dbContext.Bookings.Any(b => b.BookingDate == bookingStartTime && !b.IsDeleted);
     }
-
+    
     /// <summary>
     /// Maps a Booking entity to a BookingDto.ViewBookingCalender.
     /// </summary>
@@ -839,6 +840,7 @@ public class BookingService : IBookingService
         bool userExists = await _validationService.CheckUserExistsAsync(userId);
         if (!userExists)
         {
+            _logger.LogWarning("User with ID {Id} was not found.", userId);
             throw new UserNotFoundException("User with given id was not found.");
         }
     }

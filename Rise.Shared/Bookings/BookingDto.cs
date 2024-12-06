@@ -21,7 +21,7 @@ public class BookingDto
         public DateTime bookingDate { get; set; } = DateTime.Now;
         public BoatDto.ViewBoat boat { get; set; } = new();
         public BookingStatus status { get; set; } = BookingStatus.COMPLETED;
-        public BatteryDto.ViewBattery battery { get; set; } = new();
+        public BatteryDto.ViewBatteryWithCurrentUser battery { get; set; } = new();
 
 
         [JsonConverter(typeof(JsonStringEnumConverter))]

@@ -159,6 +159,58 @@ public class UserDto
     }
 
     /// <summary>
+    /// DTO for showing users details in table on Users page
+    /// </summary>
+
+    public sealed record UserContactDetails
+    {
+        /// <summary>
+        /// Gets or initializes the first name of the user.
+        /// </summary>
+        public string FirstName { get; init; } = string.Empty;
+        /// <summary>
+        /// Gets or initializes the last name of the user.
+        /// </summary>
+        public string LastName { get; init; } = string.Empty;
+        /// <summary>
+        /// Gets or initializes the email of the user.
+        /// </summary>
+        public string Email { get; init; } = string.Empty;
+        /// <summary>
+        /// Gets or initializes the address of the user.
+        /// </summary>
+        public AddressDto.GetAdress? Address { get; init; } = null;
+        /// <summary>
+        /// Gets or initializes the phonenumber of the user.
+        /// </summary>
+        public string PhoneNumber { get; init; } = string.Empty;
+        
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UserContactDetails"/> class for deserialization.
+        /// </summary>
+        public UserContactDetails() { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UserContactDetails"/> class including phoneNumber.
+        /// </summary>
+        /// <param name="firstName">The first name of the user.</param>
+        /// <param name="lastName">The last name of the user.</param>
+        /// <param name="email">The email address of the user.</param>
+        /// <param name="phoneNumber">The phone number of the user.</param>
+        /// <param name="address">The address of the user.</param>
+        public UserContactDetails(string firstName, string lastName, string email, string phoneNumber,
+            AddressDto.GetAdress address)
+        {
+            FirstName = firstName;
+            LastName = lastName;
+            Email = email;
+            PhoneNumber = phoneNumber;
+            Address = address;
+        }
+    }
+
+    /// <summary>
     /// DTO used to get a contact for a battery
     /// </summary>
     public sealed record ContactUser

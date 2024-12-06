@@ -12,23 +12,6 @@ namespace Rise.Persistence.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Battery",
-                columns: table => new
-                {
-                    Id = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: false),
-                    CountBookings = table.Column<int>(type: "int", nullable: false),
-                    ListComments = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Battery", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Boat",
                 columns: table => new
                 {
@@ -71,8 +54,6 @@ namespace Rise.Persistence.Migrations
                     Email = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: false),
                     BirthDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     PhoneNumber = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: false),
-                    IsBuutAgentOfBatteryId = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: true),
-                    CurrentBatteryId = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
@@ -80,16 +61,6 @@ namespace Rise.Persistence.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_User", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_User_Battery_CurrentBatteryId",
-                        column: x => x.CurrentBatteryId,
-                        principalTable: "Battery",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_User_Battery_IsBuutAgentOfBatteryId",
-                        column: x => x.IsBuutAgentOfBatteryId,
-                        principalTable: "Battery",
-                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -118,37 +89,32 @@ namespace Rise.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Booking",
+                name: "Battery",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: false),
-                    BookingDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    BoatId = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: true),
-                    BatteryId = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: true),
+                    BatteryBuutAgentId = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: true),
+                    CurrentUserId = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: true),
+                    Name = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: false),
+                    CountBookings = table.Column<int>(type: "int", nullable: false),
+                    ListComments = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Booking", x => x.Id);
+                    table.PrimaryKey("PK_Battery", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Booking_Battery_BatteryId",
-                        column: x => x.BatteryId,
-                        principalTable: "Battery",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Booking_Boat_BoatId",
-                        column: x => x.BoatId,
-                        principalTable: "Boat",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Booking_User_UserId",
-                        column: x => x.UserId,
+                        name: "FK_Battery_User_BatteryBuutAgentId",
+                        column: x => x.BatteryBuutAgentId,
                         principalTable: "User",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Battery_User_CurrentUserId",
+                        column: x => x.CurrentUserId,
+                        principalTable: "User",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -203,6 +169,40 @@ namespace Rise.Persistence.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Booking",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: false),
+                    BookingDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    BoatId = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: true),
+                    BatteryId = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Booking", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Booking_Battery_BatteryId",
+                        column: x => x.BatteryId,
+                        principalTable: "Battery",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Booking_Boat_BoatId",
+                        column: x => x.BoatId,
+                        principalTable: "Boat",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Booking_User_UserId",
+                        column: x => x.UserId,
+                        principalTable: "User",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Address_Id",
                 table: "Address",
@@ -214,6 +214,16 @@ namespace Rise.Persistence.Migrations
                 table: "Address",
                 column: "UserId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Battery_BatteryBuutAgentId",
+                table: "Battery",
+                column: "BatteryBuutAgentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Battery_CurrentUserId",
+                table: "Battery",
+                column: "CurrentUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Battery_Id",
@@ -260,24 +270,10 @@ namespace Rise.Persistence.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_User_CurrentBatteryId",
-                table: "User",
-                column: "CurrentBatteryId",
-                unique: true,
-                filter: "[CurrentBatteryId] IS NOT NULL");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_User_Id",
                 table: "User",
                 column: "Id",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_User_IsBuutAgentOfBatteryId",
-                table: "User",
-                column: "IsBuutAgentOfBatteryId",
-                unique: true,
-                filter: "[IsBuutAgentOfBatteryId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserRole_UserId",
@@ -301,6 +297,9 @@ namespace Rise.Persistence.Migrations
                 name: "UserRole");
 
             migrationBuilder.DropTable(
+                name: "Battery");
+
+            migrationBuilder.DropTable(
                 name: "Boat");
 
             migrationBuilder.DropTable(
@@ -308,9 +307,6 @@ namespace Rise.Persistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "User");
-
-            migrationBuilder.DropTable(
-                name: "Battery");
         }
     }
 }

@@ -48,4 +48,43 @@ public class Role : Entity
     }
 
     public List<User> Users { get; set; } = [];
+
+    #region Equality Overrides
+
+    /// <summary>
+    /// Checks if the current role is equal to another role.
+    /// </summary>
+    /// <param name="other">The role to compare with.</param>
+    /// <returns>True if the roles are equal, false otherwise.</returns>
+    public bool Equals(Role? other)
+    {
+        if (other is null)
+            return false;
+
+        // Check if the RolesEnum value matches
+        return Name == other.Name;
+    }
+
+    /// <summary>
+    /// Determines whether the specified object is equal to the current role.
+    /// </summary>
+    public override bool Equals(object? obj)
+    {
+        if (obj is Role otherRole)
+            return Equals(otherRole);
+
+        return false;
+    }
+
+    /// <summary>
+    /// Serves as a hash function for the role.
+    /// </summary>
+    public override int GetHashCode()
+    {
+        // Use the RolesEnum value for hash code generation
+        return Name.GetHashCode();
+    }
+
+    #endregion
+
 }

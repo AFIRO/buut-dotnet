@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+        <xsd:element name="root" msdata:IsDataSet="true">
+            <xsd:complexType>
+                <xsd:choice maxOccurs="unbounded">
+                    <xsd:element name="data">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0"/>
+                                <xsd:element name="comment" type="xsd:string" minOccurs="0"/>
+                            </xsd:sequence>
+                            <xsd:attribute name="name" type="xsd:string" use="required"/>
+                            <xsd:attribute name="xml:space" type="xsd:string" fixed="preserve"/>
+                        </xsd:complexType>
+                    </xsd:element>
+                </xsd:choice>
+            </xsd:complexType>
+        </xsd:element>
+    </xsd:schema>
+
+    <data name="Title" xml:space="preserve">
+        <value>Mijn peetkind batterij</value>
+    </data>
+    <data name="Loading" xml:space="preserve">
+        <value>Bezig met ophalen van batterijgegevens...</value>
+    </data>
+    <data name="NoItems" xml:space="preserve">
+        <value>Kan de batterijgegevens niet ophalen.</value>
+    </data>
+    <data name="FirstName" xml:space="preserve">
+        <value>Voornaam</value>
+    </data>
+    <data name="LastName" xml:space="preserve">
+        <value>Achternaam</value>
+    </data>
+    <data name="CountBookings" xml:space="preserve">
+        <value>Aantal vaarten</value>
+    </data>
+    <data name="Comments" xml:space="preserve">
+        <value>Opmerkingen</value>
+    </data> 
+    <data name="ClaimButtonText" xml:space="preserve">
+        <value>Bevestig batterij overname</value>
+    </data> 
+    <data name="Submit" xml:space="preserve">
+        <value>Versturen</value>
+    </data> 
+    <data name="LoadingSpinnerText" xml:space="preserve">
+        <value>Bezig met het laden van batterijgegevens, even geduld...</value>
+    </data>
+    <data name="TimeOutText" xml:space="preserve">
+        <value>De gegevens laden duurt te lang. Probeer het later opnieuw of neem contact op met de support.</value>
+    </data>
+    <data name="InErrorText" xml:space="preserve">
+        <value>Een fout is gebeurd. Probeer het later opnieuw of neem contact op met de support geef onderstaande informatie mee.</value>
+    </data>
+    <data name="RetryButton" xml:space="preserve">
+        <value>Opnieuw proberen</value>
+    </data>
+    <data name="NotLoadedText" xml:space="preserve">
+        <value>De batterij- of houdergegevens konden niet worden geladen. Probeer het later opnieuw.</value>
+    </data>
+    <data name="LocationTitleText" xml:space="preserve">
+        <value>Adres van de huidige houder</value>
+    </data>
+    <data name="Street" xml:space="preserve">
+        <value>Straat</value>
+    </data>
+    <data name="HouseNumber" xml:space="preserve">
+        <value>Huisnummer</value>
+    </data>
+    <data name="AddressBox" xml:space="preserve">
+        <value>Bus</value>
+    </data>
+    <data name="CurrentHolderTitle" xml:space="preserve">
+        <value>Huidige houder</value>
+    </data>
+    <data name="PhoneNumber" xml:space="preserve">
+        <value>Telefoonnummer</value>
+    </data>
+    <data name="SailingsCount" xml:space="preserve">
+        <value>Aantal gebruiksbeurten</value>
+    </data>
+    <data name="BatteryInfo" xml:space="preserve">
+        <value>Info</value>
+    </data>
+    <data name="Cancel" xml:space="preserve">
+        <value>Annuleren</value>
+    </data>
+        <data name="Address" xml:space="preserve">
+        <value>Adres</value>
+    </data>
+</root>

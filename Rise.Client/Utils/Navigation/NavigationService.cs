@@ -22,6 +22,7 @@ public static class NavigationService
         new NavigationLink("documenten", "Documents", authenticated: false),
         new NavigationLink("MakeBookingView", "MakeBooking", authenticated: true, role: RolesEnum.User),
         new NavigationLink("mybookings", "MyBookings", authenticated: true, role: RolesEnum.User),
+        new NavigationLink("mygodchildbattery", "GodchildBattery", authenticated: true, role: RolesEnum.BUUTAgent),
     };
 
     /// <summary>
@@ -34,6 +35,7 @@ public static class NavigationService
         new PageInfo("userspage"),
         new PageInfo("boats"),
         new PageInfo("batteries"),
+        new PageInfo("mygodchildbattery"),
         new PageInfo("userdetails/{userId}"),
         new PageInfo("informatie"),
         new PageInfo("actua"),

@@ -1,3 +1,4 @@
+using Rise.Shared.Batteries;
 using Rise.Shared.Users;
 
 namespace Rise.Shared.Bookings;
@@ -15,6 +16,15 @@ public class BatteryDto
         public int countBookings { get; set; } = default!;
         public List<string> listComments = default!;
     }
+
+    public class ViewBatteryBuutAgent
+    {
+        public string id { get; set; } = default!;
+        public string name { get; set; } = default!;
+        public int countBookings { get; set; } = default!;
+        public List<string> listComments = default!;
+    }
+    
     
     public class ViewBatteryWithCurrentUser : ViewBattery
     {

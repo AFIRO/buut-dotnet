@@ -59,6 +59,17 @@
               </li>
             </AuthorizeView>
           }
+          @if (link.Role == RolesEnum.BUUTAgent)
+          {
+            <AuthorizeView Roles="BUUTAgent">
+              <li class="nav-item dropdown dropdown-hover mx-2">
+                <a href="@link.Url" class="nav-link ps-2 d-flex justify-content-between cursor-pointer align-items-end"
+                  role="button" aria-expanded="false">
+                  <h6 class="text-white">@Localizer[@link.Name]</h6>
+                </a>
+              </li>
+            </AuthorizeView>
+          }
         }
         @foreach (var link in NavigationService.GetNavigationLinks().Where(link => !link.Authenticated))
         {

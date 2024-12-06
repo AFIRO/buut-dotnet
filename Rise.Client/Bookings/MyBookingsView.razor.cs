@@ -73,12 +73,13 @@ public partial class MyBookingsView
             var row = new List<RenderFragment>();
             
             var userCell = TableCellService.UserCell();
-            if (booking.battery is BatteryDto.ViewBatteryWithCurrentUser batteryWithCurrentUser)
+            if (booking.battery.currentUser is not null)
             {
+                var currentUser = booking.battery.currentUser;
                 userCell = TableCellService.UserCell(
-                    batteryWithCurrentUser.currentUser.FirstName,
-                    batteryWithCurrentUser.currentUser.LastName,
-                    batteryWithCurrentUser.currentUser.PhoneNumber);
+                    currentUser.FirstName,
+                    currentUser.LastName,
+                    currentUser.PhoneNumber);
             }
 
             row = new List<RenderFragment>

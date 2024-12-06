@@ -55,4 +55,7 @@
   <data name="Notifications" xml:space="preserve">
     <value>Meldingen</value>
     </data>
+      <data name="GodchildBattery" xml:space="preserve">
+    <value>Peetbatterij</value>
+  </data>
 </root>
