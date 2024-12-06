@@ -165,6 +165,10 @@ public class UserDto
     public sealed record UserContactDetails
     {
         /// <summary>
+        /// Gets or initializes the ID of the user.
+        /// </summary>
+        public string Id { get; init; } = string.Empty;
+        /// <summary>
         /// Gets or initializes the first name of the user.
         /// </summary>
         public string FirstName { get; init; } = string.Empty;
@@ -202,6 +206,26 @@ public class UserDto
         public UserContactDetails(string firstName, string lastName, string email, string phoneNumber,
             AddressDto.GetAdress address)
         {
+            FirstName = firstName;
+            LastName = lastName;
+            Email = email;
+            PhoneNumber = phoneNumber;
+            Address = address;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UserContactDetails"/> class including phoneNumber.
+        /// </summary>
+        /// <param name="id">The user id.</param>
+        /// <param name="firstName">The first name of the user.</param>
+        /// <param name="lastName">The last name of the user.</param>
+        /// <param name="email">The email address of the user.</param>
+        /// <param name="phoneNumber">The phone number of the user.</param>
+        /// <param name="address">The address of the user.</param>
+        public UserContactDetails(string id, string firstName, string lastName, string email, string phoneNumber,
+            AddressDto.GetAdress address)
+        {
+            Id = id;
             FirstName = firstName;
             LastName = lastName;
             Email = email;
