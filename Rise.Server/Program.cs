@@ -28,6 +28,7 @@ using Rise.Services.Batteries;
 using NLog.Web;
 using Rise.Server.LoggingEnrichers;
 using NLog;
+using Rise.Shared;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -132,6 +133,13 @@ builder.Services.AddScoped<BookingAllocator>();
 builder.Services.AddScoped<BookingAllocationService>();
 
 builder.Services.AddHostedService<DailyTaskService>();
+
+// Register EmailSettings
+builder.Services.Configure<EmailSettingsDto>(builder.Configuration.GetSection("EmailSettings"));
+
+// Register EmailService
+builder.Services.AddTransient<IEmailService, EmailService>();
+
 
 // Register event dispatcher
 builder.Services.AddSingleton<IEventDispatcher, EventDispatcher>();

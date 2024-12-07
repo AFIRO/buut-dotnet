@@ -15,6 +15,7 @@ public class NotificationService : INotificationService
 
     private readonly ApplicationDbContext _dbContext;
     private readonly ILogger<NotificationService> _logger;
+    private readonly IEmailService _emailService;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
 
     /// <summary>
@@ -22,10 +23,11 @@ public class NotificationService : INotificationService
     /// </summary>
     /// <param name="dbContext">The database context.</param>
     /// <param name="logger">The logger instance.</param>
-    public NotificationService(ApplicationDbContext dbContext, ILogger<NotificationService> logger)
+    public NotificationService(ApplicationDbContext dbContext, ILogger<NotificationService> logger, IEmailService emailService)
     {
         _dbContext = dbContext;
         _logger = logger;
+        _emailService = emailService;
         _jsonSerializerOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
@@ -120,8 +122,9 @@ public class NotificationService : INotificationService
     /// </summary>
     /// <param name="notification">The new notification data.</param>
     /// <param name="language">The language for localization.</param>
+    /// <param name="sendEmail">A boolean indicating whether to send an email notification.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the created view notification.</returns>
-    public async Task<NotificationDto.ViewNotification> CreateNotificationAsync(NotificationDto.NewNotification notification, string language = "en")
+    public async Task<NotificationDto.ViewNotification> CreateNotificationAsync(NotificationDto.NewNotification notification, string language = "en", bool sendEmail = false)
     {
         try
         {
@@ -150,6 +153,27 @@ public class NotificationService : INotificationService
             await _dbContext.SaveChangesAsync();
 
             _logger.LogInformation("Notification created successfully.");
+
+            // Send email notification if sendEmail is true
+            if (sendEmail)
+            {
+                var user = await _dbContext.Users.FindAsync(notification.UserId);
+                if (user != null)
+                {
+                    var emailMessage = new EmailMessageDto
+                    {
+                        To = user.Email,
+                        Subject = "New Notification",
+                        Title_EN = notification.Title_EN,
+                        Title_NL = notification.Title_NL,
+                        Message_EN = notification.Message_EN,
+                        Message_NL = notification.Message_NL
+                    };
+
+                    await _emailService.SendEmailAsync(emailMessage);
+                }
+            }
+
             // Return the created notification as a ViewNotification DTO
             return CreateViewNotification(newNotification, language);
         }
