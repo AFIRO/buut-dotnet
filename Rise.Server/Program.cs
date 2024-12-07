@@ -28,6 +28,7 @@ using Rise.Services.Batteries;
 using NLog.Web;
 using Rise.Server.LoggingEnrichers;
 using NLog;
+using Rise.Services.Events.Battery;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -88,7 +89,9 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+// Adding settings from the configuration
 builder.Services.Configure<BookingSettings>(builder.Configuration.GetSection("BookingSettings"));
+builder.Services.Configure<BatterySettings>(builder.Configuration.GetSection("BatterySettings"));
 
 builder.Services.AddAuthentication(options =>
 {
@@ -130,6 +133,7 @@ builder.Services.AddScoped<IValidationService, ValidationService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<BookingAllocator>();
 builder.Services.AddScoped<BookingAllocationService>();
+builder.Services.AddScoped<BatteryCheckingService>();
 
 builder.Services.AddHostedService<DailyTaskService>();
 
@@ -150,6 +154,9 @@ builder.Services.AddScoped<IEventHandler<UserRoleUpdatedEvent>, NotifyUserOnNewR
 builder.Services.AddScoped<IEventHandler<BookingCreatedEvent>, NotifyOnBookingCreatedHandler>();
 builder.Services.AddScoped<IEventHandler<BookingUpdatedEvent>, NotifyOnBookingUpdatedHandler>();
 builder.Services.AddScoped<IEventHandler<BookingDeletedEvent>, NotifyOnBookingDeletedHandler>();
+
+// Register specific Battery event handlers
+builder.Services.AddScoped<IEventHandler<BatteryTooLongWithUserEvent>, NotifyOnBatteryTooLongWithUserEventHandler>();
 
 
 var app = builder.Build();
