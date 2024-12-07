@@ -1,0 +1,20 @@
+@page "/notifyUsers"
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components
+@attribute [Authorize(Roles = "Admin")]
+@inject IStringLocalizer<AdminNotifyUsers> Localizer
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+
+<PageTitle>@Localizer["NotifyUsers"]</PageTitle>
+
+@code{
+    private string? userIdAuth0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+    }
+}
