@@ -138,7 +138,7 @@ builder.Services.AddHostedService<DailyTaskService>();
 builder.Services.Configure<EmailSettingsDto>(builder.Configuration.GetSection("EmailSettings"));
 
 // Register EmailService
-builder.Services.AddTransient<IEmailService, EmailService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 
 // Register event dispatcher
