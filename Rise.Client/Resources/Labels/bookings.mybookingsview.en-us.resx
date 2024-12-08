@@ -94,14 +94,14 @@
     <data name="Evening" xml:space="preserve">
         <value>5 pm</value>
     </data>
-	<data name="OPEN" xml:space="preserve">
-        <value>OPEN</value>
+    <data name="OPEN" xml:space="preserve">
+        <value>CHANGEABLE</value>
     </data>
 	<data name="REFUNDED" xml:space="preserve">
         <value>REFUNDED</value>
     </data>
-	<data name="CLOSED" xml:space="preserve">
-        <value>CLOSED</value>
+    <data name="CLOSED" xml:space="preserve">
+        <value>CONFIRMED</value>
     </data>
 	<data name="COMPLETED" xml:space="preserve">
         <value>COMPLETED</value>
