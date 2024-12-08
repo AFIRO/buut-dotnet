@@ -12,7 +12,7 @@ public class CustomCalenderItem : CalendarItem
         { TimeSlot.Morning, "#FF00696D" },
         { TimeSlot.Afternoon, "#FF4A6364" },
         { TimeSlot.Evening, "#FF4E5F7D" },
-        { TimeSlot.None, "White" } // Default color for unavailable or undefined slots
+        { TimeSlot.None, "Gray" } // Default color for unavailable or undefined slots
     };
 
     private string _color = TimeSlotColors[TimeSlot.None];
