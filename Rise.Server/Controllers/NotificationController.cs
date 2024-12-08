@@ -103,11 +103,11 @@ public class NotificationController : ControllerBase
     /// <param name="language">The language for the notification.</param>
     /// <returns>An IActionResult containing the created notification.</returns>
     [HttpPost]
-    public async Task<IActionResult> CreateNotification([FromBody] NotificationDto.NewNotification notification, [FromQuery] string language = "en")
+    public async Task<IActionResult> CreateNotification([FromBody] NotificationDto.NewNotification notification, [FromQuery] string language = "en", [FromQuery] bool sendEmail = false)
     {
         try
         {
-            var createdNotification = await _notificationService.CreateNotificationAsync(notification, language);
+            var createdNotification = await _notificationService.CreateNotificationAsync(notification, language, sendEmail);
             _logger.LogInformation("Created new notification with ID {notificationId}.", createdNotification.NotificationId);
             return Ok(createdNotification);
         }

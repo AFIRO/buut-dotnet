@@ -90,6 +90,8 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 builder.Services.Configure<BookingSettings>(builder.Configuration.GetSection("BookingSettings"));
+// Register EmailSettings
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
 builder.Services.AddAuthentication(options =>
 {
@@ -133,10 +135,6 @@ builder.Services.AddScoped<BookingAllocator>();
 builder.Services.AddScoped<BookingAllocationService>();
 
 builder.Services.AddHostedService<DailyTaskService>();
-
-// Register EmailSettings
-builder.Services.Configure<EmailSettingsDto>(builder.Configuration.GetSection("EmailSettings"));
-
 // Register EmailService
 builder.Services.AddScoped<IEmailService, EmailService>();
 

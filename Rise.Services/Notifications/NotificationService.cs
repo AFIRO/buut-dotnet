@@ -157,10 +157,12 @@ public class NotificationService : INotificationService
             // Send email notification if sendEmail is true
             if (sendEmail)
             {
+                _logger.LogDebug("Sending email notification for new notification.");
                 var user = await _dbContext.Users.FindAsync(notification.UserId);
+                _logger.LogDebug("User found: {user}", user?.Email);
                 if (user != null)
                 {
-                    var emailMessage = new EmailMessageDto
+                    var emailMessage = new EmailMessage
                     {
                         To = user.Email,
                         Subject = "New Notification",
