@@ -104,9 +104,9 @@ public partial class MyBookingsView
     
     private string GetBadgeBackground(BookingStatus status) => status switch
     {
-        BookingStatus.OPEN => "dark",
-        BookingStatus.CLOSED => "secondary",
-        BookingStatus.COMPLETED => "success",
+        BookingStatus.OPEN => "success",
+        BookingStatus.CLOSED => "dark",
+        BookingStatus.COMPLETED => "secondary",
         BookingStatus.REFUNDED => "warning",
         BookingStatus.CANCELED => "danger",
         _ => "light"
