@@ -78,8 +78,8 @@
 	<data name="Boat" xml:space="preserve">
         <value>Boat</value>
     </data>
-	<data name="Contact" xml:space="preserve">
-        <value>Contact</value>
+    <data name="Contact" xml:space="preserve">
+        <value>Battery at</value>
     </data>
 	<data name="Credits" xml:space="preserve">
         <value>Credits</value>
