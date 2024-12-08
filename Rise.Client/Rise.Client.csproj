@@ -19,10 +19,6 @@
   <PropertyGroup>
   <BlazorWebAssemblyLoadAllGlobalizationData>true</BlazorWebAssemblyLoadAllGlobalizationData>
 </PropertyGroup>
-
-  <ItemGroup>
-    <Content Remove="Notifications\AdminNotifyUsers.razor" />
-  </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="bUnit" Version="1.36.0" />
@@ -52,10 +48,6 @@
 
   <ItemGroup>
     <_ContentIncludedByDefault Remove="Products\Index.razor" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Notifications\AdminNotifyUsers.razor" />
   </ItemGroup>
 
   <ItemGroup>

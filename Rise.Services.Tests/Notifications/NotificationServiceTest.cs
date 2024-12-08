@@ -15,6 +15,7 @@ public class NotificationServiceTests
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly Mock<ILogger<NotificationService>> _logger;
+    private readonly Mock<IEmailService> _emailService;
     private readonly NotificationService _notificationService;
 
     public NotificationServiceTests()
@@ -26,7 +27,7 @@ public class NotificationServiceTests
 
         _dbContext = new ApplicationDbContext(options);
         _logger = new Mock<ILogger<NotificationService>>();
-        _notificationService = new NotificationService(_dbContext, _logger.Object);
+        _notificationService = new NotificationService(_dbContext, _logger.Object, _emailService.Object);
     }
 
     [Fact]

@@ -20,9 +20,9 @@
     </xsd:element>
   </xsd:schema>
 
-<data name="NotifyUsers" xml:space="preserve">
-  <value>Notify Users</value>
+<data name="AdminMesseging" xml:space="preserve">
+  <value>Berichten voor gebruikers</value>
 </data>
 
 
-  </root>
+</root>

@@ -129,7 +129,8 @@ public class NotificationControllerTests
             IsRead = false,
             Type = NotificationType.General
         };
-        _mockNotificationService.Setup(service => service.CreateNotificationAsync(newNotification, It.IsAny<string>())).ReturnsAsync(createdNotification);
+        _mockNotificationService.Setup(service => service.CreateNotificationAsync(newNotification, It.IsAny<string>(), It.IsAny<bool>()))
+        .ReturnsAsync(createdNotification);
 
         // Act
         var result = await _controller.CreateNotification(newNotification);
@@ -145,8 +146,9 @@ public class NotificationControllerTests
     {
         // Arrange
         var newNotification = new NotificationDto.NewNotification();
-        _mockNotificationService.Setup(service => service.CreateNotificationAsync(newNotification, It.IsAny<string>())).ThrowsAsync(new ArgumentNullException("notification"));
-
+        _mockNotificationService.Setup(service => service.CreateNotificationAsync(newNotification, It.IsAny<string>(), It.IsAny<bool>()))
+        .ThrowsAsync(new ArgumentNullException("notification"));
+        
         // Act
         var result = await _controller.CreateNotification(newNotification);
 
