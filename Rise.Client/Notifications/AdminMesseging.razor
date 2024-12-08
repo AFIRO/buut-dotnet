@@ -3,19 +3,58 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components
+@using Rise.Shared.Notifications
 @attribute [Authorize(Roles = "Admin")]
 @inject IStringLocalizer<AdminMesseging> Localizer
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject INotificationService NotificationService
 
 <PageTitle>@Localizer["AdminMesseging"]</PageTitle>
 
 <h3>@Localizer["Title"]</h3>
 
-@code{
+<div>
+    <label>@Localizer["Title_EN"]</label>
+    <input type="text" @bind="notification.Title_EN" />
+</div>
+<div>
+    <label>@Localizer["Title_NL"]</label>
+    <input type="text" @bind="notification.Title_NL" />
+</div>
+<div>
+    <label>@Localizer["Message_EN"]</label>
+    <textarea @bind="notification.Message_EN"></textarea>
+</div>
+<div>
+    <label>@Localizer["Message_NL"]</label>
+    <textarea @bind="notification.Message_NL"></textarea>
+</div>
+<div>
+    <label>
+        <input type="checkbox" @bind="sendAsEmail" /> @Localizer["Send as Email"]
+    </label>
+</div>
+
+<button class="btn bg-gradient-primary mt-4 mb-0 menu-btn-item" @onclick="SendNotification">@Localizer["Send Notification"]</button>
+
+@code {
     private string? userIdAuth0;
+    private NotificationDto.NewNotification notification = new NotificationDto.NewNotification();
+    private bool sendAsEmail = true;
 
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        userIdAuth0 = user.FindFirst(c => c.Type == "sub")?.Value;
     }
-} 
+
+    private async Task SendNotification()
+    {
+        if (userIdAuth0 != null)
+        {
+            notification.UserId = "auth0|6754b2f5d95b63f51d38ccf2";
+            await NotificationService.CreateNotificationAsync(notification, "en", sendAsEmail);
+        }
+    }
+}

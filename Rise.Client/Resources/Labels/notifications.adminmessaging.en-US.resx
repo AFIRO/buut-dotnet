@@ -28,5 +28,30 @@
   <value>Message Users here:</value>
 </data>
 
+<!-- fields _________________________________________________________________ -->
+<data name="Title_EN" xml:space="preserve">
+  <value>English title</value>
+</data>
+
+<data name="Title_NL" xml:space="preserve">
+  <value>Dutch title</value>
+</data>
+
+<data name="Message_EN" xml:space="preserve">
+  <value>English message</value>
+</data>
+
+<data name="Message_NL" xml:space="preserve">
+  <value>Dutch message</value>
+</data>
+
+<data name="Send as Email" xml:space="preserve">
+  <value>Send as email</value>
+</data>
+
+<data name="Send Notification" xml:space="preserve">
+  <value>Send</value>
+</data>
+
 
 </root>

@@ -28,5 +28,30 @@
   <value>Stuur Berichten naar je gebruikers:</value>
 </data>
 
+<!-- fields _________________________________________________________________ -->
+<data name="Title_EN" xml:space="preserve">
+  <value>Engelse titel</value>
+</data>
+
+<data name="Title_NL" xml:space="preserve">
+  <value>Nederlandse titel</value>
+</data>
+
+<data name="Message_EN" xml:space="preserve">
+  <value>Inhoud Engels bericht</value>
+</data>
+
+<data name="Message_NL" xml:space="preserve">
+  <value>Inhoud Nederlands bericht</value>
+</data>
+
+<data name="Send as Email" xml:space="preserve">
+  <value>Stuur als email</value>
+</data>
+
+<data name="Send Notification" xml:space="preserve">
+  <value>Verstuur</value>
+</data>
+
 
 </root>

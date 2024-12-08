@@ -38,9 +38,21 @@ public class NotificationService : INotificationService
     /// <param name="language">The language for the notification.</param>
     /// <param name="sendEmail">Whether to send an email notification.</param>
     /// <returns>The created notification.</returns>
-    public Task<NotificationDto.ViewNotification> CreateNotificationAsync(NotificationDto.NewNotification notification, string language = "en", bool sendEmail = false)
+    public async Task<NotificationDto.ViewNotification> CreateNotificationAsync(NotificationDto.NewNotification notification, string language = "en", bool sendEmail = false)
     {
-        throw new NotImplementedException();
+        var requestUri = $"notification?language={language}&sendEmail={sendEmail}";
+        var response = await _httpClient.PostAsJsonAsync(requestUri, notification);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            var createdNotification = JsonSerializer.Deserialize<NotificationDto.ViewNotification>(jsonResponse, _jsonSerializerOptions);
+            return createdNotification ?? throw new InvalidOperationException("Failed to deserialize the created notification.");
+        }
+        else
+        {
+            throw new InvalidOperationException($"Failed to create notification. Status code: {response.StatusCode}");
+        }
     }
 
     /// <summary>
