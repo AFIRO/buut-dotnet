@@ -59,4 +59,10 @@
   <data name="GodchildBattery" xml:space="preserve">
     <value>Godchildbattery</value>
   </data>
+    <data name="Management" xml:space="preserve">
+        <value>Management</value>
+    </data>
+    <data name="ManagementText" xml:space="preserve">
+        <value>Admin dashboard</value>
+    </data>
 </root>
