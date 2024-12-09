@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Rise.Server.Controllers;
 using Rise.Shared.Batteries;
 using Rise.Shared.Bookings;
 using Rise.Shared.Users;
@@ -18,11 +17,12 @@ public class BatteryController : ControllerBase
     private readonly IBatteryService _batteryService;
     private readonly ILogger<BookingController> _logger;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="BatteryController"/> class.
-    /// </summary>
-    /// <param name="batteryService">The service to manage battery-related operations.</param>
-    public BatteryController(IBatteryService batteryService, ILogger<BookingController> logger)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BatteryController"/> class.
+        /// </summary>
+        /// <param name="batteryService">The service to manage battery-related operations.</param>
+        /// <param name="logger">The logging service</param>
+        public BatteryController(IBatteryService batteryService, ILogger<BookingController> logger)
     {
         _batteryService = batteryService;
         _logger = logger;
@@ -171,7 +171,7 @@ public class BatteryController : ControllerBase
                 throw new InvalidOperationException("User is not authenticated or NameIdentifier claim is missing.");
             }
             string authenticatedUserId = claim.Value;
-            if (userId != userId){
+            if (userId != authenticatedUserId){
                 throw new InvalidOperationException("Authenticated user and requested user do not match");
             }
 
