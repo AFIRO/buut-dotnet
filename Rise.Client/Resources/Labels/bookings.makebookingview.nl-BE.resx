@@ -25,13 +25,13 @@
         <value>Kies aub de gewenste tijd</value>
     </data>
     <data name="Forenoon" xml:space="preserve">
-        <value>10:00</value>
+        <value>10:00 - 12:00</value>
     </data>
     <data name="Noon" xml:space="preserve">
-        <value>14:00</value>
+        <value>14:00 - 16:00</value>
     </data>
     <data name="Afternoon" xml:space="preserve">
-        <value>17:00</value>
+        <value>17:00 - 19:00</value>
     </data>
     <data name="PrefDay" xml:space="preserve">
         <value>Kies aub de gewenste dag</value>
