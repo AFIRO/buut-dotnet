@@ -288,41 +288,6 @@ public class UserDto
 
         public string? Password { get; init; }
         public string? Email { get; init; }
-
-        /// <summary>
-        /// Parameterless constructor
-        /// </summary>
-        // public UpdateUser() { }
-
-        /// <summary>
-        /// Constructor for the UpdateUser DTO with all fields.
-        // /// </summary>
-        // public UpdateUser(string id, string? firstName, string? lastName, string? email, DateTime? birthDate, AddressDto.UpdateAddress? address, ImmutableList<RoleDto>? roles, string? phoneNumber, string? password)
-        // {
-        //     Id = id;
-        //     FirstName = firstName;
-        //     LastName = lastName;
-        //     Email = email;
-        //     BirthDate = birthDate;
-        //     Address = address;
-        //     Roles = roles;
-        //     PhoneNumber = phoneNumber;
-        //     Password = password;
-        // }
-
-        // /// <summary>
-        //     /// Constructor for the UpdateUser DTO withouth roles and password, for users making changes to their own profile.
-        //     /// </summary>
-        // public UpdateUser(string id, string? firstName, string? lastName, string? email, DateTime? birthDate, AddressDto.UpdateAddress? address, string? phoneNumber)
-        // {
-        //     Id = id;
-        //     FirstName = firstName;
-        //     LastName = lastName;
-        //     Email = email;
-        //     BirthDate = birthDate;
-        //     Address = address;
-        //     PhoneNumber = phoneNumber;
-        // }
     }
 
     /// <summary>
