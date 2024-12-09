@@ -97,9 +97,9 @@
         <value>Aanpassen</value>
     </data>
     <data name="NoBatteryAssigned" xml:space="preserve">
-        <value>Niet toegewezen</value>
+        <value>Zal toegewezen worden</value>
     </data>
     <data name="NoBoatAssigned" xml:space="preserve">
-        <value>Niet toegewezen</value>
+        <value>Zal toegewezen worden</value>
     </data>
 </root>

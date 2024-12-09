@@ -122,9 +122,9 @@
         <value>CANCELED</value>
     </data>
     <data name="NoBatteryAssigned" xml:space="preserve">
-        <value>Not assigned</value>
+        <value>Will be assigned</value>
     </data>
     <data name="NoBoatAssigned" xml:space="preserve">
-        <value>Not assigned</value>
+        <value>Will be assigned</value>
     </data>
 </root>
