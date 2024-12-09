@@ -10,10 +10,14 @@
 }
 
 
-
 @media (max-width: 992px) {
     .navbar.navbar-transparent .navbar-collapse.show {
         background:rgba(0, 0, 0, 0.7);  !important;
+    }
+    .dropdown-menu {
+        position: static; /* Makes the dropdown appear inline on mobile */
+        width: 100%; /* Allows it to take the full screen width */
+        padding: 1rem; /* Improves touch usability */
     }
 }
 
@@ -24,3 +28,5 @@
     }
 
 }
+
+
