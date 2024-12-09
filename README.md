@@ -8,6 +8,7 @@
 - Keoma Plovie - keoma.plovie@student.hogent.be - kpHoGent
 - Robin Benoot - robin.benoot@student.hogent.be - BenootRobin
 - Robin Wyffels - robin.wyffels@student.hogent.be - WyffelsRobin
+- Andries Ulenaers - andries.Ulenaers@student.hogent.be - Andries-U
 
 ## Technologies & Packages Used
 - [Blazor](https://dotnet.microsoft.com/en-us/apps/aspnet/web-apps/blazor) - Frontend
