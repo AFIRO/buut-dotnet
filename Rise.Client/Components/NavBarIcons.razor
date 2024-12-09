@@ -1,18 +1,21 @@
 @using Rise.Client.Utils.Navigation
 @using Rise.Shared.Notifications
-@inject Microsoft.Extensions.Localization.IStringLocalizer<NavBar> Localizer
+@inject IStringLocalizer<NavBarIcons> Localizer;
 @inject NavigationManager NavigationManager
 @inject INotificationService NotificationService
 @inject NotificationStateService NotificationState
 @inject AuthenticationStateProvider AuthStateProvider
 @using System.Globalization
+@using Microsoft.Extensions.Localization
 @using Rise.Shared.Enums
 @using Microsoft.JSInterop
+@using Rise.Client.Users
 @inject IJSRuntime js
  
-  <ul id="icons" class="navbar-nav navbar-nav-hover d-flex flex-row align-items-center justify-content-end ml-auto">
-    <AuthorizeView>
-      <Authorized>
+<ul id="icons" class="navbar-nav navbar-nav-hover d-flex flex-row align-items-center justify-content-end ml-auto">
+  <AuthorizeView>
+    <Authorized>
+      <MudTooltip Text="@Localizer["TooltipProfile"]" Arrow="true" Placement="Placement.Top">
         <li class="nav-item dropdown dropdown-hover mx-2">
           <a href="MyInfo" class="nav-link ps-2 d-flex justify-content-between cursor-pointer align-items-center"
              aria-expanded="false" role="button">
@@ -20,10 +23,11 @@
             <div></div>
           </a>
         </li>
-      </Authorized>
-    </AuthorizeView>
+      </MudTooltip>
+    </Authorized>
+  </AuthorizeView>
 
-
+  <MudTooltip Text="@Localizer["TooltipLanguage"]" Arrow="true" Placement="Placement.Top">
     <li class="nav-item dropdown dropdown-hover mx-2">
       <a class="nav-link ps-2 d-flex justify-content-between cursor-pointer align-items-center"
          data-bs-toggle="dropdown" aria-expanded="false" role="button">
@@ -85,9 +89,11 @@
         </div>
       </div>
     </li>
-
-    <AuthorizeView>
-      <Authorized>
+  </MudTooltip>
+  
+  <AuthorizeView>
+    <Authorized>
+      <MudTooltip Text="@Localizer["TooltipNotifications"]" Arrow="true" Placement="Placement.Top">
         <li class="nav-item dropdown dropdown-hover mx-2">
           <a href="notifications"
              class="nav-link ps-2 d-flex justify-content-between cursor-pointer align-items-center"
@@ -103,6 +109,8 @@
             }
           </a>
         </li>
+      </MudTooltip>
+      <MudTooltip Text="@Localizer["TooltipLogOut"]" Arrow="true" Placement="Placement.Top">
         <li class="nav-item dropdown dropdown-hover mx-2">
           <a @onclick="BeginLogOut"
              class="nav-link ps-2 d-flex justify-content-between cursor-pointer align-items-center"
@@ -111,26 +119,27 @@
             <div></div>
           </a>
         </li>
-      </Authorized>
+      </MudTooltip>
+    </Authorized>
 
-      <NotAuthorized>
+    <NotAuthorized>
+      <MudTooltip Text="@Localizer["TooltipLogIn"]" Arrow="true" Placement="Placement.Top">
         <li class="nav-item px-3">
           <NavLink class="px-1 py-0 nav-link line-height-0 auth" href="embedded-login">
             <span class="oi oi-account-login auth text-muted" aria-hidden="true"></span>
           </NavLink>
         </li>
+      </MudTooltip>
+      <MudTooltip Text="@Localizer["TooltipRegister"]" Arrow="true" Placement="Placement.Top">
         <li class="nav-item">
           <a href="register" class="px-1 py-0 nav-link line-height-0">
             <i class="ni ni-badge text-muted"></i>
           </a>
         </li>
-      </NotAuthorized>
-    </AuthorizeView>
-    
-    
-    
-    
-  </ul>
+      </MudTooltip>
+    </NotAuthorized>
+  </AuthorizeView>
+</ul>
 
 @code {
     
