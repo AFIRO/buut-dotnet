@@ -1,0 +1,38 @@
+<a href="@Link">
+
+<div class="card card-plain card-blog mt-5">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card-image position-relative border-radius-lg">
+                <img class="img border-radius-lg" src="@Image" alt="photo">
+            </div>
+        </div>
+        <div class="col-md-7 my-auto ms-md-3 mt-md-auto mt-4">
+            <h3 class="text-white">@Title</h3>
+            <p class="text-white">
+                @Text
+                </p>
+            <div class="author">
+                <p class="my-auto text-white-50">@Author</p>
+            </div>
+        </div>
+    </div>
+</div>
+</a>
+
+@code {
+    [Parameter]
+    public string? Title { get; set; }
+    
+    [Parameter]
+    public string? Image { get ; set; }  
+  
+    [Parameter]
+    public string? Text { get ; set; }    
+    
+    [Parameter]
+    public string? Author { get ; set; }    
+    
+    [Parameter]
+    public string? Link { get ; set; }
+}
