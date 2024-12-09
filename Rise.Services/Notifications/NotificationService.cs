@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Rise.Domain.Notifications;
 using Rise.Persistence;
 using Rise.Shared.Enums;
+using Rise.Shared.Users;
 using Rise.Shared.Notifications;
 
 namespace Rise.Services.Notifications;
@@ -16,6 +17,7 @@ public class NotificationService : INotificationService
     private readonly ApplicationDbContext _dbContext;
     private readonly ILogger<NotificationService> _logger;
     private readonly IEmailService _emailService;
+    private readonly IUserService _userService;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
 
     /// <summary>
@@ -23,11 +25,14 @@ public class NotificationService : INotificationService
     /// </summary>
     /// <param name="dbContext">The database context.</param>
     /// <param name="logger">The logger instance.</param>
-    public NotificationService(ApplicationDbContext dbContext, ILogger<NotificationService> logger, IEmailService emailService)
+    /// <param name="emailService">The email service instance.</param>
+    /// <param name="userService">The user service instance.</param>
+    public NotificationService(ApplicationDbContext dbContext, ILogger<NotificationService> logger, IEmailService emailService, IUserService userService)
     {
         _dbContext = dbContext;
         _logger = logger;
         _emailService = emailService;
+        _userService = userService;
         _jsonSerializerOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
@@ -200,6 +205,81 @@ public class NotificationService : INotificationService
             throw new Exception("An unexpected error occurred while creating the notification.", ex);
         }
     }
+
+    /// <summary>
+    /// Creates a new notification and sends it to all users with the specified role.
+    /// </summary>
+    /// <param name="notification">The new notification data.</param>
+    /// <param name="role">The role of the users to send the notification to.</param>
+    /// <param name="language">The language for localization.</param>
+    /// <param name="sendEmail">A boolean indicating whether to send an email notification.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public async Task CreateAndSendNotificationToUsersByRoleAsync(NotificationDto.NewNotification notification, RolesEnum role, string language = "en", bool sendEmail = false)
+    {
+        try
+        {
+            // Fetch all users
+            var users = await _userService.GetAllAsync();
+
+            if (users == null || !users.Any())
+            {
+                _logger.LogInformation("No users found.");
+                return;
+            }
+
+            // Filter users by role
+            var usersWithRole = users.Where(u => u.Roles.Any(r => r.Name == role)).ToList();
+
+            if (!usersWithRole.Any())
+            {
+                _logger.LogInformation("No users found with the role '{role}'.", role);
+                return;
+            }
+
+            foreach (var user in usersWithRole)
+            {
+                // Create a new Notification entity for each user
+                var newNotification = new Notification(
+                    userId: user.Id,
+                    title_EN: notification.Title_EN,
+                    title_NL: notification.Title_NL,
+                    message_EN: notification.Message_EN,
+                    message_NL: notification.Message_NL,
+                    type: notification.Type,
+                    relatedEntityId: notification.RelatedEntityId ?? null);
+
+                // Add the new notification to the database context
+                await _dbContext.Notifications.AddAsync(newNotification);
+
+                // Send email notification if sendEmail is true
+                if (sendEmail)
+                {
+                    var emailMessage = new EmailMessage
+                    {
+                        To = user.Email,
+                        Subject = "New Notification",
+                        Title_EN = notification.Title_EN,
+                        Title_NL = notification.Title_NL,
+                        Message_EN = notification.Message_EN,
+                        Message_NL = notification.Message_NL
+                    };
+
+                    await _emailService.SendEmailAsync(emailMessage);
+                }
+            }
+
+            // Save changes to the database
+            await _dbContext.SaveChangesAsync();
+
+            _logger.LogInformation("Notifications created and sent successfully to all users with the role '{role}'.", role);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Error creating and sending notifications: {message}.", ex.Message);
+            throw new Exception("An unexpected error occurred while creating and sending notifications.", ex);
+        }
+    }
+
 
     /// <summary>
     /// Deletes a notification by its ID.

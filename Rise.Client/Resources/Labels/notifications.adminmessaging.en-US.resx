@@ -53,5 +53,42 @@
   <value>Send</value>
 </data>
 
+<data name="Role" xml:space="preserve">
+  <value>Select which group will recieve the notification:</value>
+</data>
+
+<!-- Errors___________________________________________________________________ -->
+
+<data name="Title_EN_Required" xml:space="preserve">
+    <value>Title in English is required.</value>
+</data>
+<data name="Title_NL_Required" xml:space="preserve">
+    <value>Title in Dutch is required.</value>
+</data>
+<data name="Message_EN_Required" xml:space="preserve">
+    <value>Message in English is required.</value>
+</data>
+<data name="Message_NL_Required" xml:space="preserve">
+    <value>Message in Dutch is required.</value>
+</data>
+
+<!-- Popup___________________________________________________________________ -->
+
+<data name="Confirmation" xml:space="preserve">
+    <value>Are you sure you want to send this notification?</value>
+</data>
+<data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+</data>
+<data name="Send" xml:space="preserve">
+    <value>Send</value>
+</data>
+
+<!-- SuccesMessage___________________________________________________________________ -->
+
+<data name="MessageSent" xml:space="preserve">
+    <value>The notification was succesfully send</value>
+</data>
+
 
 </root>

@@ -56,6 +56,25 @@ public class NotificationService : INotificationService
     }
 
     /// <summary>
+    /// Creates a new notification and sends it to all users with the specified role.
+    /// </summary>
+    /// <param name="notification">The new notification data.</param>
+    /// <param name="role">The role of the users to send the notification to.</param>
+    /// <param name="language">The language for localization.</param>
+    /// <param name="sendEmail">A boolean indicating whether to send an email notification.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public async Task CreateAndSendNotificationToUsersByRoleAsync(NotificationDto.NewNotification notification, RolesEnum role, string language = "en", bool sendEmail = false)
+    {
+        var requestUri = $"notification/role/{role}?language={language}&sendEmail={sendEmail}";
+        var response = await _httpClient.PostAsJsonAsync(requestUri, notification);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new InvalidOperationException($"Failed to create and send notification. Status code: {response.StatusCode}");
+        }
+    }
+
+    /// <summary>
     /// Deletes a notification by its ID.
     /// </summary>
     /// <param name="id">The ID of the notification to delete.</param>

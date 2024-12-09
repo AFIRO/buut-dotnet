@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components
 @using Rise.Shared.Notifications
+@using Rise.Shared.Enums
 @attribute [Authorize(Roles = "Admin")]
 @inject IStringLocalizer<AdminMesseging> Localizer
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -13,51 +14,132 @@
 
 <h3>@Localizer["Title"]</h3>
 
-<div>
-    <label>@Localizer["Title_EN"]</label>
-    <input type="text" @bind="notification.Title_EN" />
-</div>
-<div>
-    <label>@Localizer["Title_NL"]</label>
-    <input type="text" @bind="notification.Title_NL" />
-</div>
-<div>
-    <label>@Localizer["Message_EN"]</label>
-    <textarea @bind="notification.Message_EN"></textarea>
-</div>
-<div>
-    <label>@Localizer["Message_NL"]</label>
-    <textarea @bind="notification.Message_NL"></textarea>
-</div>
-<div>
-    <label>
-        <input type="checkbox" @bind="sendAsEmail" /> @Localizer["Send as Email"]
-    </label>
-</div>
+<EditForm EditContext="@editContext" OnValidSubmit="ShowConfirmationPopup">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
 
-<button class="btn bg-gradient-primary mt-4 mb-0 menu-btn-item" @onclick="SendNotification">@Localizer["Send Notification"]</button>
+    <div>
+        <label>@Localizer["Title_EN"]</label>
+        <input type="text" @bind="notification.Title_EN" required/>
+        <ValidationMessage For="@(() => notification.Title_EN)" />
+    </div>
+    <div>
+        <label>@Localizer["Title_NL"]</label>
+        <input type="text" @bind="notification.Title_NL" required/>
+        <ValidationMessage For="@(() => notification.Title_NL)" />
+    </div>
+    <div>
+        <label>@Localizer["Message_EN"]</label>
+        <textarea @bind="notification.Message_EN" required></textarea>
+        <ValidationMessage For="@(() => notification.Message_EN)" />
+    </div>
+    <div>
+        <label>@Localizer["Message_NL"]</label>
+        <textarea @bind="notification.Message_NL" required></textarea>
+         <ValidationMessage For="@(() => notification.Message_NL)" />
+    </div>
+    <div>
+            <label>@Localizer["Role"]</label>
+            <InputRadioGroup @bind-Value="selectedRole">
+                <InputRadio Value="RolesEnum.Admin">Admins</InputRadio>
+                <InputRadio Value="RolesEnum.User">Users</InputRadio>
+                <InputRadio Value="RolesEnum.BUUTAgent">Buut Agents</InputRadio>
+                @* <InputRadio Value="RolesEnum.Pending">Buut Agents</InputRadio> *@
+            </InputRadioGroup>
+        </div>
+    <div>
+        <label>
+            <input type="checkbox" @bind="sendAsEmail" /> @Localizer["Send as Email"]
+        </label>
+    </div>
+
+    <button type="submit" class="btn bg-gradient-primary mt-4 mb-0 menu-btn-item" disabled="@(editContext.Validate() ? false : true)">@Localizer["Send Notification"]</button>
+</EditForm>
+
+@if (showConfirmationPopup)
+{
+    <div class="modal show" tabindex="-1" style="display: block;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@Localizer["Confirmation"]</h5>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="HideConfirmationPopup"></button>
+                </div>
+                <div class="modal-body">
+                    <p>@Localizer["popup_body"]</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="HideConfirmationPopup">@Localizer["Cancel"]</button>
+                    <button type="button" class="btn btn-primary" @onclick="HandleValidSubmit">@Localizer["Send"]</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert alert-success mt-3">@successMessage</div>
+}
+
 
 @code {
     private string? userIdAuth0;
     private NotificationDto.NewNotification notification = new NotificationDto.NewNotification();
-    private bool sendAsEmail = true;
+    private RolesEnum selectedRole = RolesEnum.User;
+    private bool sendAsEmail = false;
+    private EditContext editContext;
+    private bool showConfirmationPopup = false;
+    private string? successMessage;
 
     protected override async Task OnInitializedAsync()
     {
+        editContext = new EditContext(notification);
+        editContext.OnFieldChanged += HandleFieldChanged;
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         userIdAuth0 = user.FindFirst(c => c.Type == "sub")?.Value;
     }
 
-    private async Task SendNotification()
+    private void HandleFieldChanged(object sender, FieldChangedEventArgs e)
     {
-        if (userIdAuth0 != null)
+        StateHasChanged();
+    }
+
+    private void ShowConfirmationPopup()
+    {
+        showConfirmationPopup = true;
+    }
+
+        private void HideConfirmationPopup()
+    {
+        showConfirmationPopup = false;
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
         {
-            //ID Robin
-            @* notification.UserId = "auth0|6754b2f5d95b63f51d38ccf2"; *@
-            //ID lorenz
-             notification.UserId = "auth0|6755ffc65a4ca5e74effaf56";
-            await NotificationService.CreateNotificationAsync(notification, "en", sendAsEmail);
+            await NotificationService.CreateAndSendNotificationToUsersByRoleAsync(notification, selectedRole, "en", sendAsEmail);
+            successMessage = Localizer["MessageSent"];
+            ResetForm();
         }
+        catch (Exception ex)
+        {
+            // Handle error (e.g., show an error message)
+        }
+        finally
+        {
+            showConfirmationPopup = false;
+        }
+    }
+
+    private void ResetForm()
+    {
+        notification = new NotificationDto.NewNotification();
+        selectedRole = RolesEnum.User;
+        sendAsEmail = false;
+        editContext = new EditContext(notification);
+        editContext.OnFieldChanged += HandleFieldChanged;
     }
 }

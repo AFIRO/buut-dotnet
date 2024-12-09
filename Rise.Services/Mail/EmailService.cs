@@ -4,12 +4,20 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Rise.Shared;
 
+/// <summary>
+/// Service for sending emails.
+/// </summary>
 public class EmailService : IEmailService
 {
     // private readonly SmtpClient _smtpClient;
     private readonly EmailSettings _emailSettings;
     private readonly ILogger<EmailService> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EmailService"/> class.
+    /// </summary>
+    /// <param name="emailSettings">The email settings.</param>
+    /// <param name="logger">The logger instance.</param>
     public EmailService(IOptions<EmailSettings> emailSettings, ILogger<EmailService> logger)
     {
         _emailSettings = emailSettings.Value;
@@ -23,6 +31,11 @@ public class EmailService : IEmailService
         }
     }
 
+    /// <summary>
+    /// Sends an email asynchronously.
+    /// </summary>
+    /// <param name="emailMessage">The email message to send.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     public async Task SendEmailAsync(EmailMessage emailMessage)
     {
         using var _smtpClient = new SmtpClient(_emailSettings.SmtpServer, _emailSettings.SmtpPort)
@@ -44,7 +57,7 @@ public class EmailService : IEmailService
             Body = body,
             IsBodyHtml = true,
         };
-        mailMessage.To.Add("lorenz.debie@hotmail.com");
+        mailMessage.To.Add(emailMessage.To);
         _logger.LogInformation("Email service accessing on SMTP Server: {smtpServer}", _emailSettings.SmtpServer);
         try
         {
