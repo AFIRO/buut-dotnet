@@ -16,6 +16,10 @@ public class BatteryDto
     public class ViewBattery
     {
         /// <summary>
+        /// Gets or sets the id of the battery.
+        /// </summary>
+        public string batteryId { get; set; } = default!;
+        /// <summary>
         /// Gets or sets the name of the battery.
         /// </summary>
         public string name { get; set; } = default!;
@@ -52,10 +56,16 @@ public class BatteryDto
         /// </summary>
         public List<string> listComments = default!;
     }
-    
-    
+
+
     public class ViewBatteryWithCurrentUser : ViewBattery
     {
         public UserDto.ContactUser? currentUser { get; set; } = default!;
+    }
+
+    public class UpdateBattery
+    {
+        public string id { get; set; } = default!;
+        public string? name { get; set; } = default!;
     }
 }

@@ -1,20 +1,23 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Rise.Shared.Boats;
 using Shouldly;
 
 public class BoatControllerTest
 {
-    private readonly Mock<IEquipmentService<BoatDto.ViewBoat, BoatDto.NewBoat>> _mockBoatService;
+    private readonly Mock<IEquipmentService<BoatDto.ViewBoat, BoatDto.NewBoat, BoatDto.UpdateBoat>> _mockBoatService;
     private readonly BoatController _controller;
+    private readonly Mock<ILogger<BoatController>> _mockLogger;
 
     public BoatControllerTest()
     {
-        _mockBoatService = new Mock<IEquipmentService<BoatDto.ViewBoat, BoatDto.NewBoat>>();        
-        _controller = new BoatController(_mockBoatService.Object);
-       
+        _mockLogger = new Mock<ILogger<BoatController>>();
+        _mockBoatService = new Mock<IEquipmentService<BoatDto.ViewBoat, BoatDto.NewBoat, BoatDto.UpdateBoat>>();
+        _controller = new BoatController(_mockBoatService.Object, _mockLogger.Object);
+
     }
 
     [Fact]
@@ -27,14 +30,14 @@ public class BoatControllerTest
         };
         _mockBoatService.Setup(service => service.GetAllAsync()).ReturnsAsync(boats);
 
-         var admin = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
-            {
+        var admin = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+           {
                 new Claim(ClaimTypes.NameIdentifier, "auth0|12345"),
             new Claim(ClaimTypes.Role, "Admin")
-            },
-         "mock"));
+           },
+        "mock"));
 
-         _controller.ControllerContext = new ControllerContext
+        _controller.ControllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext { User = admin }
         };
@@ -45,14 +48,14 @@ public class BoatControllerTest
         okResult.ShouldNotBeNull();
         okResult.StatusCode.ShouldBe(StatusCodes.Status200OK);
         okResult.Value.ShouldBe(boats);
-    }  
+    }
 
     [Fact]
     public async Task Post_ValidNewBoat_ReturnsCreatedActionResult()
     {
         //Arrange
-        var newBoat = new BoatDto.NewBoat{name = "New Boat"};
-        var createdBoat = new BoatDto.ViewBoat{name = "New Boat", countBookings = 0, listComments = null};
+        var newBoat = new BoatDto.NewBoat { name = "New Boat" };
+        var createdBoat = new BoatDto.ViewBoat { name = "New Boat", countBookings = 0, listComments = null };
         _mockBoatService.Setup(service => service.CreateAsync(newBoat)).ReturnsAsync(createdBoat);
 
         //Act
@@ -61,12 +64,12 @@ public class BoatControllerTest
         //Assert
         var createdResult = result as CreatedAtActionResult;
         createdResult.StatusCode.ShouldBe(StatusCodes.Status201Created);
-        createdResult.Value.ShouldBe(createdBoat);        
+        createdResult.Value.ShouldBe(createdBoat);
     }
 
     [Fact]
     public async Task Post_NewBookingIsNull_ReturnsBadRequest()
-    {   
+    {
         //Act
         var result = await _controller.Post(null);
 
@@ -77,9 +80,9 @@ public class BoatControllerTest
 
     [Fact]
     public async Task Post_ServiceThrowsException_ReturnsInternalServerError()
-    {   
+    {
         //Arrange
-        var newBoat = new BoatDto.NewBoat{name = "New Boat"};
+        var newBoat = new BoatDto.NewBoat { name = "New Boat" };
         _mockBoatService.Setup(service => service.CreateAsync(newBoat)).ThrowsAsync(new InvalidOperationException());
 
         //Act
