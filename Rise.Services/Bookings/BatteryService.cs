@@ -124,10 +124,9 @@ public class BatteryService : IBatteryService
 
     public async Task<UserDto.UserContactDetails?> ClaimBatteryAsGodparentAsync(string godparentId, string batteryId)
     {
-        if (batteryId == null)
+        if (batteryId == null){
             throw new InvalidOperationException("Battery ID is null");
-
-        return null;
+        }
 
         Battery? battery = await _dbContext.Batteries
                 .Include(battery => battery.BatteryBuutAgent)
