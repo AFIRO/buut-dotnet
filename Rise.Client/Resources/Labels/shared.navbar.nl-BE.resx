@@ -58,4 +58,10 @@
       <data name="GodchildBattery" xml:space="preserve">
     <value>Peetbatterij</value>
   </data>
+    <data name="Management" xml:space="preserve">
+        <value>Beheer</value>
+    </data>
+    <data name="ManagementText" xml:space="preserve">
+        <value>Administrator functies</value>
+    </data>
 </root>

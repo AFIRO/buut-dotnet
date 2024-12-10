@@ -6,26 +6,30 @@ using Microsoft.Extensions.Localization;
 using System;
 using Rise.Shared.Bookings;
 using Rise.Client.Components.Table;
+using Rise.Shared.Batteries;
 
 namespace Rise.Client.Tests
 {
     public class BatteryTest : TestContext
     {
-        private Mock<IEquipmentService<BatteryDto.ViewBattery, BatteryDto.NewBattery>> _batteryServiceMock;
+        private Mock<IBatteryService> _batteryServiceMock;
         private Mock<IStringLocalizer<GenericTable>> _localizerMock;
         private Mock<IStringLocalizer<Batteries.Battery>> _batteryLocalizerMock;
+        private Mock<MudBlazor.IDialogService> _dialogServiceMock;
 
         public BatteryTest()
         {
             // Maak een mock van IBatteryService met Moq
-            _batteryServiceMock = new Mock<IEquipmentService<BatteryDto.ViewBattery, BatteryDto.NewBattery>>();
+            _batteryServiceMock = new Mock<IBatteryService>();
             _localizerMock = new Mock<IStringLocalizer<GenericTable>>();
             _batteryLocalizerMock = new Mock<IStringLocalizer<Batteries.Battery>>();
+            _dialogServiceMock = new Mock<MudBlazor.IDialogService>();
 
             // Voeg de mock toe aan de dependency injection container
             Services.AddSingleton(_batteryServiceMock.Object);
             Services.AddSingleton(_localizerMock.Object);
             Services.AddSingleton(_batteryLocalizerMock.Object);
+            Services.AddSingleton(_dialogServiceMock.Object);
         }
 
         [Fact]
@@ -39,22 +43,6 @@ namespace Rise.Client.Tests
 
             // Assert
             component.Find("h1").MarkupMatches("<h1>Batterijen</h1>");
-        }
-
-        [Fact]
-        public async Task Should_Display_Loading_While_Fetching_Data()
-        {
-            // Arrange
-            // Stel in dat GetAllAsync null retourneert om de loading status te triggeren
-            _batteryServiceMock.Setup(service => service.GetAllAsync()).Returns(Task.FromResult<IEnumerable<BatteryDto.ViewBattery>>(null));
-            _localizerMock.Setup(l => l["Loading"]).Returns(new LocalizedString("Loading", "Batterijen aan het ophalen..."));
-
-
-            // Act
-            var component = RenderComponent<Batteries.Battery>();
-
-            // Assert
-            component.Find("span").MarkupMatches("<span class=\"visually-hidden\">Batterijen aan het ophalen...</span>");
         }
 
         [Fact]

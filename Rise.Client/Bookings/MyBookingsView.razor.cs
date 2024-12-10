@@ -72,7 +72,7 @@ public partial class MyBookingsView
         {
             var row = new List<RenderFragment>();
             
-            var userCell = TableCellService.UserCell();
+            var userCell = TableCellService.UserCell(Localizer["NoBatteryAssigned"]);
             if (booking.battery.currentUser is not null)
             {
                 var currentUser = booking.battery.currentUser;
@@ -87,7 +87,7 @@ public partial class MyBookingsView
                 TableCellService.DefaultTableCell(booking.bookingDate.ToString("D")),
                 TableCellService.DefaultTableCell(Localizer[booking.timeSlot.ToString()]),
                 TableCellService.BadgeCell(Localizer[booking.status.ToString()], "badge bg-gradient-" + GetBadgeBackground(booking.status)),
-                TableCellService.DefaultTableCell(booking.boat.name),
+                TableCellService.DefaultTableCell(booking.boat.name == null ? Localizer["NoBoatAssigned"] : booking.boat.name),
                 userCell,
                 TableCellService.DefaultTableCell("Todo"),
                 booking.status == BookingStatus.OPEN 
@@ -104,9 +104,9 @@ public partial class MyBookingsView
     
     private string GetBadgeBackground(BookingStatus status) => status switch
     {
-        BookingStatus.OPEN => "dark",
-        BookingStatus.CLOSED => "secondary",
-        BookingStatus.COMPLETED => "success",
+        BookingStatus.OPEN => "success",
+        BookingStatus.CLOSED => "dark",
+        BookingStatus.COMPLETED => "secondary",
         BookingStatus.REFUNDED => "warning",
         BookingStatus.CANCELED => "danger",
         _ => "light"

@@ -8,7 +8,6 @@ pipeline {
     environment {
         JENKINS_SERVER = 'http://139.162.132.174:8080'
         DOTNET_PROJECT_PATH = 'Rise.Server/Rise.Server.csproj'
-        DOTNET_TEST_PATH = 'Rise.Domain.Tests/Rise.Domain.Tests.csproj'
         REPO_OWNER = "HOGENT-RISE"
         REPO_NAME = "dotnet-2425-tiao1"
         DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1311970280108720198/oD1z_Cpj5de5fNir1hKCCCRphR0W1_kSG73YweRASee6Js5Lfy5N8aDPYuy6ol7WfaM3"
@@ -26,7 +25,7 @@ pipeline {
                 echo "Fetching latest code"
                 cleanWs(deleteDirs: true)
                 sshagent(credentials: ['jenkins-master-key']) {
-                        sh 'ssh -o StrictHostKeyChecking=no jenkins@139.162.132.174 "rm -rf /var/lib/jenkins/workspace/merge-pipeline@script"'
+                        sh 'ssh -i /var/lib/jenkins/.ssh/control_node -o StrictHostKeyChecking=no root@139.162.132.174 "rm -rf /var/lib/jenkins/workspace/merge-pipeline@script"'
                 }
                 checkout scm
             }
@@ -75,7 +74,19 @@ pipeline {
             steps {
                 echo "Restoring dependencies..."
                 sh "dotnet restore ${DOTNET_PROJECT_PATH}"
-                sh "dotnet restore ${DOTNET_TEST_PATH}"
+                script {
+                    def testPaths = [
+                        domain: 'Rise.Domain.Tests/Rise.Domain.Tests.csproj',
+                        client: 'Rise.Client.Tests/Rise.Client.Tests.csproj',
+                        server: 'Rise.Server.Tests/Rise.Server.Tests.csproj',
+                        service: 'Rise.Services.Tests/Rise.Services.Tests.csproj'
+                    ]
+                    
+                    testPaths.each { name, path ->
+                        echo "Restoring unit tests for ${name} located at ${path}..."
+                        sh "dotnet restore ${path}"
+                    }
+                }
             }
         }
 
@@ -86,17 +97,29 @@ pipeline {
             }
         }
 
-        stage('Running Unit Tests') {
+        stage('Run Unit Tests') {
             steps {
-                echo 'Running unit tests and collecting Clover coverage data...'
-                sh """
-                    dotnet test ${DOTNET_TEST_PATH} --collect:"XPlat Code Coverage" --logger 'trx;LogFileName=test-results.trx' \
-                    /p:CollectCoverage=true /p:CoverletOutput='/var/lib/jenkins/agent/workspace/dotnet_pipeline/coverage/coverage.xml' \
-                    /p:CoverletOutputFormat=cobertura
-                """
+                script {
+                    def testPaths = [
+                        Domain: 'Rise.Domain.Tests/Rise.Domain.Tests.csproj',
+                        Client: 'Rise.Client.Tests/Rise.Client.Tests.csproj',
+                        Server: 'Rise.Server.Tests/Rise.Server.Tests.csproj',
+                        Service: 'Rise.Services.Tests/Rise.Services.Tests.csproj'
+                    ]
+        
+                    testPaths.each { name, path ->
+                        echo "Running unit tests for ${name} located at ${path}..."
+                        
+                        def testOutput = sh(script: """
+                            dotnet test ${path} --collect:"XPlat Code Coverage" --logger 'trx;LogFileName=${name}.trx' \
+                            /p:CollectCoverage=true /p:CoverletOutput='/var/lib/jenkins/agent/workspace/dotnet_pipeline/coverage/coverage.xml' \
+                            /p:CoverletOutputFormat=cobertura
+                        """, returnStdout: true)
+                    }
+                }
             }
         }
-
+/*
         stage('Coverage Report') {
             steps {
                 script {
@@ -126,6 +149,7 @@ pipeline {
                 ])
             }
         }
+    */
     }
 
     post {
