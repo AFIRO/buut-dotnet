@@ -62,4 +62,10 @@ public class BatteryDto
     {
         public UserDto.ContactUser? currentUser { get; set; } = default!;
     }
+
+    public class UpdateBattery
+    {
+        public string id { get; set; } = default!;
+        public string? name { get; set; } = default!;
+    }
 }
