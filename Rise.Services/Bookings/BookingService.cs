@@ -457,11 +457,12 @@ public class BookingService : IBookingService
     /// <returns>A BookingDto.ViewBooking object containing the mapped details.</returns>
     private BookingDto.ViewBooking MapToDto(Booking booking)
     {
-        var battery = MapBatteryDto(booking, booking.BookingDate.Date >= DateTime.Now.Date);
+        var includeExtraInformation = booking.BookingDate.Date >= DateTime.Now.Date;
+        var battery = MapBatteryDto(booking, includeExtraInformation);
         
         BookingStatus status = BookingStatusHelper.GetBookingStatus(booking.IsDeleted, false, booking.BookingDate, booking.Boat != null && !booking.Boat.Name.IsNullOrEmpty());
 
-        var boat = MapBoatDto(booking);
+        var boat = MapBoatDto(booking, includeExtraInformation);
 
         return new BookingDto.ViewBooking()
         {
@@ -509,11 +510,11 @@ public class BookingService : IBookingService
         };
     }
 
-    private BoatDto.ViewBoat MapBoatDto(Booking booking)
+    private BoatDto.ViewBoat MapBoatDto(Booking booking, bool includeBattery)
     {
         var boat = new BoatDto.ViewBoat();
 
-        if (booking.Boat != null && !booking.Boat.Name.IsNullOrEmpty())
+        if (booking.Boat != null && !booking.Boat.Name.IsNullOrEmpty() && includeBattery)
         {
             boat = new BoatDto.ViewBoat()
             {
