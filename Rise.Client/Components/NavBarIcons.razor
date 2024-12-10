@@ -15,7 +15,7 @@
 <ul id="icons" class="navbar-nav navbar-nav-hover d-flex flex-row align-items-center justify-content-end ml-auto">
   <AuthorizeView>
     <Authorized>
-      <MudTooltip Text="@Localizer["TooltipProfile"]" Arrow="true" Placement="Placement.Top">
+      <MudTooltip Text="@Localizer["TooltipProfile"]" Arrow="true" Placement=@_placement Delay=@_delay>
         <li class="nav-item dropdown dropdown-hover mx-2">
           <a href="MyInfo" class="nav-link ps-2 d-flex justify-content-between cursor-pointer align-items-center"
              aria-expanded="false" role="button">
@@ -27,10 +27,10 @@
     </Authorized>
   </AuthorizeView>
 
-  <MudTooltip Text="@Localizer["TooltipLanguage"]" Arrow="true" Placement="Placement.Top">
+  <MudTooltip Text="@Localizer["TooltipLanguage"]" Arrow="true" Placement=@_placement Delay=@_delay Disabled="@_tooltipDisabled">
     <li class="nav-item dropdown dropdown-hover mx-2">
       <a class="nav-link ps-2 d-flex justify-content-between cursor-pointer align-items-center"
-         data-bs-toggle="dropdown" aria-expanded="false" role="button">
+         data-bs-toggle="dropdown" aria-expanded="false" role="button" @onclick="ToggleTooltip">
         <i class="ni ni-world-2 text-muted"></i>
         <img src="img/down-arrow-white.svg" alt="down-arrow" class="arrow ms-1 d-lg-block d-none">
       </a>
@@ -93,7 +93,7 @@
   
   <AuthorizeView>
     <Authorized>
-      <MudTooltip Text="@Localizer["TooltipNotifications"]" Arrow="true" Placement="Placement.Top">
+      <MudTooltip Text="@Localizer["TooltipNotifications"]" Arrow="true" Placement=@_placement Delay=@_delay>
         <li class="nav-item dropdown dropdown-hover mx-2">
           <a href="notifications"
              class="nav-link ps-2 d-flex justify-content-between cursor-pointer align-items-center"
@@ -110,7 +110,7 @@
           </a>
         </li>
       </MudTooltip>
-      <MudTooltip Text="@Localizer["TooltipLogOut"]" Arrow="true" Placement="Placement.Top">
+      <MudTooltip Text="@Localizer["TooltipLogOut"]" Arrow="true" Placement=@_placement Delay=@_delay>
         <li class="nav-item dropdown dropdown-hover mx-2">
           <a @onclick="BeginLogOut"
              class="nav-link ps-2 d-flex justify-content-between cursor-pointer align-items-center"
@@ -123,14 +123,14 @@
     </Authorized>
 
     <NotAuthorized>
-      <MudTooltip Text="@Localizer["TooltipLogIn"]" Arrow="true" Placement="Placement.Top">
+      <MudTooltip Text="@Localizer["TooltipLogIn"]" Arrow="true" Placement=@_placement Delay=@_delay>
         <li class="nav-item px-3">
           <NavLink class="px-1 py-0 nav-link line-height-0 auth" href="embedded-login">
             <span class="oi oi-account-login auth text-muted" aria-hidden="true"></span>
           </NavLink>
         </li>
       </MudTooltip>
-      <MudTooltip Text="@Localizer["TooltipRegister"]" Arrow="true" Placement="Placement.Top">
+      <MudTooltip Text="@Localizer["TooltipRegister"]" Arrow="true" Placement=@_placement Delay=@_delay>
         <li class="nav-item">
           <a href="register" class="px-1 py-0 nav-link line-height-0">
             <i class="ni ni-badge text-muted"></i>
@@ -142,10 +142,19 @@
 </ul>
 
 @code {
+
+  private bool _tooltipDisabled = false;
+
+    private void ToggleTooltip()
+    {
+        _tooltipDisabled = !_tooltipDisabled;
+    }
     
     private string selectedCulture = "en-US";
     private NotificationDto.NotificationCount? notificationCount;
     private string? errorMessage;
+    private Placement _placement = Placement.Bottom;
+    private int _delay = 1000;
     
     protected override async Task OnInitializedAsync()
     {
