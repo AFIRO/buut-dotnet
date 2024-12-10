@@ -6,6 +6,7 @@ using Rise.Persistence;
 using Rise.Services.Notifications;
 using Rise.Shared.Enums;
 using Rise.Shared.Notifications;
+using Rise.Shared.Users;
 using Shouldly;
 using Xunit;
 
@@ -17,6 +18,7 @@ public class NotificationServiceTests
     private readonly Mock<ILogger<NotificationService>> _logger;
     private readonly Mock<IEmailService> _emailService;
     private readonly NotificationService _notificationService;
+    private readonly Mock<IUserService> _userService;
 
     public NotificationServiceTests()
     {
@@ -27,7 +29,9 @@ public class NotificationServiceTests
 
         _dbContext = new ApplicationDbContext(options);
         _logger = new Mock<ILogger<NotificationService>>();
-        _notificationService = new NotificationService(_dbContext, _logger.Object, _emailService.Object);
+        _userService = new Mock<IUserService>();
+        _emailService = new Mock<IEmailService>();
+        _notificationService = new NotificationService(_dbContext, _logger.Object, _emailService.Object, _userService.Object);
     }
 
     [Fact]
