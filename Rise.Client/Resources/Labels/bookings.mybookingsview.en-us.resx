@@ -78,8 +78,8 @@
 	<data name="Boat" xml:space="preserve">
         <value>Boat</value>
     </data>
-	<data name="Contact" xml:space="preserve">
-        <value>Contact</value>
+    <data name="Contact" xml:space="preserve">
+        <value>Battery at</value>
     </data>
 	<data name="Credits" xml:space="preserve">
         <value>Credits</value>
@@ -94,14 +94,14 @@
     <data name="Evening" xml:space="preserve">
         <value>5 pm</value>
     </data>
-	<data name="OPEN" xml:space="preserve">
-        <value>OPEN</value>
+    <data name="OPEN" xml:space="preserve">
+        <value>CHANGEABLE</value>
     </data>
 	<data name="REFUNDED" xml:space="preserve">
         <value>REFUNDED</value>
     </data>
-	<data name="CLOSED" xml:space="preserve">
-        <value>CLOSED</value>
+    <data name="CLOSED" xml:space="preserve">
+        <value>CONFIRMED</value>
     </data>
 	<data name="COMPLETED" xml:space="preserve">
         <value>COMPLETED</value>
@@ -122,9 +122,9 @@
         <value>CANCELED</value>
     </data>
     <data name="NoBatteryAssigned" xml:space="preserve">
-        <value>Not assigned</value>
+        <value>Will be assigned</value>
     </data>
     <data name="NoBoatAssigned" xml:space="preserve">
-        <value>Not assigned</value>
+        <value>Will be assigned</value>
     </data>
 </root>
