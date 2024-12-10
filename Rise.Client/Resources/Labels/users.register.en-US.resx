@@ -160,7 +160,7 @@
   <value>Fees</value>
 </data>
 <data name="DepositInfo" xml:space="preserve">
-  <value>€20 memmbership fee and €150 deposit</value>
+    <value>€20 membership fee and €150 deposit</value>
 </data>
 <data name="Training" xml:space="preserve">
   <value>Training</value>

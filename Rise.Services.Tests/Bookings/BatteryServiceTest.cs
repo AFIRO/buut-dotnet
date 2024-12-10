@@ -17,7 +17,6 @@ public class BatteryServiceTest
 
     private readonly Mock<IValidationService> _validationServiceMock;
     private readonly Mock<ILogger<BatteryService>> _loggerMock;
-    
 
     public BatteryServiceTest()
     {
@@ -28,6 +27,7 @@ public class BatteryServiceTest
         _dbContext = new ApplicationDbContext(options);
         _validationServiceMock = new Mock<IValidationService>();
         _loggerMock = new Mock<ILogger<BatteryService>>();
+
         _batteryService = new BatteryService(_dbContext, _validationServiceMock.Object, _loggerMock.Object);
     }
 
