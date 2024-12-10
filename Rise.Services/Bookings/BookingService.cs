@@ -457,28 +457,11 @@ public class BookingService : IBookingService
     /// <returns>A BookingDto.ViewBooking object containing the mapped details.</returns>
     private BookingDto.ViewBooking MapToDto(Booking booking)
     {
-        var battery = MapBatteryDto(booking, booking.BookingDate.Date >= DateTime.Now.Date);
-        //todo status toevoegen aan DB for refunded
         BookingStatus status = BookingStatusHelper.GetBookingStatus(booking.IsDeleted, false, booking.BookingDate, booking.Boat != null && !booking.Boat.Name.IsNullOrEmpty());
 
-        var boat = MapBoatDto(booking);
-        var contact = new UserDto.UserDetails
-        (
-            "auth0|6713ad784fda04f4b9ae2165",
-            "John",
-            "Doe",
-            "john.doe@gmail.com",
-            "09/123.45.67",
-            new AddressDto.GetAdress
-            {
-                Street = StreetEnum.DOKNOORD,
-                HouseNumber = "35",
-                Bus = "3a"
-            },
-            [new RoleDto() { Name = RolesEnum.User }],
-            new DateTime(1990, 1, 1)
-        );
-
+        var includeExtraInformation = status is BookingStatus.CLOSED;
+        var battery = MapBatteryDto(booking, includeExtraInformation);
+        var boat = MapBoatDto(booking, includeExtraInformation);
 
         return new BookingDto.ViewBooking()
         {
@@ -495,7 +478,7 @@ public class BookingService : IBookingService
     private BatteryDto.ViewBatteryWithCurrentUser MapBatteryDto(Booking booking, bool includeContactUser)
     {
         var battery = new BatteryDto.ViewBatteryWithCurrentUser();
-        if (booking.Battery != null)
+        if (booking.Battery != null && includeContactUser)
         {
             battery = MapBatteryDtoWithCurrentUser(booking);
         }
@@ -526,21 +509,11 @@ public class BookingService : IBookingService
         };
     }
 
-    private BatteryDto.ViewBattery MapBatteryWithoutCurrentUser(Booking booking)
-    {
-        return new BatteryDto.ViewBattery()
-        {
-            name = booking.Battery.Name,
-            countBookings = booking.Battery.CountBookings,
-            listComments = booking.Battery.ListComments
-        };
-    }
-
-    private BoatDto.ViewBoat MapBoatDto(Booking booking)
+    private BoatDto.ViewBoat MapBoatDto(Booking booking, bool includeBattery)
     {
         var boat = new BoatDto.ViewBoat();
 
-        if (booking.Boat != null && !booking.Boat.Name.IsNullOrEmpty())
+        if (booking.Boat != null && !booking.Boat.Name.IsNullOrEmpty() && includeBattery)
         {
             boat = new BoatDto.ViewBoat()
             {
