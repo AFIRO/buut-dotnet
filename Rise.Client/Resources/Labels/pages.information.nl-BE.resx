@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0"/>
+                <xsd:element name="comment" type="xsd:string" minOccurs="0"/>
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required"/>
+              <xsd:attribute name="xml:space" type="xsd:string" fixed="preserve"/>
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+
+    <data name="Title" xml:space="preserve">
+        <value>Veelgestelde vragen</value>
+    </data>
+    <data name="Q1" xml:space="preserve">
+        <value>Wat zijn de voorwaarden om lid te worden?</value>
+    </data>
+    <data name="A1" xml:space="preserve">
+        <value>Om lid te worden, moet u minimaal 18 jaar oud zijn en wonen in de buurt Muide-Meulestede-Afrikalaan. Daarnaast betaalt u €20 lidgeld en een waarborg van €150, en bent u verplicht een opleidingsmoment bij te wonen.</value>
+    </data>
+    <data name="Q2" xml:space="preserve">
+        <value>Wat zijn de rechten en plichten van leden?</value>
+    </data>
+    <data name="A2" xml:space="preserve">
+        <value>Leden hebben het recht om deel te nemen aan activiteiten die door de vereniging worden georganiseerd en worden uitgenodigd voor de Algemene Vergadering, al hebben zij geen stemrecht. Als lid bent u verplicht jaarlijks een bijdrage te betalen en het interne reglement van de vereniging na te leven. Bij aanvang van het lidmaatschap ondertekent u een document waarin deze afspraken zijn vastgelegd.</value>
+    </data>
+    <data name="Q3" xml:space="preserve">
+        <value>Wat is de jaarlijkse bijdrage voor leden?</value>
+    </data>
+    <data name="A3" xml:space="preserve">
+        <value>De jaarlijkse bijdrage wordt vastgesteld door de Algemene Vergadering en bedraagt maximaal €50 per jaar.</value>
+    </data>
+    <data name="Q4" xml:space="preserve">
+        <value>Hoe kan ik mijn lidmaatschap opzeggen?</value>
+    </data>
+    <data name="A4" xml:space="preserve">
+        <value>U kunt uw lidmaatschap op elk moment opzeggen door een e-mail of brief te sturen naar het bestuur. Na opzegging wordt uw waarborg van €150 teruggestort. Het lidmaatschap kan ook automatisch eindigen als u niet langer aan de voorwaarden voldoet of de jaarlijkse bijdrage niet betaalt binnen een maand na een schriftelijke aanmaning</value>
+    </data>
+    <data name="Q5" xml:space="preserve">
+        <value>Wat zijn de richtlijnen voor het gebruik van de boten?</value>
+    </data>
+    <data name="A5" xml:space="preserve">
+        <value>Reserveringen verlopen via het online systeem op www.buut.be. De kostprijs voor een blok van 3 uur wordt vermeld op de website. U kunt een boot reserveren minimaal 3 dagen en maximaal 30 dagen van tevoren. Na een reservering kunnen de datum en het tijdstip niet meer worden aangepast. Reserveren voor derden is niet toegestaan, wat betekent dat de persoon die reserveert ook aanwezig moet zijn aan boord. De boten mogen uitsluitend afgemeerd worden aan de verlaagde kade in de Terneuzenlaan te Gent en mogen niet voor commerciële doeleinden gebruikt worden.</value>
+    </data>
+</root>

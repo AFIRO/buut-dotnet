@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Rise.Server.Controllers;
 using Rise.Shared.Batteries;
 using Rise.Shared.Bookings;
 using Rise.Shared.Users;
@@ -23,6 +22,7 @@ namespace Rise.Server.Controllers
         /// Initializes a new instance of the <see cref="BatteryController"/> class.
         /// </summary>
         /// <param name="batteryService">The service to manage battery-related operations.</param>
+        /// <param name="logger">The logging service</param>
         public BatteryController(IBatteryService batteryService, ILogger<BatteryController> logger)
         {
             _batteryService = batteryService;

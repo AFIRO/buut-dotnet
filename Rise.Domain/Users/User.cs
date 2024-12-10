@@ -238,7 +238,7 @@ public class User : Entity
         adressDto.HouseNumber = address.HouseNumber;
         adressDto.Bus = address.Bus;
 
-        return new UserDto.UserContactDetails(this.FirstName, this.LastName, this.Email, this.PhoneNumber, adressDto); 
+        return new UserDto.UserContactDetails(this.Id, this.FirstName, this.LastName, this.Email, this.PhoneNumber, adressDto); 
     }
 
     #endregion

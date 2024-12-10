@@ -13,8 +13,6 @@ namespace Rise.Services.Bookings;
 public class BookingAllocationService
 {
     private readonly BookingAllocator _bookingAllocator;
-    private readonly int _minReservationDays;
-    private readonly int _maxReservationDays;
     private readonly ApplicationDbContext _dbContext;
     private readonly ILogger<BookingAllocationService> _logger;
 
@@ -29,8 +27,6 @@ public class BookingAllocationService
         IOptions<BookingSettings> options, ILogger<BookingAllocationService> logger)
     {
         _bookingAllocator = bookingAllocator;
-        _minReservationDays = options.Value.MinReservationDays;
-        _maxReservationDays = options.Value.MaxReservationDays;
         _dbContext = dbContext;
         _logger = logger;
     }

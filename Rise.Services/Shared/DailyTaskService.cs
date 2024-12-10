@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Rise.Domain.Bookings;
 using Rise.Services.Bookings;
 
 namespace Rise.Shared.Services;
@@ -80,14 +79,10 @@ public class DailyTaskService : IHostedService, IDisposable
     /// <returns>A task that represents the asynchronous operation.</returns>
     private async Task RunTaskAsync()
     {
-        using (var scope = _serviceProvider.CreateScope())
-        {
-            // Get the scoped BookingAllocationService from the scope
-            var bookingAllocationService = scope.ServiceProvider.GetRequiredService<BookingAllocationService>();
+        await DailyBookingTask();
+        await DailyBatteryTask();
 
-            // Allocate resources asynchronously
-            await bookingAllocationService.AllocateDailyBookingAsync(DateTime.Now.Date.AddDays(5));
-        }
+        
         _logger.LogInformation("Daily task completed successfully at {DateTime}", DateTime.Now);
     }
 
@@ -108,5 +103,41 @@ public class DailyTaskService : IHostedService, IDisposable
     public void Dispose()
     {
         _timer?.Dispose();
+    }
+
+    private async Task DailyBookingTask(){
+        try
+        {
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                // Get the scoped BookingAllocationService from the scope
+                var bookingAllocationService = scope.ServiceProvider.GetRequiredService<BookingAllocationService>();
+    
+                // Allocate resources asynchronously
+                await bookingAllocationService.AllocateDailyBookingAsync(DateTime.Now.Date.AddDays(5));
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while running the daily booking task");
+        }
+    }
+
+    private async Task DailyBatteryTask(){
+        try
+        {
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                // Get the scoped BookingAllocationService from the scope
+                var batteryHoldingsService = scope.ServiceProvider.GetRequiredService<BatteryCheckingService>();
+    
+                // Allocate resources asynchronously
+                await batteryHoldingsService.CheckAllBatteriesForHoldingTime();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while running the daily battery task");
+        }
     }
 }

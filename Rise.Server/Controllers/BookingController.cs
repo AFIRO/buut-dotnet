@@ -371,7 +371,6 @@ public class BookingController : ControllerBase
         try
         {
             var freeTimeslots = await _bookingService.GetAmountOfFreeTimeslotsForWeek();
-            Console.WriteLine("free: " + freeTimeslots);
             return Ok(freeTimeslots);
         }
         catch (Exception ex)

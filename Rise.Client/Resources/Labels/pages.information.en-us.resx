@@ -1,0 +1,47 @@
+<root>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>1.3</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <data name="Title" xml:space="preserve">
+        <value>Frequently Asked Questions</value>
+    </data>
+    <data name="Q1" xml:space="preserve">
+        <value>What are the conditions to join</value>
+    </data>
+    <data name="A1" xml:space="preserve">
+        <value>To become a member, you must be at least 18 years old and reside in the Muide-Meulestede-Afrikalaan neighborhood. Additionally, you are required to pay a €20 membership fee and a €150 deposit, and you must attend a training session.</value>
+    </data>
+    <data name="A2" xml:space="preserve">
+        <value>Members have the right to participate in all activities organized by the association and to be invited to the General Assembly, although they do not have voting rights. Members are required to pay an annual fee and adhere to the association’s internal regulations. At the start of the membership, a document outlining these agreements must be signed.</value>
+    </data>
+    <data name="Q2" xml:space="preserve">
+        <value>What are the rights and obligations of members?</value>
+    </data>
+    <data name="Q3" xml:space="preserve">
+        <value>What is the annual fee for members?</value>
+    </data>
+    <data name="A3" xml:space="preserve">
+        <value>The annual membership fee is determined by the General Assembly and is capped at €50 per year.</value>
+    </data>
+    <data name="Q4" xml:space="preserve">
+        <value>How can I cancel my membership?</value>
+    </data>
+    <data name="A4" xml:space="preserve">
+        <value>You can cancel your membership at any time by sending an email or letter to the board. Once you cancel, your €150 deposit will be refunded. Membership will also be automatically terminated if you no longer meet the membership criteria or fail to pay the annual fee within one month of receiving a written reminder.</value>
+    </data>
+    <data name="Q5" xml:space="preserve">
+        <value>What are the guidelines for using the boats?</value>
+    </data>
+    <data name="A5" xml:space="preserve">
+        <value>Reservations must be made through the online system at www.buut.be. The cost per 3-hour time block is listed on the website. Reservations must be made at least 3 days in advance and can be made up to 30 days in advance. Once a reservation is made, the date and time cannot be changed. Reservations for third parties are not allowed, meaning the person who makes the reservation must also be present on board. Boats must be moored at the designated lowered quay on Terneuzenlaan in Ghent and may not be used for commercial purposes.</value>
+    </data>
+</root>

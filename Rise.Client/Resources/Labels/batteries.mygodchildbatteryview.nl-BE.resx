@@ -41,7 +41,7 @@
         <value>Opmerkingen</value>
     </data> 
     <data name="ClaimButtonText" xml:space="preserve">
-        <value>Bevestig batterij overname</value>
+        <value>Bevestig batterij in bezit</value>
     </data> 
     <data name="Submit" xml:space="preserve">
         <value>Versturen</value>
@@ -76,11 +76,14 @@
     <data name="CurrentHolderTitle" xml:space="preserve">
         <value>Huidige houder</value>
     </data>
+    <data name="BuutAgentIsCurrentHolderTitle" xml:space="preserve">
+        <value>De batterij is in jouw bezit</value>
+    </data>
     <data name="PhoneNumber" xml:space="preserve">
         <value>Telefoonnummer</value>
     </data>
     <data name="SailingsCount" xml:space="preserve">
-        <value>Aantal gebruiksbeurten</value>
+        <value>Totaal uitgevoerde/geplande vaarten</value>
     </data>
     <data name="BatteryInfo" xml:space="preserve">
         <value>Info</value>
