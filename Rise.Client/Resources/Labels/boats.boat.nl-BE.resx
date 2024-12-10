@@ -48,4 +48,7 @@
     <data name="Cancel" xml:space="preserve">
         <value>Annuleer</value>
     </data>  
+    <data name="Delete" xml:space="preserve">
+        <value>Weet je zeker dat je deze boot wil verwijderen?</value>
+    </data> 
 </root>

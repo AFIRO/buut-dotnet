@@ -12,9 +12,16 @@ public class BatteryDto
 
     public class ViewBattery
     {
+        public string batteryId { get; set; } = default!;
         public string name { get; set; } = default!;
         public int countBookings { get; set; } = default!;
         public List<string> listComments = default!;
+    }
+
+    public class UpdateBattery
+    {
+        public string id { get; set; } = default!;
+        public string? name { get; set; } = default!;
     }
 
     public class ViewBatteryBuutAgent
@@ -24,8 +31,8 @@ public class BatteryDto
         public int countBookings { get; set; } = default!;
         public List<string> listComments = default!;
     }
-    
-    
+
+
     public class ViewBatteryWithCurrentUser : ViewBattery
     {
         public UserDto.ContactUser? currentUser { get; set; } = default!;
