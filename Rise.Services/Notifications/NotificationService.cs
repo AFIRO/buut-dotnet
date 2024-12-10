@@ -217,67 +217,67 @@ public class NotificationService : INotificationService
     public async Task CreateAndSendNotificationToUsersByRoleAsync(NotificationDto.NewNotification notification, RolesEnum role, string language = "en", bool sendEmail = false)
     {
         try
+    {
+        // Fetch all users
+        var users = await _userService.GetAllAsync();
+
+        if (users == null || !users.Any())
         {
-            // Fetch all users
-            var users = await _userService.GetAllAsync();
+            _logger.LogInformation("No users found.");
+            return;
+        }
 
-            if (users == null || !users.Any())
+        // Filter users by role
+        var usersWithRole = users.Where(u => u.Roles.Any(r => r.Name == role)).ToList();
+
+        if (!usersWithRole.Any())
+        {
+            _logger.LogInformation("No users found with the role '{role}'.", role);
+            return;
+        }
+
+        foreach (var user in usersWithRole)
+        {
+            // Create a new Notification entity for each user
+            var newNotification = new Notification(
+                userId: user.Id,
+                title_EN: notification.Title_EN,
+                title_NL: notification.Title_NL,
+                message_EN: notification.Message_EN,
+                message_NL: notification.Message_NL,
+                type: notification.Type,
+                relatedEntityId: notification.RelatedEntityId ?? null);
+
+            // Add the new notification to the database context
+            await _dbContext.Notifications.AddAsync(newNotification);
+
+            // Send email notification if sendEmail is true
+            if (sendEmail)
             {
-                _logger.LogInformation("No users found.");
-                return;
-            }
-
-            // Filter users by role
-            var usersWithRole = users.Where(u => u.Roles.Any(r => r.Name == role)).ToList();
-
-            if (!usersWithRole.Any())
-            {
-                _logger.LogInformation("No users found with the role '{role}'.", role);
-                return;
-            }
-
-            foreach (var user in usersWithRole)
-            {
-                // Create a new Notification entity for each user
-                var newNotification = new Notification(
-                    userId: user.Id,
-                    title_EN: notification.Title_EN,
-                    title_NL: notification.Title_NL,
-                    message_EN: notification.Message_EN,
-                    message_NL: notification.Message_NL,
-                    type: notification.Type,
-                    relatedEntityId: notification.RelatedEntityId ?? null);
-
-                // Add the new notification to the database context
-                await _dbContext.Notifications.AddAsync(newNotification);
-
-                // Send email notification if sendEmail is true
-                if (sendEmail)
+                var emailMessage = new EmailMessage
                 {
-                    var emailMessage = new EmailMessage
-                    {
-                        To = user.Email,
-                        Subject = "New Notification",
-                        Title_EN = notification.Title_EN,
-                        Title_NL = notification.Title_NL,
-                        Message_EN = notification.Message_EN,
-                        Message_NL = notification.Message_NL
-                    };
+                    To = user.Email,
+                    Subject = "New Notification",
+                    Title_EN = notification.Title_EN,
+                    Title_NL = notification.Title_NL,
+                    Message_EN = notification.Message_EN,
+                    Message_NL = notification.Message_NL
+                };
 
-                    await _emailService.SendEmailAsync(emailMessage);
-                }
+                await _emailService.SendEmailAsync(emailMessage);
             }
-
-            // Save changes to the database
-            await _dbContext.SaveChangesAsync();
-
-            _logger.LogInformation("Notifications created and sent successfully to all users with the role '{role}'.", role);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError("Error creating and sending notifications: {message}.", ex.Message);
-            throw new Exception("An unexpected error occurred while creating and sending notifications.", ex);
-        }
+
+        // Save changes to the database
+        await _dbContext.SaveChangesAsync();
+
+        _logger.LogInformation("Notifications created and sent successfully to all users with the role '{role}'.", role);
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError("Error creating and sending notifications: {message}.", ex.Message);
+        throw new Exception("An unexpected error occurred while creating and sending notifications.", ex);
+    }
     }
 
 

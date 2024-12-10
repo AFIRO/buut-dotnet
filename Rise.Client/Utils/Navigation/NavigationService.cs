@@ -23,6 +23,7 @@ public static class NavigationService
         new NavigationLink("MakeBookingView", "MakeBooking", authenticated: true, role: RolesEnum.User),
         new NavigationLink("mybookings", "MyBookings", authenticated: true, role: RolesEnum.User),
         new NavigationLink("mygodchildbattery", "GodchildBattery", authenticated: true, role: RolesEnum.BUUTAgent),
+        new NavigationLink("messaging", "messaging", authenticated: true, role: RolesEnum.Admin),
     };
 
     /// <summary>
@@ -44,6 +45,7 @@ public static class NavigationService
         new PageInfo("MakeBookingView"),
         new PageInfo("mybookings"),
         new PageInfo("notifications"),
+        new PageInfo("messaging"),
         new PageInfo("embedded-login", backgroundImage: "img/Buut_BG3.png"),
         new PageInfo("register", backgroundImage: "img/Buut_BG4.png", pageClass: "signup-page sidebar-collapse")
     };

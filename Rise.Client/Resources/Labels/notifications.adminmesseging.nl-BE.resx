@@ -57,18 +57,30 @@
   <value>Selecteer welke groep de notificatie zal ontvangen:</value>
 </data>
 
+<data name="radio-admin" xml:space="preserve">
+  <value>Admins</value>
+</data>
+
+<data name="radio-user" xml:space="preserve">
+  <value>Gebruikers</value>
+</data>
+
+<data name="radio-agent" xml:space="preserve">
+  <value>Buut agenten</value>
+</data>
+
 <!-- Errors___________________________________________________________________ -->
 
-<data name="Title_EN_Required" xml:space="preserve">
+<data name="TitleENRequired" xml:space="preserve">
     <value>Engelse titel is verplicht.</value>
 </data>
-<data name="Title_NL_Required" xml:space="preserve">
+<data name="TitleNLRequired" xml:space="preserve">
     <value>Nederlandse titel is verplicht.</value>
 </data>
-<data name="Message_EN_Required" xml:space="preserve">
+<data name="MessageENRequired" xml:space="preserve">
     <value>Engels bericht is verplicht.</value>
 </data>
-<data name="Message_NL_Required" xml:space="preserve">
+<data name="MessageNLRequired" xml:space="preserve">
     <value>Nederlands bericht is verplicht.</value>
 </data>
 

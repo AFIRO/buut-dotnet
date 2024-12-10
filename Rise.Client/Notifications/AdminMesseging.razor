@@ -12,49 +12,56 @@
 
 <PageTitle>@Localizer["AdminMesseging"]</PageTitle>
 
-<h3>@Localizer["Title"]</h3>
+<div class="Maincontentwrapper">
 
-<EditForm EditContext="@editContext" OnValidSubmit="ShowConfirmationPopup">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+    <h2>@Localizer["Title"]</h2>
 
-    <div>
-        <label>@Localizer["Title_EN"]</label>
-        <input type="text" @bind="notification.Title_EN" required/>
-        <ValidationMessage For="@(() => notification.Title_EN)" />
-    </div>
-    <div>
-        <label>@Localizer["Title_NL"]</label>
-        <input type="text" @bind="notification.Title_NL" required/>
-        <ValidationMessage For="@(() => notification.Title_NL)" />
-    </div>
-    <div>
-        <label>@Localizer["Message_EN"]</label>
-        <textarea @bind="notification.Message_EN" required></textarea>
-        <ValidationMessage For="@(() => notification.Message_EN)" />
-    </div>
-    <div>
-        <label>@Localizer["Message_NL"]</label>
-        <textarea @bind="notification.Message_NL" required></textarea>
-         <ValidationMessage For="@(() => notification.Message_NL)" />
-    </div>
-    <div>
+    <EditForm EditContext="@editContext" OnValidSubmit="ShowConfirmationPopup">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="inputWrapper">
+            <label  class="lable">@Localizer["Title_EN"]</label>
+            <input class="form-input form-control mt-0" type="text" @bind="notification.Title_EN" required/>
+        </div>
+        <div class="inputWrapper">
+            <label  class="lable">@Localizer["Title_NL"]</label>
+            <input class="form-input form-control mt-0" type="text" @bind="notification.Title_NL" required/>
+        </div>
+        <div class="inputWrapper">
+            <label  class="lable">@Localizer["Message_EN"]</label>
+            <textarea class="form-input form-control mt-0" @bind="notification.Message_EN" required></textarea>
+        </div>
+        <div class="inputWrapper">
+            <label  class="lable">@Localizer["Message_NL"]</label>
+            <textarea class="form-input form-control mt-0" @bind="notification.Message_NL" required></textarea>
+        </div>
+        <div>
             <label>@Localizer["Role"]</label>
             <InputRadioGroup @bind-Value="selectedRole">
-                <InputRadio Value="RolesEnum.Admin">Admins</InputRadio>
-                <InputRadio Value="RolesEnum.User">Users</InputRadio>
-                <InputRadio Value="RolesEnum.BUUTAgent">Buut Agents</InputRadio>
-                @* <InputRadio Value="RolesEnum.Pending">Buut Agents</InputRadio> *@
+                <div>
+                    <InputRadio Value="RolesEnum.Admin" id="adminRadio" />
+                    <label for="adminRadio">@Localizer["radio-admin"]</label>
+                </div>
+                <div>
+                    <InputRadio Value="RolesEnum.User" id="userRadio" />
+                    <label for="userRadio">@Localizer["radio-user"]</label>
+                </div>
+                <div>
+                    <InputRadio Value="RolesEnum.BUUTAgent" id="agentRadio" />
+                    <label for="agentRadio">@Localizer["radio-agent"]</label>
+                </div>
             </InputRadioGroup>
         </div>
-    <div>
-        <label>
-            <input type="checkbox" @bind="sendAsEmail" /> @Localizer["Send as Email"]
-        </label>
-    </div>
+        <div>
+            <label>
+                <input type="checkbox" @bind="sendAsEmail" /> @Localizer["Send as Email"]
+            </label>
+        </div>
 
-    <button type="submit" class="btn bg-gradient-primary mt-4 mb-0 menu-btn-item" disabled="@(editContext.Validate() ? false : true)">@Localizer["Send Notification"]</button>
-</EditForm>
+        <button type="submit" class="btn bg-gradient-primary mt-4 mb-0 menu-btn-item" disabled="@(editContext.Validate() ? false : true)">@Localizer["Send Notification"]</button>
+    </EditForm>
+</div>
 
 @if (showConfirmationPopup)
 {
@@ -64,9 +71,6 @@
                 <div class="modal-header">
                     <h5 class="modal-title">@Localizer["Confirmation"]</h5>
                     <button type="button" class="btn-close" aria-label="Close" @onclick="HideConfirmationPopup"></button>
-                </div>
-                <div class="modal-body">
-                    <p>@Localizer["popup_body"]</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" @onclick="HideConfirmationPopup">@Localizer["Cancel"]</button>
