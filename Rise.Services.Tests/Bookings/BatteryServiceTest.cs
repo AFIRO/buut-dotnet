@@ -48,20 +48,20 @@ public class BatteryServiceTest
 
     [Fact]
     public async Task GetAllAsync_NoExistingBatteries_ShouldReturnNull()
-    {      
-        var result = await _batteryService.GetAllAsync();        
+    {
+        var result = await _batteryService.GetAllAsync();
         Assert.Null(result);
     }
 
     #endregion
 
-     #region CreateBatteryAsync
+    #region CreateBatteryAsync
 
     [Fact]
     public async Task CreateAsync_WithValidName_ShouldCreateBattery()
     {
         //Arrange
-        var newBattery = new BatteryDto.NewBattery{name = "NewBattery"};
+        var newBattery = new BatteryDto.NewBattery { name = "NewBattery" };
         _validationServiceMock.Setup(service => service.BatteryExists(newBattery.name)).ReturnsAsync(false);
 
         //Act
@@ -76,15 +76,15 @@ public class BatteryServiceTest
     public async Task CreateAsync_BatteryAlreadyExists_ShouldThrowException()
     {
         //Arrange
-        var newBattery = new BatteryDto.NewBattery{name = "NewBattery"};
+        var newBattery = new BatteryDto.NewBattery { name = "NewBattery" };
         _validationServiceMock.Setup(service => service.BatteryExists(newBattery.name)).ReturnsAsync(true);
 
         //Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => _batteryService.CreateAsync(newBattery));       
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _batteryService.CreateAsync(newBattery));
 
     }
 
     #endregion
-    
+
 
 }

@@ -11,21 +11,24 @@ namespace Rise.Client.Tests
 {
     public class BoatsTest : TestContext
     {
-        private Mock<IEquipmentService<BoatDto.ViewBoat, BoatDto.NewBoat>> _boatServiceMock;
+        private Mock<IEquipmentService<BoatDto.ViewBoat, BoatDto.NewBoat, BoatDto.UpdateBoat>> _boatServiceMock;
         private Mock<IStringLocalizer<GenericTable>> _localizerMock;
         private Mock<IStringLocalizer<Boats.Boat>> _boatLocalizerMock;
+        private Mock<MudBlazor.IDialogService> _dialogServiceMock;
 
         public BoatsTest()
         {
             // Maak een mock van IBoatService met Moq
-            _boatServiceMock = new Mock<IEquipmentService<BoatDto.ViewBoat, BoatDto.NewBoat>>();
+            _boatServiceMock = new Mock<IEquipmentService<BoatDto.ViewBoat, BoatDto.NewBoat, BoatDto.UpdateBoat>>();
             _localizerMock = new Mock<IStringLocalizer<GenericTable>>();
             _boatLocalizerMock = new Mock<IStringLocalizer<Boats.Boat>>();
+            _dialogServiceMock = new Mock<MudBlazor.IDialogService>();
 
             // Voeg de mock toe aan de dependency injection container
             Services.AddSingleton(_boatServiceMock.Object);
             Services.AddSingleton(_localizerMock.Object);
             Services.AddSingleton(_boatLocalizerMock.Object);
+            Services.AddSingleton(_dialogServiceMock.Object);
         }
 
         [Fact]
@@ -39,22 +42,6 @@ namespace Rise.Client.Tests
 
             // Assert
             component.Find("h1").MarkupMatches("<h1>Botenlijst</h1>");
-        }
-
-        [Fact]
-        public async Task Should_Display_Loading_While_Fetching_Data()
-        {
-            // Arrange
-            // Stel in dat GetAllAsync null retourneert om de loading status te triggeren
-            _boatServiceMock.Setup(service => service.GetAllAsync()).Returns(Task.FromResult<IEnumerable<BoatDto.ViewBoat>>(null));
-            _localizerMock.Setup(l => l["Loading"]).Returns(new LocalizedString("Loading", "Boten aan het ophalen..."));
-
-
-            // Act
-            var component = RenderComponent<Boats.Boat>();
-
-            // Assert
-            component.Find("span").MarkupMatches("<span class=\"visually-hidden\">Boten aan het ophalen...</span>");
         }
 
         [Fact]

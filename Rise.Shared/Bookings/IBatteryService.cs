@@ -7,9 +7,9 @@ namespace Rise.Shared.Batteries
     /// Defines the contract for battery-related operations.
     /// </summary>
     public interface IBatteryService
-        : IEquipmentService<BatteryDto.ViewBattery, BatteryDto.NewBattery>
+        : IEquipmentService<BatteryDto.ViewBattery, BatteryDto.NewBattery, BatteryDto.UpdateBattery>
     {
-        
+
         /// <summary>
         /// Changes the holder of the battery to the given godparent
         /// </summary>

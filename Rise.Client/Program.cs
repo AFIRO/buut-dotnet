@@ -54,11 +54,15 @@ builder.Services.AddHttpClient<INotificationService, NotificationService>(client
     client.BaseAddress = new Uri($"{builder.HostEnvironment.BaseAddress}api/");
 }).AddHttpMessageHandler<CustomAuthorizationMessageHandler>();
 
-builder.Services.AddHttpClient<IEquipmentService<BoatDto.ViewBoat, BoatDto.NewBoat>, Rise.Client.Boats.BoatService>(client =>
+builder.Services.AddHttpClient<IEquipmentService<BoatDto.ViewBoat, BoatDto.NewBoat, BoatDto.UpdateBoat>, Rise.Client.Boats.BoatService>(client =>
 {
     client.BaseAddress = new Uri($"{builder.HostEnvironment.BaseAddress}api/");
 }).AddHttpMessageHandler<CustomAuthorizationMessageHandler>();
 
+builder.Services.AddHttpClient<IEquipmentService<BatteryDto.ViewBattery, BatteryDto.NewBattery, BatteryDto.UpdateBattery>, BatteryService>(client =>
+{
+    client.BaseAddress = new Uri($"{builder.HostEnvironment.BaseAddress}api/");
+}).AddHttpMessageHandler<CustomAuthorizationMessageHandler>();
 
 builder.Services.AddHttpClient<IBatteryService, BatteryService>(client =>
 {

@@ -13,13 +13,13 @@ public class BatteryService : IBatteryService
     private readonly JsonSerializerOptions _jsonSerializerOptions;
 
     public BatteryService(HttpClient httpClient)
-    {        
+    {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         this._jsonSerializerOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         };
-                  // Add the immutable converters for System.Collections.Immutable types
+        // Add the immutable converters for System.Collections.Immutable types
         this._jsonSerializerOptions.Converters.Add(new ImmutableListJsonConverter<RoleDto>());
         this._jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     }
@@ -35,9 +35,9 @@ public class BatteryService : IBatteryService
     {
         var response = await _httpClient.PostAsJsonAsync("battery", battery);
 
-        if(!response.IsSuccessStatusCode)
+        if (!response.IsSuccessStatusCode)
         {
-             var errorMessage = await response.Content.ReadAsStringAsync();
+            var errorMessage = await response.Content.ReadAsStringAsync();
             throw new HttpRequestException(errorMessage);
         }
 
@@ -66,7 +66,26 @@ public class BatteryService : IBatteryService
 
     public async Task<BatteryDto.ViewBatteryBuutAgent?> GetBatteryByGodparentUserIdAsync(string godparentId)
     {
-         var jsonResponse = await _httpClient.GetStringAsync($"battery/godparent/info");
+        var jsonResponse = await _httpClient.GetStringAsync($"battery/godparent/info");
         return JsonSerializer.Deserialize<BatteryDto.ViewBatteryBuutAgent>(jsonResponse, _jsonSerializerOptions);
+    }
+
+    public async Task<bool> UpdateAsync(BatteryDto.UpdateBattery battery)
+    {
+        var response = await _httpClient.PutAsJsonAsync($"battery/{battery.id}", battery);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorMessage = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException(errorMessage);
+        }
+
+        return true;
+    }
+
+    public async Task<bool> DeleteAsync(string equipmentId)
+    {
+        var response = await _httpClient.DeleteAsync($"battery/{equipmentId}");
+        return response.IsSuccessStatusCode;
     }
 }

@@ -13,17 +13,17 @@ public class BatteryControllerTest
 {
     private readonly Mock<IBatteryService> _mockBatteryService;
     private readonly BatteryController _controller;
-    private readonly Mock<ILogger<BookingController>> _mockLogger;
+    private readonly Mock<ILogger<BatteryController>> _mockLogger;
 
     public BatteryControllerTest()
     {
-        _mockBatteryService = new Mock<IBatteryService>();        
-        _mockLogger = new Mock<ILogger<BookingController>>();
+        _mockBatteryService = new Mock<IBatteryService>();
+        _mockLogger = new Mock<ILogger<BatteryController>>();
 
         _controller = new BatteryController(_mockBatteryService.Object, _mockLogger.Object);
     }
 
-    
+
 
     [Fact]
     public async Task GetAllBatterys_WhenAdmin_ReturnsOkResult()
@@ -35,14 +35,14 @@ public class BatteryControllerTest
         };
         _mockBatteryService.Setup(service => service.GetAllAsync()).ReturnsAsync(Batterys);
 
-         var admin = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
-            {
+        var admin = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+           {
                 new Claim(ClaimTypes.NameIdentifier, "auth0|12345"),
             new Claim(ClaimTypes.Role, "Admin")
-            },
-         "mock"));
+           },
+        "mock"));
 
-         _controller.ControllerContext = new ControllerContext
+        _controller.ControllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext { User = admin }
         };
@@ -68,14 +68,14 @@ public class BatteryControllerTest
         var statusCodeResult = Assert.IsType<ObjectResult>(result.Result);
         Assert.Equal(StatusCodes.Status500InternalServerError, statusCodeResult.StatusCode);
         Assert.Equal("Database error", statusCodeResult.Value);
-    }  
+    }
 
     [Fact]
     public async Task Post_ValidNewBattery_ReturnsCreatedActionResult()
     {
         //Arrange
-        var newBattery = new BatteryDto.NewBattery{name = "New Battery"};
-        var createdBattery = new BatteryDto.ViewBattery{name = "New Battery", countBookings = 0, listComments = null};
+        var newBattery = new BatteryDto.NewBattery { name = "New Battery" };
+        var createdBattery = new BatteryDto.ViewBattery { name = "New Battery", countBookings = 0, listComments = null };
         _mockBatteryService.Setup(service => service.CreateAsync(newBattery)).ReturnsAsync(createdBattery);
 
         //Act
@@ -84,12 +84,12 @@ public class BatteryControllerTest
         //Assert
         var createdResult = result as CreatedAtActionResult;
         createdResult.StatusCode.ShouldBe(StatusCodes.Status201Created);
-        createdResult.Value.ShouldBe(createdBattery);        
+        createdResult.Value.ShouldBe(createdBattery);
     }
 
     [Fact]
     public async Task Post_NewBatteryIsNull_ReturnsBadRequest()
-    {   
+    {
         //Act
         var result = await _controller.Post(null);
 
@@ -100,9 +100,9 @@ public class BatteryControllerTest
 
     [Fact]
     public async Task Post_ServiceThrowsException_ReturnsInternalServerError()
-    {   
+    {
         //Arrange
-        var newBattery = new BatteryDto.NewBattery{name = "New Battery"};
+        var newBattery = new BatteryDto.NewBattery { name = "New Battery" };
         _mockBatteryService.Setup(service => service.CreateAsync(newBattery)).ThrowsAsync(new InvalidOperationException());
 
         //Act
