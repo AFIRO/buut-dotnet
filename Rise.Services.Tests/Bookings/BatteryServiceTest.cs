@@ -7,7 +7,6 @@ using Rise.Shared.Services;
 using Rise.Shared.Bookings;
 using Rise.Services.Batteries;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging;
 
 namespace Rise.Services.Tests.Bookings;
 
