@@ -457,11 +457,10 @@ public class BookingService : IBookingService
     /// <returns>A BookingDto.ViewBooking object containing the mapped details.</returns>
     private BookingDto.ViewBooking MapToDto(Booking booking)
     {
-        var includeExtraInformation = booking.BookingDate.Date >= DateTime.Now.Date;
-        var battery = MapBatteryDto(booking, includeExtraInformation);
-        
         BookingStatus status = BookingStatusHelper.GetBookingStatus(booking.IsDeleted, false, booking.BookingDate, booking.Boat != null && !booking.Boat.Name.IsNullOrEmpty());
 
+        var includeExtraInformation = status is BookingStatus.OPEN or BookingStatus.CLOSED;
+        var battery = MapBatteryDto(booking, includeExtraInformation);
         var boat = MapBoatDto(booking, includeExtraInformation);
 
         return new BookingDto.ViewBooking()
