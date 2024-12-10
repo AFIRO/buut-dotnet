@@ -12,13 +12,15 @@
 
 <PageTitle>@Localizer["AdminMesseging"]</PageTitle>
 
-<div class="Maincontentwrapper">
+<div class="container mt-5">
 
     <h2>@Localizer["Title"]</h2>
 
     <EditForm EditContext="@editContext" OnValidSubmit="ShowConfirmationPopup">
         <DataAnnotationsValidator />
-        <ValidationSummary />
+        <div>
+            @Localizer["FieldsRequired"]
+        </div>
 
         <div class="inputWrapper">
             <label  class="lable">@Localizer["Title_EN"]</label>

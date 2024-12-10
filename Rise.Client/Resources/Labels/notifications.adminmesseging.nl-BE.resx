@@ -83,6 +83,9 @@
 <data name="MessageNLRequired" xml:space="preserve">
     <value>Nederlands bericht is verplicht.</value>
 </data>
+<data name="FieldsRequired" xml:space="preserve">
+    <value>Vul alle onderstaande velden in voor een notificatie toe te voegen.</value>
+</data>
 
 <!-- Popup___________________________________________________________________ -->
 
