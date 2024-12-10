@@ -459,7 +459,7 @@ public class BookingService : IBookingService
     {
         BookingStatus status = BookingStatusHelper.GetBookingStatus(booking.IsDeleted, false, booking.BookingDate, booking.Boat != null && !booking.Boat.Name.IsNullOrEmpty());
 
-        var includeExtraInformation = status is BookingStatus.OPEN or BookingStatus.CLOSED;
+        var includeExtraInformation = status is BookingStatus.CLOSED;
         var battery = MapBatteryDto(booking, includeExtraInformation);
         var boat = MapBoatDto(booking, includeExtraInformation);
 
