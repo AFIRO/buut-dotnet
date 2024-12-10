@@ -478,7 +478,7 @@ public class BookingService : IBookingService
     private BatteryDto.ViewBatteryWithCurrentUser MapBatteryDto(Booking booking, bool includeContactUser)
     {
         var battery = new BatteryDto.ViewBatteryWithCurrentUser();
-        if (booking.Battery != null)
+        if (booking.Battery != null && includeContactUser)
         {
             battery = MapBatteryDtoWithCurrentUser(booking);
         }
@@ -506,16 +506,6 @@ public class BookingService : IBookingService
             countBookings = booking.Battery.CountBookings,
             listComments = booking.Battery.ListComments,
             currentUser = currentUser
-        };
-    }
-
-    private BatteryDto.ViewBattery MapBatteryWithoutCurrentUser(Booking booking)
-    {
-        return new BatteryDto.ViewBattery()
-        {
-            name = booking.Battery.Name,
-            countBookings = booking.Battery.CountBookings,
-            listComments = booking.Battery.ListComments
         };
     }
 
