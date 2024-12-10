@@ -1,26 +1,20 @@
 @* 
-Loading spinner component
+Loading spinner component that can be used to show a loading spinner with a message.
 
-can be used like this example
-
+can be used like this example:
 @using static Rise.Client.Components.Loading.LoadingSpinner
 <LoadingSpinner Message="Loading battery details, please wait..." BackgroundColor="#f8f9fa" />
-
 *@
 
 <div class="loading-container" style="background-color: @BackgroundColor;">
-    <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading...</span>
+    <div class="spinner-border text-primary" role="status"> 
     </div>
-    @if (!string.IsNullOrEmpty(Message))
-    {
-        <p>@Message</p>
-    }
+    <span class="text-primary  mt-5">@Message</span>
 </div>
 
 @code {
     [Parameter]
-    public string? Message { get; set; }
+    public string? Message { get; set; } = "Loading...";
 
     [Parameter]
     public string BackgroundColor { get; set; } = "transparent";

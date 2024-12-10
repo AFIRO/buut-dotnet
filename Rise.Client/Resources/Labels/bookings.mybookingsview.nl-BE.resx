@@ -56,8 +56,8 @@
 	<data name="Boat" xml:space="preserve">
         <value>Boot</value>
     </data>
-	<data name="Contact" xml:space="preserve">
-        <value>Contact</value>
+    <data name="Contact" xml:space="preserve">
+        <value>Batterij bij</value>
     </data>
 	<data name="Credits" xml:space="preserve">
         <value>Krediet</value>
@@ -72,14 +72,14 @@
     <data name="Evening" xml:space="preserve">
         <value>17:00</value>
     </data>
-	<data name="OPEN" xml:space="preserve">
-        <value>OPEN</value>
+    <data name="OPEN" xml:space="preserve">
+        <value>AANPASBAAR</value>
     </data>
 	<data name="REFUNDED" xml:space="preserve">
         <value>TERUGBETAALD</value>
     </data>
-		<data name="CLOSED" xml:space="preserve">
-        <value>GESLOTEN</value>
+    <data name="CLOSED" xml:space="preserve">
+        <value>BEVESTIGD</value>
     </data>
 		<data name="COMPLETED" xml:space="preserve">
         <value>VOLDAAN</value>
@@ -97,9 +97,9 @@
         <value>Aanpassen</value>
     </data>
     <data name="NoBatteryAssigned" xml:space="preserve">
-        <value>Niet toegewezen</value>
+        <value>Zal toegewezen worden</value>
     </data>
     <data name="NoBoatAssigned" xml:space="preserve">
-        <value>Niet toegewezen</value>
+        <value>Zal toegewezen worden</value>
     </data>
 </root>

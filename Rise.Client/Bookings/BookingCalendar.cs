@@ -133,8 +133,8 @@ public partial class BookingCalendar
             freeCalendarItems.Add(
                 new CustomCalenderItem
                 {
-                    Start = GetTimeFromTimeslot(timeslot.BookingDate, timeslot),
-                    End = GetTimeFromTimeslot(timeslot.BookingDate, timeslot, true),
+                    Start = GetTimeFromTimeslot(timeslot.BookingDate, timeslot.TimeSlot),
+                    End = GetTimeFromTimeslot(timeslot.BookingDate, timeslot.TimeSlot, true),
                     Text = "Occupied"
                 });
         }
@@ -155,24 +155,24 @@ public partial class BookingCalendar
             // Add sample events for each day
             events.Add(new CustomCalenderItem
             {
-                Start = date.AddHours(TimeSlot.Morning.GetStartHour()),
-                End = date.AddHours(TimeSlot.Morning.GetEndHour()),
+                Start = GetTimeFromTimeslot(date, TimeSlot.Morning),
+                End = GetTimeFromTimeslot(date, TimeSlot.Morning, true),
                 Text = Localizer["Forenoon"],
                 Available = false
             });
 
             events.Add(new CustomCalenderItem
             {
-                Start = date.AddHours(TimeSlot.Afternoon.GetStartHour()),
-                End = date.AddHours(TimeSlot.Afternoon.GetEndHour()),
+                Start = GetTimeFromTimeslot(date, TimeSlot.Afternoon),
+                End = GetTimeFromTimeslot(date, TimeSlot.Afternoon, true),
                 Text = Localizer["Noon"],
                 Available = false
             });
 
             events.Add(new CustomCalenderItem
             {
-                Start = date.AddHours(TimeSlot.Evening.GetStartHour()),
-                End = date.AddHours(TimeSlot.Evening.GetEndHour()),
+                Start = GetTimeFromTimeslot(date, TimeSlot.Evening),
+                End = GetTimeFromTimeslot(date, TimeSlot.Evening, true),
                 Text = Localizer["Afternoon"],
                 Available = false
             });
@@ -181,9 +181,9 @@ public partial class BookingCalendar
         return events;
     }
 
-    private DateTime GetTimeFromTimeslot(DateTime date, BookingDto.ViewBookingCalender timeSlot, bool isEnd = false)
+    private DateTime GetTimeFromTimeslot(DateTime date, TimeSlot timeSlot, bool isEnd = false)
     {
-        switch (timeSlot.TimeSlot)
+        switch (timeSlot)
         {
             case TimeSlot.Morning:
                 return isEnd ? date.AddHours(TimeSlot.Morning.GetEndHour()) : date.AddHours(TimeSlot.Morning.GetStartHour());

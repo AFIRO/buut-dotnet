@@ -1,5 +1,6 @@
 @typeparam TView
 @typeparam TNew
+@typeparam TUpdate
 
 @using Microsoft.AspNetCore.Components.Forms
 @using System.ComponentModel.DataAnnotations
@@ -34,22 +35,23 @@
             }
             else
             {
-                <button id="show-form-button" class="btn bg-gradient-primary m-4"
-                    @onclick="ShowForm">@Localizer["Add"]</button>
+                <button id="show-form-button" class="btn bg-gradient-primary m-4" @onclick="Add">@Localizer["Add"]</button>
             }
         </FormContent>
     </GenericTable>
 </div>
 
 @code {
+    [Inject] private IDialogService DialogService { get; set; }
     [Parameter] public required string Title { get; set; }
     [Parameter] public required string NameHeader { get; set; }
     [Parameter] public required string CountHeader { get; set; }
     [Parameter] public required string CommentsHeader { get; set; }
+    [Parameter] public required Func<TView, string> GetId { get; set; }
     [Parameter] public required Func<TView, string> GetName { get; set; }
     [Parameter] public required Func<TView, int> GetCount { get; set; }
     [Parameter] public required Func<TView, List<string>> GetComments { get; set; }
-    [Parameter] public required IEquipmentService<TView, TNew> Service { get; set; }
+    [Parameter] public required IEquipmentService<TView, TNew, TUpdate> Service { get; set; }
     [Parameter] public required IStringLocalizer Localizer { get; set; }
 
     private bool formIsShown = false;
@@ -57,6 +59,8 @@
     private IEnumerable<TView>? _items;
     private EditContext editContext;
     private ValidationMessageStore validationMessageStore;
+    private Func<string, Task>? confirmAction;
+    private string? equipmentId;
 
     public class EquipmentModel
     {
@@ -71,8 +75,10 @@
         validationMessageStore = new ValidationMessageStore(editContext);
     }
 
-    private void ShowForm()
+    private void Add()
     {
+        confirmAction = async (value) => await CreateNewItem(value); ;
+        equipmentModel.Name = string.Empty;
         formIsShown = true;
     }
 
@@ -96,7 +102,8 @@ new (Localizer["Comments"]),
 {
 TableCellService.DefaultTableCell(GetName(item)),
 TableCellService.DefaultTableCell(GetCount(item).ToString()),
-TableCellService.DefaultTableCell(GetComments(item) != null ? string.Join(", ", GetComments(item)) : "")
+TableCellService.DefaultTableCell(GetComments(item) != null ? string.Join(", ", GetComments(item)) : ""),
+TableCellService.ActionCell(GetId(item), this, Edit, Delete)
 };
 
             rows.Add(row);
@@ -114,12 +121,17 @@ TableCellService.DefaultTableCell(GetComments(item) != null ? string.Join(", ", 
             return;
         }
 
+        if (confirmAction == null)
+        {
+            AddValidationError(nameof(equipmentModel.Name), "No action specified for confirmation.");
+            return;
+        }
+
         try
         {
-            var newItem = CreateNewItem(equipmentModel.Name);
-            await Service.CreateAsync(newItem);
-            _items = await Service.GetAllAsync();
-            formIsShown = false;
+            await confirmAction(equipmentModel.Name);
+            _items = await Service.GetAllAsync(); // Ververs de lijst
+            formIsShown = false; // Verberg het formulier
         }
         catch (Exception e)
         {
@@ -127,7 +139,35 @@ TableCellService.DefaultTableCell(GetComments(item) != null ? string.Join(", ", 
         }
     }
 
-    private TNew CreateNewItem(string name)
+    private async Task Edit(string id)
+    {
+        var itemToUpdate = _items.FirstOrDefault(item => GetId(item) == id);
+
+        if (itemToUpdate == null)
+        {
+            return;
+        }
+
+        equipmentId = id;
+        equipmentModel.Name = GetName(itemToUpdate);
+        confirmAction = async (_) => await UpdateItem(equipmentId);
+        formIsShown = true;
+    }
+
+    private async Task Delete(string id)
+    {
+        var result = await DialogService.ShowMessageBox(
+        null,
+        Localizer["Delete"],
+        "OK",
+        Localizer["Cancel"]
+        );
+
+        if (result == true)
+            await DeleteItem(id);
+    }
+
+    private async Task CreateNewItem(string name)
     {
         var newItem = (TNew)Activator.CreateInstance(typeof(TNew))!;
         var nameProperty = typeof(TNew).GetProperty("name");
@@ -136,7 +176,32 @@ TableCellService.DefaultTableCell(GetComments(item) != null ? string.Join(", ", 
             nameProperty.SetValue(newItem, name);
         }
 
-        return newItem;
+        await Service.CreateAsync(newItem);
+    }
+
+    private async Task UpdateItem(string id)
+    {
+        var updatedItem = (TUpdate)Activator.CreateInstance(typeof(TUpdate))!;
+
+        var idProperty = typeof(TUpdate).GetProperty("id");
+        if (idProperty != null && idProperty.CanWrite)
+        {
+            idProperty.SetValue(updatedItem, id);
+        }
+
+        var nameProperty = typeof(TUpdate).GetProperty("name");
+        if (nameProperty != null && nameProperty.CanWrite)
+        {
+            nameProperty.SetValue(updatedItem, equipmentModel.Name);
+        }
+
+        await Service.UpdateAsync(updatedItem);
+    }
+
+    private async Task DeleteItem(string id)
+    {
+        await Service.DeleteAsync(id);
+        _items = await Service.GetAllAsync();
     }
 
     private void Cancel()

@@ -1,14 +1,11 @@
 @page "/batteries"
+@using Rise.Shared.Batteries
 @using Rise.Shared.Bookings
 @attribute [Authorize(Roles = "Admin")]
-@inject IEquipmentService<BatteryDto.ViewBattery, BatteryDto.NewBattery> BatteryService
+@inject IBatteryService BatteryService
 @using Microsoft.Extensions.Localization
 @inject IStringLocalizer<Battery> Localizer
 
-<EquipmentList TView="BatteryDto.ViewBattery"
-               TNew="BatteryDto.NewBattery"
-               Service="BatteryService"
-               GetName="battery => battery.name"
-               GetCount="battery => battery.countBookings"
-               GetComments="battery => battery.listComments"
-               Localizer="Localizer"  />
+<EquipmentList TView="BatteryDto.ViewBattery" TNew="BatteryDto.NewBattery" TUpdate="BatteryDto.UpdateBattery"
+    Service="BatteryService" GetId="battery => battery.batteryId" GetName="battery => battery.name"
+    GetCount="battery => battery.countBookings" GetComments="battery => battery.listComments" Localizer="Localizer" />

@@ -127,5 +127,10 @@ public partial class MyGodchildBatteryView
         _errorMessage = "";
     }
 
+    private bool BuutagentHasBattery()
+    {
+        return holderDetails != null && holderDetails.Id == userIdAuth0;
+    }
+
 
 }
