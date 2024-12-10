@@ -113,7 +113,7 @@ public class BatteryCheckingService
         if(latestNotification is null){
             return true;
         }
-        if(latestNotification.CreatedAt < DateTime.UtcNow.AddMinutes(-_rewarningIntervalDays)){
+        if(latestNotification.CreatedAt < DateTime.UtcNow.AddDays(-_rewarningIntervalDays)){
             return true;
         }
         return false;
