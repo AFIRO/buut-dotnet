@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Rise.Domain.Bookings;
 using Rise.Persistence;
@@ -15,16 +16,18 @@ public class BatteryService : IBatteryService
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly IValidationService _validationService;
+    private readonly ILogger<BatteryService> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="BatteryService"/> class.
     /// </summary>
     /// <param name="dbContext">The database context.</param>
     /// <param name="validationService">The validation service.</param>
-    public BatteryService(ApplicationDbContext dbContext, IValidationService validationService)
+    public BatteryService(ApplicationDbContext dbContext, IValidationService validationService, ILogger<BatteryService> logger)
     {
         _dbContext = dbContext;       
-        _validationService = validationService; 
+        _validationService = validationService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -108,10 +111,16 @@ public class BatteryService : IBatteryService
 
 
     
+    /// <summary>
+    /// Claims ownership of a battery as a godparent asynchronously.
+    /// </summary>
+    /// <param name="godparentId">The ID of the godparent.</param>
+    /// <param name="batteryId">The ID of the battery.</param>
+    /// <returns>The contact details of the current holder of the battery, or null if the operation fails.</returns>
     public async Task<UserDto.UserContactDetails?> ClaimBatteryAsGodparentAsync(string godparentId, string batteryId)
     {
         if (batteryId == null)
-            return null;
+            throw new InvalidOperationException("Battery ID is null");
         
         Battery? battery = await _dbContext.Batteries
                 .Include(battery => battery.BatteryBuutAgent)
@@ -120,12 +129,14 @@ public class BatteryService : IBatteryService
                 .FirstOrDefaultAsync(battery => battery.Id == batteryId);
         
         if (battery == null)
-            {return null;}
+            throw new InvalidOperationException("Battery (id: {batteryId}) not found in the database");
         if (battery.BatteryBuutAgent == null)
-            {return null;}
+            throw new InvalidOperationException("Battery (id: {batteryId}) does not have a godparent");
+        
         // Check if the GodParent's ID matches the given godparentId
-        if (battery.BatteryBuutAgent != null && battery.BatteryBuutAgent.Id == godparentId)
+        if (battery.BatteryBuutAgent.Id == godparentId)
         {
+            // Change the current holder of the battery to the godparent
             battery.CurrentUser = battery.BatteryBuutAgent;
             
             // Save the updated battery back to the database
