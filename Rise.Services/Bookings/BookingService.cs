@@ -458,27 +458,10 @@ public class BookingService : IBookingService
     private BookingDto.ViewBooking MapToDto(Booking booking)
     {
         var battery = MapBatteryDto(booking, booking.BookingDate.Date >= DateTime.Now.Date);
-        //todo status toevoegen aan DB for refunded
+        
         BookingStatus status = BookingStatusHelper.GetBookingStatus(booking.IsDeleted, false, booking.BookingDate, booking.Boat != null && !booking.Boat.Name.IsNullOrEmpty());
 
         var boat = MapBoatDto(booking);
-        var contact = new UserDto.UserDetails
-        (
-            "auth0|6713ad784fda04f4b9ae2165",
-            "John",
-            "Doe",
-            "john.doe@gmail.com",
-            "09/123.45.67",
-            new AddressDto.GetAdress
-            {
-                Street = StreetEnum.DOKNOORD,
-                HouseNumber = "35",
-                Bus = "3a"
-            },
-            [new RoleDto() { Name = RolesEnum.User }],
-            new DateTime(1990, 1, 1)
-        );
-
 
         return new BookingDto.ViewBooking()
         {
