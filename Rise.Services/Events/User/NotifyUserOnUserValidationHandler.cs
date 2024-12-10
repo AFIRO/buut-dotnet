@@ -12,6 +12,7 @@ public class NotifyUserOnUserValidationHandler : IEventHandler<UserValidationEve
 {
     private readonly INotificationService _notificationService;
     private readonly IUserService _userService;
+    private readonly IEmailService _emailService;
     private readonly ILogger<NotifyUserOnUserValidationHandler> _logger;
 
     /// <summary>
@@ -23,9 +24,11 @@ public class NotifyUserOnUserValidationHandler : IEventHandler<UserValidationEve
     public NotifyUserOnUserValidationHandler(
         INotificationService notificationService,
         IUserService userService,
+        IEmailService emailService, 
         ILogger<NotifyUserOnUserValidationHandler> logger)
     {
         _notificationService = notificationService;
+        _emailService = emailService;
         _userService = userService;
         _logger = logger;
     }
@@ -63,6 +66,7 @@ public class NotifyUserOnUserValidationHandler : IEventHandler<UserValidationEve
 
     private async Task NotifyUserAsync(UserDto.UserBase user, UserValidationEvent @event)
     {
+
         var notification = new NotificationDto.NewNotification
         {
             UserId = user.Id,
@@ -74,10 +78,22 @@ public class NotifyUserOnUserValidationHandler : IEventHandler<UserValidationEve
             Type = NotificationType.UserRegistration
         };
 
+        var email = new EmailMessage
+        {
+            To = user.Email,
+            Subject = "Account Validated",
+            Title_EN = notification.Title_EN,
+            Title_NL = notification.Title_NL,
+            Message_EN = notification.Message_EN,
+            Message_NL = notification.Message_NL
+        };
+
         try
         {
             await _notificationService.CreateNotificationAsync(notification);
             _logger.LogInformation("Notification sent to User ID: {UserId} for validation update.", user.Id);
+
+              await _emailService.SendEmailAsync(email);
         }
         catch (Exception ex)
         {

@@ -13,6 +13,8 @@ namespace Rise.Services.Events.User;
 public class NotifyUserOnNewRolesAssignedHandler : IEventHandler<UserRoleUpdatedEvent>
 {
     private readonly INotificationService _notificationService;
+
+    private readonly IEmailService _emailService;
     private readonly ILogger<NotifyUserOnNewRolesAssignedHandler> _logger;
 
     /// <summary>
@@ -22,9 +24,11 @@ public class NotifyUserOnNewRolesAssignedHandler : IEventHandler<UserRoleUpdated
     /// <param name="logger">The logger instance.</param>
     public NotifyUserOnNewRolesAssignedHandler(
         INotificationService notificationService,
+        IEmailService emailService,
         ILogger<NotifyUserOnNewRolesAssignedHandler> logger)
     {
         _notificationService = notificationService;
+        _emailService = emailService;
         _logger = logger;
     }
 
@@ -52,6 +56,7 @@ public class NotifyUserOnNewRolesAssignedHandler : IEventHandler<UserRoleUpdated
                 RelatedEntityId = @event.UserId,
                 Type = NotificationType.Alert
             };
+
 
             await _notificationService.CreateNotificationAsync(notification);
 
