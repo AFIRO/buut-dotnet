@@ -139,7 +139,7 @@ public class UserController : ControllerBase
             if (!userRoles.Contains(RolesEnum.Admin.ToString()) && userid != authenticatedUserId)
             {
                 _logger.LogWarning("Unauthorized access to user details by user {userid}.", userid);
-                return Forbid("Access denied.");
+                return Forbid();
             }
             var user = await _userService.GetUserDetailsByIdAsync(userid);
 
@@ -240,7 +240,7 @@ public class UserController : ControllerBase
         if (!isAdmin && userDetails.Id != authenticatedUserId)
         {
             _logger.LogWarning("Access denied: User is not authorized to update user details.");
-            return Forbid("Access denied. You are not authorized to update this user's details.");
+            return Forbid();
         }
 
         // Prevent non-admins from updating roles
@@ -358,6 +358,17 @@ public class UserController : ControllerBase
             {
                 return BadRequest(new { message = "User ID cannot be null or empty." });
             }
+            // Get authenticated user's ID and roles
+            var authenticatedUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userRoles = User.FindAll(ClaimTypes.Role).Select(r => r.Value).ToList();
+            // Check if the user is updating their own details or is an Admin
+            var isAdmin = userRoles.Contains(RolesEnum.Admin.ToString());
+
+            if (!isAdmin && userid != authenticatedUserId)
+            {
+                _logger.LogWarning("Access denied: User is not authorized to delete user.");
+                return Forbid();
+            }
 
             var activeBookings = await _validationService.CheckActiveBookings(userid);
             if (activeBookings)
@@ -367,6 +378,7 @@ public class UserController : ControllerBase
             }
 
             var user = await _userService.GetUserByIdAsync(userid);
+
             var deleted = await _userService.SoftDeleteUserAsync(userid);
             var result = await _auth0UserService.SoftDeleteAuth0UserAsync(userid);
             if (user is null || !deleted || !result)
@@ -375,8 +387,11 @@ public class UserController : ControllerBase
                 return NotFound(new { message = $"User with ID {userid} was not found." });
             }
 
-            var userDeletionEvent = new UserDeletedEvent(user.Id, user.FirstName, user.LastName);
-            await _eventDispatcher.DispatchAsync(userDeletionEvent);
+            if (!isAdmin)
+            {
+                var userDeletionEvent = new UserDeletedEvent(user.Id, user.FirstName, user.LastName);
+                await _eventDispatcher.DispatchAsync(userDeletionEvent);
+            }
 
 
             _logger.LogInformation("User with ID {userid} deleted successfully.", userid);

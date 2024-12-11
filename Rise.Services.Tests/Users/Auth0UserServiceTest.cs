@@ -37,7 +37,7 @@
 //                 new User { Email = "user2@example.com", FirstName = "Jane", LastName = "Smith", Blocked = true }
 //             };
 //             _mockManagementApiClient
-//                 .Setup(client => client.Users.GetAllAsync(It.IsAny<GetUsersRequest>(), It.IsAny<PaginationInfo>()))
+//                 .Setup(client => client.Users.GetAllAsync(It.IsAny<GetUsersRequest>(), It.IsAny<PaginationInfo>(), It.IsAny<CancellationToken>()))
 //                 .ReturnsAsync(users);
 
 //             // Act
