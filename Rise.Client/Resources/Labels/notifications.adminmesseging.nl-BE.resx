@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0"/>
+                <xsd:element name="comment" type="xsd:string" minOccurs="0"/>
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required"/>
+              <xsd:attribute name="xml:space" type="xsd:string" fixed="preserve"/>
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+
+<data name="AdminMesseging" xml:space="preserve">
+  <value>Berichten voor gebruikers</value>
+</data>
+
+<data name="Title" xml:space="preserve">
+  <value>Stuur Berichten naar je gebruikers:</value>
+</data>
+
+<!-- fields _________________________________________________________________ -->
+<data name="Title_EN" xml:space="preserve">
+  <value>Engelse titel</value>
+</data>
+
+<data name="Title_NL" xml:space="preserve">
+  <value>Nederlandse titel</value>
+</data>
+
+<data name="Message_EN" xml:space="preserve">
+  <value>Inhoud Engels bericht</value>
+</data>
+
+<data name="Message_NL" xml:space="preserve">
+  <value>Inhoud Nederlands bericht</value>
+</data>
+
+<data name="Send as Email" xml:space="preserve">
+  <value>Stuur als email</value>
+</data>
+
+<data name="Send Notification" xml:space="preserve">
+  <value>Verstuur</value>
+</data>
+
+<data name="Role" xml:space="preserve">
+  <value>Selecteer welke groep de notificatie zal ontvangen:</value>
+</data>
+
+<data name="radio-admin" xml:space="preserve">
+  <value>Admins</value>
+</data>
+
+<data name="radio-user" xml:space="preserve">
+  <value>Gebruikers</value>
+</data>
+
+<data name="radio-agent" xml:space="preserve">
+  <value>Buut agenten</value>
+</data>
+
+<!-- Errors___________________________________________________________________ -->
+
+<data name="TitleENRequired" xml:space="preserve">
+    <value>Engelse titel is verplicht.</value>
+</data>
+<data name="TitleNLRequired" xml:space="preserve">
+    <value>Nederlandse titel is verplicht.</value>
+</data>
+<data name="MessageENRequired" xml:space="preserve">
+    <value>Engels bericht is verplicht.</value>
+</data>
+<data name="MessageNLRequired" xml:space="preserve">
+    <value>Nederlands bericht is verplicht.</value>
+</data>
+<data name="FieldsRequired" xml:space="preserve">
+    <value>Vul alle onderstaande velden in voor een notificatie toe te voegen.</value>
+</data>
+
+<!-- Popup___________________________________________________________________ -->
+
+<data name="Confirmation" xml:space="preserve">
+    <value>Ben je zeker dat je dit bericht wil sturen?</value>
+</data>
+<data name="Cancel" xml:space="preserve">
+    <value>Annuleren</value>
+</data>
+<data name="Send" xml:space="preserve">
+    <value>Versturen</value>
+</data>
+
+<!-- SuccesMessage___________________________________________________________________ -->
+
+<data name="MessageSent" xml:space="preserve">
+    <value>The notificatie werdt succesvol verstuurd</value>
+</data>
+
+
+</root>

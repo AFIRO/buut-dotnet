@@ -6,12 +6,19 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Rise.Shared.Users;
 
+/// <summary>
+/// Service for handling notifications.
+/// </summary>
 public class NotificationService : INotificationService
 {
 
     private readonly HttpClient _httpClient;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="NotificationService"/> class.
+    /// </summary>
+    /// <param name="_httpClient">The HTTP client to be used for making requests.</param>
     public NotificationService(HttpClient _httpClient)
     {
         this._httpClient = _httpClient;
@@ -24,16 +31,64 @@ public class NotificationService : INotificationService
         this._jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     }
 
-    public Task<NotificationDto.ViewNotification> CreateNotificationAsync(NotificationDto.NewNotification notification, string language = "en")
+    /// <summary>
+    /// Creates a new notification.
+    /// </summary>
+    /// <param name="notification">The notification to create.</param>
+    /// <param name="language">The language for the notification.</param>
+    /// <param name="sendEmail">Whether to send an email notification.</param>
+    /// <returns>The created notification.</returns>
+    public async Task<NotificationDto.ViewNotification> CreateNotificationAsync(NotificationDto.NewNotification notification, string language = "en", bool sendEmail = false)
     {
-        throw new NotImplementedException();
+        var requestUri = $"notification?language={language}&sendEmail={sendEmail}";
+        var response = await _httpClient.PostAsJsonAsync(requestUri, notification);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            var createdNotification = JsonSerializer.Deserialize<NotificationDto.ViewNotification>(jsonResponse, _jsonSerializerOptions);
+            return createdNotification ?? throw new InvalidOperationException("Failed to deserialize the created notification.");
+        }
+        else
+        {
+            throw new InvalidOperationException($"Failed to create notification. Status code: {response.StatusCode}");
+        }
     }
 
+    /// <summary>
+    /// Creates a new notification and sends it to all users with the specified role.
+    /// </summary>
+    /// <param name="notification">The new notification data.</param>
+    /// <param name="role">The role of the users to send the notification to.</param>
+    /// <param name="language">The language for localization.</param>
+    /// <param name="sendEmail">A boolean indicating whether to send an email notification.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public async Task CreateAndSendNotificationToUsersByRoleAsync(NotificationDto.NewNotification notification, RolesEnum role, string language = "en", bool sendEmail = false)
+    {
+        var requestUri = $"notification/role/{role}?language={language}&sendEmail={sendEmail}";
+        var response = await _httpClient.PostAsJsonAsync(requestUri, notification);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new InvalidOperationException($"Failed to create and send notification. Status code: {response.StatusCode}");
+        }
+    }
+
+    /// <summary>
+    /// Deletes a notification by its ID.
+    /// </summary>
+    /// <param name="id">The ID of the notification to delete.</param>
+    /// <returns>A boolean indicating whether the deletion was successful.</returns>
     public Task<bool> DeleteNotificationAsync(string id)
     {
         throw new NotImplementedException();
     }
 
+    /// <summary>
+    /// Retrieves all notifications.
+    /// </summary>
+    /// <param name="language">The language for the notifications.</param>
+    /// <returns>A collection of all notifications.</returns>
     public Task<IEnumerable<NotificationDto.ViewNotification>?> GetAllNotificationsAsync(string language = "en")
     {
         throw new NotImplementedException();
@@ -93,21 +148,46 @@ public class NotificationService : INotificationService
     }
 
 
+    /// <summary>
+    /// Retrieves a notification by its ID.
+    /// </summary>
+    /// <param name="id">The ID of the notification to retrieve.</param>
+    /// <param name="language">The language for the notification.</param>
+    /// <returns>The notification with the specified ID.</returns>
     public Task<NotificationDto.ViewNotification?> GetNotificationById(string id, string language = "en")
     {
         throw new NotImplementedException();
     }
 
+    /// <summary>
+    /// Retrieves read notifications for a specific user.
+    /// </summary>
+    /// <param name="userId">The ID of the user.</param>
+    /// <param name="language">The language for the notifications.</param>
+    /// <returns>A collection of read notifications for the user.</returns>
     public Task<IEnumerable<NotificationDto.ViewNotification>?> GetReadUserNotifications(string userId, string language = "en")
     {
         throw new NotImplementedException();
     }
 
+    /// <summary>
+    /// Retrieves unread notifications for a specific user.
+    /// </summary>
+    /// <param name="userId">The ID of the user.</param>
+    /// <param name="language">The language for the notifications.</param>
+    /// <returns>A collection of unread notifications for the user.</returns>
     public Task<IEnumerable<NotificationDto.ViewNotification>?> GetUnreadUserNotifications(string userId, string language = "en")
     {
         throw new NotImplementedException();
     }
 
+    /// <summary>
+    /// Retrieves notifications of a specific type for a user.
+    /// </summary>
+    /// <param name="userId">The ID of the user.</param>
+    /// <param name="type">The type of notifications to retrieve.</param>
+    /// <param name="language">The language for the notifications.</param>
+    /// <returns>A collection of notifications of the specified type for the user.</returns>
     public Task<IEnumerable<NotificationDto.ViewNotification>?> GetUserNotificationsByType(string userId, NotificationType type, string language = "en")
     {
         throw new NotImplementedException();

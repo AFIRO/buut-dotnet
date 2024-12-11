@@ -25,9 +25,8 @@ using Rise.Services.Batteries;
 using NLog.Web;
 using Rise.Server.LoggingEnrichers;
 using NLog;
+using Rise.Shared;
 using Rise.Services.Events.Battery;
-
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -91,6 +90,8 @@ builder.Services.AddSwaggerGen(options =>
 
 // Adding settings from the configuration
 builder.Services.Configure<BookingSettings>(builder.Configuration.GetSection("BookingSettings"));
+// Register EmailSettings
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.Configure<BatterySettings>(builder.Configuration.GetSection("BatterySettings"));
 
 // If not in testing environment, add authentication
@@ -141,6 +142,9 @@ builder.Services.AddScoped<BookingAllocationService>();
 builder.Services.AddScoped<BatteryCheckingService>();
 builder.Services.AddScoped<HealthService>();
 builder.Services.AddHostedService<DailyTaskService>();
+// Register EmailService
+builder.Services.AddScoped<IEmailService, EmailService>();
+
 
 // Register event dispatcher
 builder.Services.AddSingleton<IEventDispatcher, EventDispatcher>();

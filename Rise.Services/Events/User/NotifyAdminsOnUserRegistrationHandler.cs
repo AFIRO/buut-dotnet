@@ -11,6 +11,8 @@ namespace Rise.Services.Events.User;
 public class NotifyAdminsOnUserRegistrationHandler : IEventHandler<UserRegisteredEvent>
 {
     private readonly INotificationService _notificationService;
+
+    private readonly IEmailService _emailService;
     private readonly IUserService _userService;
     private readonly ILogger<NotifyAdminsOnUserRegistrationHandler> _logger;
 
@@ -23,10 +25,12 @@ public class NotifyAdminsOnUserRegistrationHandler : IEventHandler<UserRegistere
     public NotifyAdminsOnUserRegistrationHandler(
         INotificationService notificationService,
         IUserService userService,
+        IEmailService emailService,
         ILogger<NotifyAdminsOnUserRegistrationHandler> logger)
     {
         _notificationService = notificationService;
         _userService = userService;
+        _emailService = emailService;
         _logger = logger;
     }
 
@@ -73,10 +77,21 @@ public class NotifyAdminsOnUserRegistrationHandler : IEventHandler<UserRegistere
             Type = NotificationType.UserRegistration
         };
 
+        var email = new EmailMessage
+        {
+            To = admin.Email,
+            Subject = "New User Registered",
+            Title_EN = notification.Title_EN,
+            Title_NL = notification.Title_NL,
+            Message_EN = notification.Message_EN,
+            Message_NL = notification.Message_NL
+        };
+
         try
         {
             await _notificationService.CreateNotificationAsync(notification);
             _logger.LogInformation("Notification sent to Admin ID: {AdminId} for new User ID: {UserId}", admin.Id, @event.UserId);
+            await _emailService.SendEmailAsync(email);
         }
         catch (Exception ex)
         {

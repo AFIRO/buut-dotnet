@@ -103,11 +103,11 @@ public class NotificationController : ControllerBase
     /// <param name="language">The language for the notification.</param>
     /// <returns>An IActionResult containing the created notification.</returns>
     [HttpPost]
-    public async Task<IActionResult> CreateNotification([FromBody] NotificationDto.NewNotification notification, [FromQuery] string language = "en")
+    public async Task<IActionResult> CreateNotification([FromBody] NotificationDto.NewNotification notification, [FromQuery] string language = "en", [FromQuery] bool sendEmail = false)
     {
         try
         {
-            var createdNotification = await _notificationService.CreateNotificationAsync(notification, language);
+            var createdNotification = await _notificationService.CreateNotificationAsync(notification, language, sendEmail);
             _logger.LogInformation("Created new notification with ID {notificationId}.", createdNotification.NotificationId);
             return Ok(createdNotification);
         }
@@ -125,6 +125,28 @@ public class NotificationController : ControllerBase
         {
             _logger.LogError("An unexpected error occurred: {message}", ex.Message);
             return StatusCode(500, new { message = "An unexpected error occurred.", detail = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Creates a new notification and sends it to all users with the specified role.
+    /// </summary>
+    /// <param name="notification">The new notification data.</param>
+    /// <param name="role">The role of the users to send the notification to.</param>
+    /// <param name="language">The language for localization.</param>
+    /// <param name="sendEmail">A boolean indicating whether to send an email notification.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    [HttpPost("role/{role}")]
+    public async Task<IActionResult> CreateAndSendNotificationToUsersByRole([FromBody] NotificationDto.NewNotification notification, RolesEnum role, [FromQuery] string language = "en", [FromQuery] bool sendEmail = false)
+    {
+        try
+        {
+            await _notificationService.CreateAndSendNotificationToUsersByRoleAsync(notification, role, language, sendEmail);
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ex.Message);
         }
     }
 

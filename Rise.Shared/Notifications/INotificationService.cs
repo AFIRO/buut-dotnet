@@ -24,8 +24,18 @@ namespace Rise.Shared.Notifications
         /// </summary>
         /// <param name="notification">The notification to create.</param>
         /// <param name="language">The language of the notification.</param>
+        /// <param name="sendEmail">Indicates whether to send an email notification.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the created notification.</returns>
-        Task<NotificationDto.ViewNotification> CreateNotificationAsync(NotificationDto.NewNotification notification, String language = "en");
+        Task<NotificationDto.ViewNotification> CreateNotificationAsync(NotificationDto.NewNotification notification, String language = "en", bool sendEmail = false);
+        /// <summary>
+        /// Creates a new notification and sends it to all users with the specified role.
+        /// </summary>
+        /// <param name="notification">The new notification data.</param>
+        /// <param name="role">The role of the users to send the notification to.</param>
+        /// <param name="language">The language for localization.</param>
+        /// <param name="sendEmail">A boolean indicating whether to send an email notification.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        Task CreateAndSendNotificationToUsersByRoleAsync(NotificationDto.NewNotification notification, RolesEnum role, string language = "en", bool sendEmail = false);
         /// <summary>
         /// Updates an existing notification.
         /// </summary>

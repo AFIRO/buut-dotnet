@@ -1,4 +1,6 @@
 using Rise.Shared.Enums;
+using System.ComponentModel.DataAnnotations;
+
 
 
 /// <summary>
@@ -15,24 +17,28 @@ public class NotificationDto
         /// <summary>
         /// Gets or sets the English title of the notification.
         /// </summary>
+        [Required(ErrorMessage = "TitleENRequired")]
         public string Title_EN { get; set; } = default!;
         /// <summary>
         /// Gets or sets the Dutch title of the notification.
         /// </summary>
+        [Required(ErrorMessage = "TitleNLRequired")]
         public string Title_NL { get; set; } = default!;
 
         /// <summary>
         /// Gets or sets the English message of the notification.
         /// </summary>
+        [Required(ErrorMessage = "MessageENRequired")]
         public string Message_EN { get; set; } = default!;
         /// <summary>
         /// Gets or sets the Dutch message of the notification.
         /// </summary>
+        [Required(ErrorMessage = "MessageNLRequired")]
         public string Message_NL { get; set; } = default!;
         /// <summary>
         /// Gets or sets the user ID associated with the notification.
         /// </summary>
-        public string UserId { get; set; } = default!;
+        public string? UserId { get; set; } = default!;
         /// <summary>
         /// Gets or sets the type of the notification.
         /// </summary>

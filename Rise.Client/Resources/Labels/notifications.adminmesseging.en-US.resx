@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0"/>
+                <xsd:element name="comment" type="xsd:string" minOccurs="0"/>
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required"/>
+              <xsd:attribute name="xml:space" type="xsd:string" fixed="preserve"/>
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+
+<data name="AdminMesseging" xml:space="preserve">
+  <value>Message Users</value>
+</data>
+
+<data name="Title" xml:space="preserve">
+  <value>Message Users here:</value>
+</data>
+
+<!-- fields _________________________________________________________________ -->
+<data name="Title_EN" xml:space="preserve">
+  <value>English title</value>
+</data>
+
+<data name="Title_NL" xml:space="preserve">
+  <value>Dutch title</value>
+</data>
+
+<data name="Message_EN" xml:space="preserve">
+  <value>English message</value>
+</data>
+
+<data name="Message_NL" xml:space="preserve">
+  <value>Dutch message</value>
+</data>
+
+<data name="Send as Email" xml:space="preserve">
+  <value>Send as email</value>
+</data>
+
+<data name="Send Notification" xml:space="preserve">
+  <value>Send</value>
+</data>
+
+<data name="Role" xml:space="preserve">
+  <value>Select which group will recieve the notification:</value>
+</data>
+
+<data name="radio-admin" xml:space="preserve">
+  <value>Admins</value>
+</data>
+
+<data name="radio-user" xml:space="preserve">
+  <value>Users</value>
+</data>
+
+<data name="radio-agent" xml:space="preserve">
+  <value>Buut agents</value>
+</data>
+
+<!-- Errors___________________________________________________________________ -->
+
+<data name="TitleENRequired" xml:space="preserve">
+    <value>Title in English is required.</value>
+</data>
+<data name="TitleNLRequired" xml:space="preserve">
+    <value>Title in Dutch is required.</value>
+</data>
+<data name="MessageENRequired" xml:space="preserve">
+    <value>Message in English is required.</value>
+</data>
+<data name="MessageNLRequired" xml:space="preserve">
+    <value>Message in Dutch is required.</value>
+</data>
+<data name="FieldsRequired" xml:space="preserve">
+    <value>Please fill out every field to send a notification.</value>
+</data>
+
+<!-- Popup___________________________________________________________________ -->
+
+<data name="Confirmation" xml:space="preserve">
+    <value>Are you sure you want to send this notification?</value>
+</data>
+<data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+</data>
+<data name="Send" xml:space="preserve">
+    <value>Send</value>
+</data>
+
+<!-- SuccesMessage___________________________________________________________________ -->
+
+<data name="MessageSent" xml:space="preserve">
+    <value>The notification was succesfully send</value>
+</data>
+
+
+</root>
