@@ -28,7 +28,6 @@ using NLog;
 using Rise.Shared;
 using Rise.Services.Events.Battery;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add NLog as the logging provider
@@ -44,7 +43,7 @@ builder.Services.AddScoped<ClientIpAddressEnricher>();
 LogManager.Setup().LoadConfigurationFromFile("nlog.config");
 
 
-
+// Adding json services
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -56,6 +55,7 @@ builder.Services.AddControllers()
 
 builder.Services.AddEndpointsApiExplorer();
 
+// Adding Swagger for API documentation
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
@@ -94,29 +94,33 @@ builder.Services.Configure<BookingSettings>(builder.Configuration.GetSection("Bo
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.Configure<BatterySettings>(builder.Configuration.GetSection("BatterySettings"));
 
-
-builder.Services.AddAuthentication(options =>
+// If not in testing environment, add authentication
+if(!builder.Environment.IsEnvironment("Testing")) 
 {
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(options =>
-{
-    options.Authority = builder.Configuration["Auth0:Authority"];
-    options.Audience = builder.Configuration["Auth0:Audience"];
-    options.TokenValidationParameters = new TokenValidationParameters
+    builder.Services.AddAuthentication(options =>
     {
-        NameClaimType = ClaimTypes.NameIdentifier
-    };
-});
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    }).AddJwtBearer(options =>
+    {
+        options.Authority = builder.Configuration["Auth0:Authority"];
+        options.Audience = builder.Configuration["Auth0:Audience"];
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            NameClaimType = ClaimTypes.NameIdentifier
+        };
+    });
 
-builder.Services.AddAuth0AuthenticationClient(config =>
-{
-    config.Domain = builder.Configuration["Auth0:Authority"]!;
-    config.ClientId = builder.Configuration["Auth0:M2MClientId"];
-    config.ClientSecret = builder.Configuration["Auth0:M2MClientSecret"];
-});
-builder.Services.AddAuth0ManagementClient().AddManagementAccessToken();
+    builder.Services.AddAuth0AuthenticationClient(config =>
+    {
+        config.Domain = builder.Configuration["Auth0:Authority"]!;
+        config.ClientId = builder.Configuration["Auth0:M2MClientId"];
+        config.ClientSecret = builder.Configuration["Auth0:M2MClientSecret"];
+    });
+    builder.Services.AddAuth0ManagementClient().AddManagementAccessToken();
+}
 
+// Add the DbContext with the connection string from the configuration
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServer"));
@@ -125,7 +129,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseTriggers(options => options.AddTrigger<EntityBeforeSaveTrigger>());
 });
 
-// Register services
+// Register custom services
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IEquipmentService<BoatDto.ViewBoat, BoatDto.NewBoat, BoatDto.UpdateBoat>, BoatService>();
@@ -136,7 +140,7 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<BookingAllocator>();
 builder.Services.AddScoped<BookingAllocationService>();
 builder.Services.AddScoped<BatteryCheckingService>();
-
+builder.Services.AddScoped<HealthService>();
 builder.Services.AddHostedService<DailyTaskService>();
 // Register EmailService
 builder.Services.AddScoped<IEmailService, EmailService>();
@@ -165,8 +169,6 @@ builder.Services.AddScoped<IEventHandler<BatteryTooLongWithUserEvent>, NotifyOnB
 
 
 var app = builder.Build();
-
-
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -223,12 +225,19 @@ app.Use(async (context, next) =>
 app.MapControllers();
 app.MapFallbackToFile("index.html");
 
-using (var scope = app.Services.CreateScope())
-{
-    // Require a DbContext from the service provider and seed the database.
-    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    Seeder seeder = new(dbContext);
-    seeder.Seed();
+if(app.Environment.IsDevelopment()){
+    using (var scope = app.Services.CreateScope())
+    {
+        // Require a DbContext from the service provider and seed the database.
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        Seeder seeder = new(dbContext);
+        seeder.Seed();
+    }
 }
 
+
+
 app.Run();
+
+// needed for E2E tests
+public partial class Program{ }

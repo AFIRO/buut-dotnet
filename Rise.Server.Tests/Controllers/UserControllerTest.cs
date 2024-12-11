@@ -418,6 +418,9 @@ public class UserControllerTests
             [new RoleDto { Name = RolesEnum.User }]
         );
 
+        // Mock authenticated user context
+        _userController.ControllerContext = CreateMockControllerContext(user.Id, RolesEnum.User);
+
         _userServiceMock.Setup(s => s.GetUserByIdAsync(userId)).ReturnsAsync(user);
         _userServiceMock.Setup(s => s.SoftDeleteUserAsync(userId)).ReturnsAsync(true);
         _auth0UserServiceMock.Setup(a => a.SoftDeleteAuth0UserAsync(userId)).ReturnsAsync(true);
@@ -441,6 +444,9 @@ public class UserControllerTests
             .Setup(s => s.SoftDeleteUserAsync(userId))
             .ThrowsAsync(new UserNotFoundException($"User with ID {userId} not found."));
 
+        // Mock authenticated user context
+        _userController.ControllerContext = CreateMockControllerContext(userId, RolesEnum.User);
+
         // Act
         var result = await _userController.Delete(userId);
 
@@ -456,6 +462,9 @@ public class UserControllerTests
         // Arrange
         var userId = "1";
         _validationServiceMock.Setup(b => b.CheckActiveBookings(userId)).ReturnsAsync(true);
+
+        // Mock authenticated user context
+        _userController.ControllerContext = CreateMockControllerContext(userId, RolesEnum.User);
 
         // Act
         var result = await _userController.Delete(userId);
@@ -633,6 +642,9 @@ public class UserControllerTests
         _userServiceMock.Setup(s => s.GetUserByIdAsync(userId)).ReturnsAsync(user);
         _userServiceMock.Setup(s => s.SoftDeleteUserAsync(userId)).ReturnsAsync(true);
         _auth0UserServiceMock.Setup(a => a.SoftDeleteAuth0UserAsync(userId)).ReturnsAsync(true);
+
+        // Mock authenticated user context
+        _userController.ControllerContext = CreateMockControllerContext(user.Id, RolesEnum.User);
 
         // Act
         await _userController.Delete(userId);

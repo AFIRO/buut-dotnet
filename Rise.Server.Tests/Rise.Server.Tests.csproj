@@ -7,6 +7,12 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <WebApplicationFactoryContentRoot>
+            $(SolutionDir)Rise.Server
+        </WebApplicationFactoryContentRoot>
+    </PropertyGroup>
+
     <ItemGroup>
         <Using Include="Microsoft.Extensions.DependencyInjection" />
         <Using Include="Xunit" />
@@ -16,6 +22,7 @@
         <PackageReference Include="coverlet.collector" Version="6.0.2"><IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.0" />
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.10" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.10" />
         <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0">
@@ -31,6 +38,7 @@
         <PackageReference Include="Serilog.Sinks.XUnit" Version="3.0.5" />
         <PackageReference Include="Shouldly" Version="4.2.1" />
         <PackageReference Include="NSubstitute" Version="5.3.0" />
+        <PackageReference Include="Testcontainers.MsSql" Version="4.0.0" />
         <PackageReference Include="xunit" Version="2.9.2" />
         <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2"><IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
