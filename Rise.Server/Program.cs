@@ -27,6 +27,7 @@ using Rise.Server.LoggingEnrichers;
 using NLog;
 using Rise.Shared;
 using Rise.Services.Events.Battery;
+using Rise.Services.Mail;
 
 var builder = WebApplication.CreateBuilder(args);
 

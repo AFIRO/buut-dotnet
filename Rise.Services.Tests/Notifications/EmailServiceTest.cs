@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 using Rise.Shared;
+using Rise.Services.Mail;
 
 namespace Rise.Services.Tests
 {

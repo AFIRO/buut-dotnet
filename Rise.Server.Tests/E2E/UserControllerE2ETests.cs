@@ -17,58 +17,21 @@ using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Net;
-using System.Collections.Immutable;
+
 using Rise.Domain.Bookings;
 using Auth0.Core.Exceptions;
 
-public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<Program>>, IAsyncLifetime
+
+[Collection("IntegrationTests")]
+public class UserControllerE2ETests : BaseControllerE2ETests
 {
-    private readonly CustomWebApplicationFactory<Program> _factory;
-    private readonly HttpClient _client;
-    private readonly JsonSerializerOptions _jsonSerializerOptions;
+    public UserControllerE2ETests(CustomWebApplicationFactory<Program> factory) : base(factory) { }
 
-    private readonly Mock<IAuth0UserService> _mockAuth0UserService;
-
-    public UserControllerE2ETests(CustomWebApplicationFactory<Program> factory)
+    protected override void SeedData()
     {
-        _factory = factory;
-        _client = _factory.CreateClient();
-        _jsonSerializerOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
-
-        _jsonSerializerOptions.Converters.Add(new ImmutableListJsonConverter<RoleDto>());
-        _jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-
-        _mockAuth0UserService = _factory._mockAuth0UserService;
-    }
-
-
-    public async Task InitializeAsync()
-    {
-        await DeleteDb();
-        using var scope = _factory.Services.CreateScope();
+        using var scope = Factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        SeedTestData(dbContext);
-    }
 
-    public Task DisposeAsync()
-    {
-        // No cleanup required after each test
-        return Task.CompletedTask;
-    }
-
-    private async Task DeleteDb()
-    {
-        using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        await dbContext.Database.EnsureDeletedAsync(); // Delete the database to reset it
-        await dbContext.Database.EnsureCreatedAsync(); // Recreate the database
-    }
-
-    private static void SeedTestData(ApplicationDbContext context)
-    {
         // users id's
         string buutAgentAuth0Id = "auth0|6713ad784fda04f4b9ae2165";
         string userAuth0Id = "auth0|6713ad614fda04f4b9ae2156";
@@ -108,77 +71,60 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
         userPending.Roles.Add(rolePending);
 
         // adding users to the database
-        context.Users.AddRange(userAdmin, userUser, userBUUTAgent, userPending);
-        context.Roles.AddRange(roleAdmin, roleUser, roleBUUTAgent, rolePending);
+        dbContext.Users.AddRange(userAdmin, userUser, userBUUTAgent, userPending);
+        dbContext.Roles.AddRange(roleAdmin, roleUser, roleBUUTAgent, rolePending);
 
-        context.SaveChanges();
+        dbContext.SaveChanges();
     }
 
-    private string GenerateJwtToken(string name = "admin", string role = "Admin", string id = "auth0|6713ad524e8a8907fbf0d57f")
+
+    [Fact]
+    public async Task UserRegistration_Should_Create_User_In_Db()
     {
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes("YourSuperSecretKey12345YourSuperSecretKey12345");
-        var tokenDescriptor = new SecurityTokenDescriptor
-        {
-            Subject = new ClaimsIdentity(new[]
+        // Arrange
+        var testUser = new UserDto.RegistrationUser(
+            Id: "registerTest",
+            FirstName: "Test",
+            LastName: "User",
+            Email: $"testuser_{Guid.NewGuid()}@example.com", // Ensure unique email
+            PhoneNumber: "0499882244",
+            Password: "Test@123",
+            Address: new AddressDto.GetAdress
             {
-            new Claim(ClaimTypes.Name, name),
-            new Claim(ClaimTypes.Role, role),
-            new Claim (ClaimTypes.NameIdentifier, id)
-        }),
-            Expires = DateTime.UtcNow.AddHours(1),
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-            Audience = "test-audience",
-            Issuer = "test-issuer"
+                Street = StreetEnum.AFRIKALAAN,
+                HouseNumber = "123"
+            },
+            BirthDate: DateTime.UtcNow.AddYears(-20)
+        );
+
+        Factory.mockAuth0UserService.Setup(service => service.RegisterUserAuth0(It.IsAny<UserDto.RegistrationUser>())).ReturnsAsync(testUser);
+        // Act
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/api/User")
+        {
+            Content = JsonContent.Create(testUser)
         };
-        var token = tokenHandler.CreateToken(tokenDescriptor);
-        return tokenHandler.WriteToken(token);
+
+        var response = await Client.SendAsync(request);
+
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        // Verify the user exists in the database
+        using var scope = Factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var dbUser = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == testUser.Email);
+
+        Assert.NotNull(dbUser); // Verify the user exists in the database
+        Assert.Equal(testUser.FirstName, dbUser.FirstName);
+
+        // Verify email was sent
+        Factory.mockEmailService.Verify(
+            service => service.SendEmailAsync(
+                It.Is<EmailMessage>(mail => mail.To == "admin@hogent.be")),
+            Times.Once);
     }
-
-
-    // [Fact]
-    // public async Task UserRegistration_Should_Create_User_In_Db()
-    // {
-    //     // Arrange
-    //     var testUser = new UserDto.RegistrationUser(
-    //         Id: "registerTest",
-    //         FirstName: "Test",
-    //         LastName: "User",
-    //         Email: $"testuser{Guid.NewGuid()}@example.com", // Ensure unique email
-    //         PhoneNumber: "123456789",
-    //         Password: "Test@123",
-    //         Address: new AddressDto.GetAdress
-    //         {
-    //             Street = StreetEnum.AFRIKALAAN,
-    //             HouseNumber = "123",
-    //             Bus = "A"
-    //         },
-    //         BirthDate: DateTime.UtcNow
-    //     );
-
-    //     _mockAuth0UserService.Setup(service => service.RegisterUserAuth0(It.IsAny<UserDto.RegistrationUser>())).ReturnsAsync(testUser);
-    //     // Act
-
-    //     var request = new HttpRequestMessage(HttpMethod.Post, "/api/User")
-    //     {
-    //         Content = JsonContent.Create(testUser)
-    //     };
-
-    //     var response = await _client.SendAsync(request);
-
-
-
-    //     // Assert
-    //     response.EnsureSuccessStatusCode();
-
-    //     // Verify the user exists in the database
-    //     using var scope = _factory.Services.CreateScope();
-    //     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    //     var dbUser = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == testUser.Email);
-
-    //     Assert.NotNull(dbUser); // Verify the user exists in the database
-    //     Assert.Equal(testUser.FirstName, dbUser.FirstName);
-    // }
 
 
     [Fact]
@@ -201,7 +147,7 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
             BirthDate: DateTime.UtcNow
         );
 
-        _mockAuth0UserService.Setup(service => service.RegisterUserAuth0(It.IsAny<UserDto.RegistrationUser>()))
+        Factory.mockAuth0UserService.Setup(service => service.RegisterUserAuth0(It.IsAny<UserDto.RegistrationUser>()))
             .ThrowsAsync(new UserAlreadyExistsException(message: "User already exists"));
 
         var request = new HttpRequestMessage(HttpMethod.Post, "/api/User")
@@ -210,7 +156,7 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
         };
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await Client.SendAsync(request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
@@ -236,7 +182,7 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
             BirthDate: DateTime.UtcNow
         );
 
-        _mockAuth0UserService.Setup(service => service.RegisterUserAuth0(It.IsAny<UserDto.RegistrationUser>()))
+        Factory.mockAuth0UserService.Setup(service => service.RegisterUserAuth0(It.IsAny<UserDto.RegistrationUser>()))
             .ThrowsAsync(new Exception("Simulated exception"));
 
         var request = new HttpRequestMessage(HttpMethod.Post, "/api/User")
@@ -245,7 +191,7 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
         };
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await Client.SendAsync(request);
 
         // Assert
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
@@ -262,12 +208,12 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await Client.SendAsync(request);
 
         // Assert
         response.EnsureSuccessStatusCode();
         var jsonResponse = await response.Content.ReadAsStringAsync();
-        var users = JsonSerializer.Deserialize<IEnumerable<UserDto.UserBase>>(jsonResponse, _jsonSerializerOptions);
+        var users = JsonSerializer.Deserialize<IEnumerable<UserDto.UserBase>>(jsonResponse, JsonOptions);
 
         Assert.NotNull(users);
         Assert.Equal(4, users.Count());
@@ -282,7 +228,7 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await Client.SendAsync(request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -292,7 +238,7 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
     public async Task GetAuth0Users_WhenAuth0ServiceUnavailable_Should_Return_ServiceUnavailable()
     {
         // Arrange
-        _mockAuth0UserService.Setup(service => service.GetAllUsersAsync())
+        Factory.mockAuth0UserService.Setup(service => service.GetAllUsersAsync())
             .ThrowsAsync(new ErrorApiException("Simulated external service exception", new Exception()));
 
         var token = GenerateJwtToken("admin", "Admin");
@@ -300,7 +246,7 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await Client.SendAsync(request);
 
         // Assert
         Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
@@ -321,7 +267,7 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
         testUser.Roles.Add(roleUser);
 
 
-        using var scope = _factory.Services.CreateScope();
+        using var scope = Factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         dbContext.Users.Add(testUser);
         await dbContext.SaveChangesAsync();
@@ -331,12 +277,12 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await Client.SendAsync(request);
 
         // Assert
         response.EnsureSuccessStatusCode();
         var jsonResponse = await response.Content.ReadAsStringAsync();
-        var user = JsonSerializer.Deserialize<UserDto.UserBase>(jsonResponse, _jsonSerializerOptions);
+        var user = JsonSerializer.Deserialize<UserDto.UserBase>(jsonResponse, JsonOptions);
 
         Assert.NotNull(user);
         Assert.Equal(testUser.Id, user.Id);
@@ -355,12 +301,12 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await Client.SendAsync(request);
 
         // Assert
         response.EnsureSuccessStatusCode();
         var jsonResponse = await response.Content.ReadAsStringAsync();
-        var user = JsonSerializer.Deserialize<UserDto.UserBase>(jsonResponse, _jsonSerializerOptions);
+        var user = JsonSerializer.Deserialize<UserDto.UserBase>(jsonResponse, JsonOptions);
 
         Assert.NotNull(user);
         Assert.Equal(userId, user.Id);
@@ -376,7 +322,7 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await Client.SendAsync(request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -392,67 +338,67 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await Client.SendAsync(request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
 
-    // [Fact]
-    // public async Task UserUpdate_AsUser_Should_Modify_User_Details()
-    // {
-    //     // Arrange
-    //     var userId = "testUserId";
-    //     var address4 = new Address("Deckerstraat", "6");
-    //     var testUser = new User(userId, "Test", "User", "testuser@exaample.com", DateTime.UtcNow.AddYears(-20), address4, "+32474771836");
-    //     Role roleUser = new Role(RolesEnum.User);
-    //     testUser.Roles.Add(roleUser);
+    [Fact]
+    public async Task UserUpdate_AsUser_Should_Modify_User_Details()
+    {
+        // Arrange
+        var userId = "testUserId";
+        var address4 = new Address("Deckerstraat", "6");
+        var testUser = new User(userId, "Test", "User", "testuser@exaample.com", DateTime.UtcNow.AddYears(-20), address4, "+32474771836");
+        Role roleUser = new Role(RolesEnum.User);
+        testUser.Roles.Add(roleUser);
 
-    //     using var scope = _factory.Services.CreateScope();
-    //     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    //     dbContext.Users.Add(testUser);
-    //     await dbContext.SaveChangesAsync();
+        using var scope = Factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        dbContext.Users.Add(testUser);
+        await dbContext.SaveChangesAsync();
 
-    //     var updatedUser = new UserDto.UpdateUser
-    //     {
-    //         Id = userId,
-    //         FirstName = "Updated",
-    //         LastName = "User",
-    //         Email = testUser.Email,
-    //         BirthDate = DateTime.UtcNow.AddYears(-20).AddDays(5)
-    //     };
+        var updatedUser = new UserDto.UpdateUser
+        {
+            Id = userId,
+            FirstName = "Updated",
+            LastName = "User",
+            Email = testUser.Email,
+            BirthDate = DateTime.UtcNow.AddYears(-20).AddDays(5)
+        };
 
-    //     var request = new HttpRequestMessage(HttpMethod.Put, $"/api/User")
-    //     {
-    //         Content = JsonContent.Create(updatedUser)
-    //     };
-    //     var token = GenerateJwtToken("regularUser", "User", userId); // Generate a valid JWT token for the admin
-    //     // var token = GenerateJwtToken();
-    //     request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/User")
+        {
+            Content = JsonContent.Create(updatedUser)
+        };
+        var token = GenerateJwtToken("regularUser", "User", userId); // Generate a valid JWT token for the admin
+        // var token = GenerateJwtToken();
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
 
-    //     _mockAuth0UserService.Setup(service => service.UpdateUserAuth0(It.IsAny<UserDto.UpdateUser>())).ReturnsAsync(true);
-    //     // Act
-    //     var response = await _client.SendAsync(request);
+        Factory.mockAuth0UserService.Setup(service => service.UpdateUserAuth0(It.IsAny<UserDto.UpdateUser>())).ReturnsAsync(true);
+        // Act
+        var response = await Client.SendAsync(request);
 
-    //     // Assert
-    //     response.EnsureSuccessStatusCode();
+        // Assert
+        response.EnsureSuccessStatusCode();
 
-    //     var dbUser = await dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
-    //     Assert.NotNull(dbUser);
-    //     Assert.Equal(updatedUser.FirstName, dbUser.FirstName);
-    //     Assert.Equal(updatedUser.LastName, dbUser.LastName);
-    //     Assert.Equal(updatedUser.Email, dbUser.Email);
-    //     Assert.Equal(updatedUser.BirthDate, dbUser.BirthDate);
+        var dbUser = await dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
+        Assert.NotNull(dbUser);
+        Assert.Equal(updatedUser.FirstName, dbUser.FirstName);
+        Assert.Equal(updatedUser.LastName, dbUser.LastName);
+        Assert.Equal(updatedUser.Email, dbUser.Email);
+        Assert.Equal(updatedUser.BirthDate, dbUser.BirthDate);
 
-    //     //Check Admin recieved notifcation
-    //     var admin = await dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Roles.Any(r => r.Name == RolesEnum.Admin));
-    //     Assert.NotNull(admin);
-    //     var Notification = await dbContext.Notifications.AsNoTracking().FirstOrDefaultAsync(n => n.UserId == admin.Id);
-    //     Assert.NotNull(Notification);
-    //     Assert.Equal(Notification.Title_EN, $"User Updated: {testUser.FirstName} {testUser.LastName}");
-    // }
+        //Check Admin recieved notifcation
+        var admin = await dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Roles.Any(r => r.Name == RolesEnum.Admin));
+        Assert.NotNull(admin);
+        var Notification = await dbContext.Notifications.AsNoTracking().FirstOrDefaultAsync(n => n.UserId == admin.Id);
+        Assert.NotNull(Notification);
+        Assert.Equal(Notification.Title_EN, $"User Updated: {testUser.FirstName} {testUser.LastName}");
+    }
 
     [Fact]
     public async Task UserUpdate_AsWrongUser_Should_Return_Forbid()
@@ -465,7 +411,7 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
         Role roleUser = new Role(RolesEnum.User);
         testUser.Roles.Add(roleUser);
 
-        using var scope = _factory.Services.CreateScope();
+        using var scope = Factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         dbContext.Users.Add(testUser);
         await dbContext.SaveChangesAsync();
@@ -488,9 +434,9 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
 
-        _mockAuth0UserService.Setup(service => service.UpdateUserAuth0(It.IsAny<UserDto.UpdateUser>())).ReturnsAsync(true);
+        Factory.mockAuth0UserService.Setup(service => service.UpdateUserAuth0(It.IsAny<UserDto.UpdateUser>())).ReturnsAsync(true);
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await Client.SendAsync(request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -506,7 +452,7 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
         Role roleUser = new Role(RolesEnum.User);
         testUser.Roles.Add(roleUser);
 
-        using var scope = _factory.Services.CreateScope();
+        using var scope = Factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         dbContext.Users.Add(testUser);
         await dbContext.SaveChangesAsync();
@@ -529,9 +475,9 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
 
-        _mockAuth0UserService.Setup(service => service.UpdateUserAuth0(It.IsAny<UserDto.UpdateUser>())).ReturnsAsync(true);
+        Factory.mockAuth0UserService.Setup(service => service.UpdateUserAuth0(It.IsAny<UserDto.UpdateUser>())).ReturnsAsync(true);
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await Client.SendAsync(request);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -559,9 +505,9 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
 
-        _mockAuth0UserService.Setup(service => service.UpdateUserAuth0(It.IsAny<UserDto.UpdateUser>())).ReturnsAsync(true);
+        Factory.mockAuth0UserService.Setup(service => service.UpdateUserAuth0(It.IsAny<UserDto.UpdateUser>())).ReturnsAsync(true);
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await Client.SendAsync(request);
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -577,7 +523,7 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
         Role roleUser = new Role(RolesEnum.User);
         testUser.Roles.Add(roleUser);
 
-        using var scope = _factory.Services.CreateScope();
+        using var scope = Factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         dbContext.Users.Add(testUser);
         await dbContext.SaveChangesAsync();
@@ -599,9 +545,9 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
 
-        _mockAuth0UserService.Setup(service => service.UpdateUserAuth0(It.IsAny<UserDto.UpdateUser>())).ReturnsAsync(true);
+        Factory.mockAuth0UserService.Setup(service => service.UpdateUserAuth0(It.IsAny<UserDto.UpdateUser>())).ReturnsAsync(true);
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await Client.SendAsync(request);
 
         // Assert
         response.EnsureSuccessStatusCode();
@@ -624,7 +570,7 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
     public async Task UpdateUser_WhenExceptionOccurs_Should_Return_InternalServerError()
     {
         // Arrange
-            string userId = "auth0|6713ad614fda04f4b9ae2156";
+        string userId = "auth0|6713ad614fda04f4b9ae2156";
         var updatedUser = new UserDto.UpdateUser
         {
             Id = userId,
@@ -634,7 +580,7 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
             BirthDate = DateTime.UtcNow.AddYears(-20)
         };
 
-        _mockAuth0UserService.Setup(service => service.UpdateUserAuth0(It.IsAny<UserDto.UpdateUser>()))
+        Factory.mockAuth0UserService.Setup(service => service.UpdateUserAuth0(It.IsAny<UserDto.UpdateUser>()))
             .ThrowsAsync(new Exception("Simulated exception"));
 
         var request = new HttpRequestMessage(HttpMethod.Put, "/api/User")
@@ -646,55 +592,55 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await Client.SendAsync(request);
 
         // Assert
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
     }
 
 
-    // [Fact]
-    // public async Task DeleteUser_AsUser_Should_Remove_User_From_Db()
-    // {
-    //     // Arrange
-    //     var userId = "testUserId";
-    //     var address4 = new Address("Deckerstraat", "6");
-    //     var testUser = new User(userId, "Test", "User", "testuser@exaample.com", DateTime.UtcNow.AddYears(-20), address4, "+32474771836");
-    //     Role roleUser = new Role(RolesEnum.User);
-    //     testUser.Roles.Add(roleUser);
+    [Fact]
+    public async Task DeleteUser_AsUser_Should_Remove_User_From_Db()
+    {
+        // Arrange
+        var userId = "testUserId";
+        var address4 = new Address("Deckerstraat", "6");
+        var testUser = new User(userId, "Test", "User", "testuser@exaample.com", DateTime.UtcNow.AddYears(-20), address4, "+32474771836");
+        Role roleUser = new Role(RolesEnum.User);
+        testUser.Roles.Add(roleUser);
 
 
-    //     using var scope = _factory.Services.CreateScope();
-    //     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    //     dbContext.Users.Add(testUser);
-    //     await dbContext.SaveChangesAsync();
+        using var scope = Factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        dbContext.Users.Add(testUser);
+        await dbContext.SaveChangesAsync();
 
 
-    //     _mockAuth0UserService.Setup(service => service.SoftDeleteAuth0UserAsync(It.IsAny<string>())).ReturnsAsync(true);
+        Factory.mockAuth0UserService.Setup(service => service.SoftDeleteAuth0UserAsync(It.IsAny<string>())).ReturnsAsync(true);
 
-    //     var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/User/{userId}/softdelete");
-    //     // var token = GenerateJwtToken("admin", "Admin"); // Generate a valid JWT token for the admin
-    //     var token = GenerateJwtToken("regularUser", "User", userId);
-    //     request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/User/{userId}/softdelete");
+        // var token = GenerateJwtToken("admin", "Admin"); // Generate a valid JWT token for the admin
+        var token = GenerateJwtToken("regularUser", "User", userId);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-    //     // Act
-    //     var response = await _client.SendAsync(request);
+        // Act
+        var response = await Client.SendAsync(request);
 
-    //     // Assert
-    //     response.EnsureSuccessStatusCode();
+        // Assert
+        response.EnsureSuccessStatusCode();
 
-    //     //Check User deleted
-    //     var dbUser = await dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
-    //     Assert.NotNull(dbUser);
-    //     Assert.True(dbUser.IsDeleted);
+        //Check User deleted
+        var dbUser = await dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
+        Assert.NotNull(dbUser);
+        Assert.True(dbUser.IsDeleted);
 
-    //     //Check Admin recieved notifcation
-    //     var admin = await dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Roles.Any(r => r.Name == RolesEnum.Admin));
-    //     Assert.NotNull(admin);
-    //     var Notification = await dbContext.Notifications.AsNoTracking().FirstOrDefaultAsync(n => n.UserId == admin.Id);
-    //     Assert.NotNull(Notification);
-    //     Assert.Equal(Notification.Title_EN, $"User Deleted : {dbUser.FirstName} {dbUser.LastName}");
-    // }
+        //Check Admin recieved notifcation
+        var admin = await dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Roles.Any(r => r.Name == RolesEnum.Admin));
+        Assert.NotNull(admin);
+        var Notification = await dbContext.Notifications.AsNoTracking().FirstOrDefaultAsync(n => n.UserId == admin.Id);
+        Assert.NotNull(Notification);
+        Assert.Equal(Notification.Title_EN, $"User Deleted : {dbUser.FirstName} {dbUser.LastName}");
+    }
 
     [Fact]
     public async Task DeleteUser_AsAdmin_Should_Remove_User_From_Db()
@@ -707,13 +653,13 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
         testUser.Roles.Add(roleUser);
 
 
-        using var scope = _factory.Services.CreateScope();
+        using var scope = Factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         dbContext.Users.Add(testUser);
         await dbContext.SaveChangesAsync();
 
 
-        _mockAuth0UserService.Setup(service => service.SoftDeleteAuth0UserAsync(It.IsAny<string>())).ReturnsAsync(true);
+        Factory.mockAuth0UserService.Setup(service => service.SoftDeleteAuth0UserAsync(It.IsAny<string>())).ReturnsAsync(true);
 
         var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/User/{userId}/softdelete");
         var token = GenerateJwtToken(); // Generate a valid JWT token for the admin
@@ -721,7 +667,7 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await Client.SendAsync(request);
 
         // Assert
         response.EnsureSuccessStatusCode();
@@ -750,20 +696,20 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
 
         var booking = new Booking(DateTime.UtcNow, userId, TimeSlot.Afternoon);
 
-        using var scope = _factory.Services.CreateScope();
+        using var scope = Factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         dbContext.Users.Add(testUser);
         dbContext.Bookings.Add(booking);
         await dbContext.SaveChangesAsync();
 
-        _mockAuth0UserService.Setup(service => service.SoftDeleteAuth0UserAsync(It.IsAny<string>())).ReturnsAsync(true);
+        Factory.mockAuth0UserService.Setup(service => service.SoftDeleteAuth0UserAsync(It.IsAny<string>())).ReturnsAsync(true);
 
         var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/User/{userId}/softdelete");
         var token = GenerateJwtToken("regularUser", "User", userId);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await Client.SendAsync(request);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -777,10 +723,10 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
         // Arrange
         var userId = "testUserId";
 
-        using var scope = _factory.Services.CreateScope();
+        using var scope = Factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-        _mockAuth0UserService.Setup(service => service.SoftDeleteAuth0UserAsync(It.IsAny<string>())).ReturnsAsync(true);
+        Factory.mockAuth0UserService.Setup(service => service.SoftDeleteAuth0UserAsync(It.IsAny<string>())).ReturnsAsync(true);
 
         var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/User/{invalidUserId}/softdelete");
         // var token = GenerateJwtToken("admin", "Admin"); // Generate a valid JWT token for the admin
@@ -788,7 +734,7 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await Client.SendAsync(request);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -802,10 +748,10 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
         // Arrange
         var userId = "testUserId";
 
-        using var scope = _factory.Services.CreateScope();
+        using var scope = Factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-        _mockAuth0UserService.Setup(service => service.SoftDeleteAuth0UserAsync(It.IsAny<string>())).ReturnsAsync(true);
+        Factory.mockAuth0UserService.Setup(service => service.SoftDeleteAuth0UserAsync(It.IsAny<string>())).ReturnsAsync(true);
 
         var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/User/{invalidUserId}/softdelete");
 
@@ -813,7 +759,7 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await Client.SendAsync(request);
 
         // Assert
         Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
@@ -824,7 +770,7 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
     {
         // Arrange
         string userId = "auth0|6713ad614fda04f4b9ae2156";
-        _mockAuth0UserService.Setup(service => service.SoftDeleteAuth0UserAsync(It.IsAny<string>()))
+        Factory.mockAuth0UserService.Setup(service => service.SoftDeleteAuth0UserAsync(It.IsAny<string>()))
             .ThrowsAsync(new DatabaseOperationException("Simulated database exception", new Exception()));
 
         var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/User/{userId}/softdelete");
@@ -832,7 +778,7 @@ public class UserControllerE2ETests : IClassFixture<CustomWebApplicationFactory<
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await Client.SendAsync(request);
 
         // Assert
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);

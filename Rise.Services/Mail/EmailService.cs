@@ -4,6 +4,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Rise.Shared;
 
+namespace Rise.Services.Mail;
+
 /// <summary>
 /// Service for sending emails.
 /// </summary>
