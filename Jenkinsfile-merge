@@ -6,7 +6,7 @@ pipeline {
     }
 
     environment {
-        JENKINS_SERVER = 'http://139.162.132.174:8080'
+        JENKINS_SERVER = 'http://139.162.180.76:8080'
         DOTNET_PROJECT_PATH = 'Rise.Server/Rise.Server.csproj'
         REPO_OWNER = "HOGENT-RISE"
         REPO_NAME = "dotnet-2425-tiao1"
@@ -119,37 +119,46 @@ pipeline {
                 }
             }
         }
-/*
+
+
         stage('Coverage Report') {
             steps {
                 script {
-                    def testOutput = sh(script: "dotnet test ${DOTNET_TEST_PATH} --collect \"XPlat Code Coverage\"", returnStdout: true).trim()
-                    def coverageFiles = testOutput.split('\n').findAll { it.contains('coverage.cobertura.xml') }.join(';')
-                    echo "Coverage files: ${coverageFiles}"
-
-                    if (coverageFiles) {
+                    sh "mkdir -p /var/lib/jenkins/agent/workspace/Dotnet-test-Pipeline/coverage/"
+        
+                    def coverageFiles = sh(script: """
+                        find Rise.*/TestResults -type f -name 'coverage.cobertura.xml'
+                    """, returnStdout: true).trim().split("\n")
+        
+                    if (coverageFiles.size() > 0) {
+                        echo "Found coverage files: ${coverageFiles.join(', ')}"
+        
+                        coverageFiles.each { file ->
+                            sh "cp ${file} /var/lib/jenkins/agent/workspace/Dotnet-test-Pipeline/coverage/"
+                        }
+        
                         sh """
-                            mkdir -p /var/lib/jenkins/agent/workspace/dotnet_pipeline/coverage-report/
-                            mkdir -p /var/lib/jenkins/agent/workspace/dotnet_pipeline/coverage/
-                            cp ${coverageFiles} /var/lib/jenkins/agent/workspace/dotnet_pipeline/coverage/
-                            /home/jenkins/.dotnet/tools/reportgenerator -reports:/var/lib/jenkins/agent/workspace/dotnet_pipeline/coverage/coverage.cobertura.xml -targetdir:/var/lib/jenkins/agent/workspace/dotnet_pipeline/coverage-report/ -reporttype:Html
+                            /home/jenkins/.dotnet/tools/reportgenerator \
+                            -reports:/var/lib/jenkins/agent/workspace/Dotnet-test-Pipeline/coverage/*.cobertura.xml \
+                            -targetdir:/var/lib/jenkins/agent/workspace/Dotnet-test-Pipeline/coverage-report/ \
+                            -reporttype:Html
                         """
                     } else {
                         error 'No coverage files found'
                     }
                 }
+        
                 echo 'Publishing coverage report...'
-                publishHTML([ 
+                publishHTML([
                     allowMissing: false,
                     alwaysLinkToLastBuild: true,
                     keepAll: true,
-                    reportDir: '/var/lib/jenkins/agent/workspace/dotnet_pipeline/coverage-report',
+                    reportDir: '/var/lib/jenkins/agent/workspace/Dotnet-test-Pipeline/coverage-report',
                     reportFiles: 'index.html',
                     reportName: 'Coverage Report'
                 ])
             }
         }
-    */
     }
 
     post {
