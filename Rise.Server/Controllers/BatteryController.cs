@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Rise.Shared.Batteries;
 using Rise.Shared.Bookings;
@@ -172,7 +173,7 @@ namespace Rise.Server.Controllers
                     throw new InvalidOperationException("User is not authenticated or NameIdentifier claim is missing.");
                 }
                 string authenticatedUserId = claim.Value;
-                if (userId != userId)
+                if (userId != authenticatedUserId)
                 {
                     throw new InvalidOperationException("Authenticated user and requested user do not match");
                 }
@@ -181,6 +182,11 @@ namespace Rise.Server.Controllers
                 var holder = await _batteryService.ClaimBatteryAsGodparentAsync(authenticatedUserId, batteryId);
 
                 return Ok(holder);
+            }
+            catch (InvalidOperationException e)
+            {
+                _logger.LogError(e, "Error occurred during Claiming of the battery");
+                return BadRequest(e.Message);
             }
             catch (Exception e)
             {
