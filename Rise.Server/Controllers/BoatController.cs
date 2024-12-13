@@ -1,5 +1,4 @@
-
-
+using Ardalis.GuardClauses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Rise.Server.Controllers;
@@ -17,7 +16,8 @@ public class BoatController : ControllerBase
     /// Initializes a new instance of the <see cref="BoatController"/> class.
     /// </summary>
     /// <param name="boatService">The service to manage boat-related operations.</param>
-    public BoatController(IEquipmentService<BoatDto.ViewBoat, BoatDto.NewBoat, BoatDto.UpdateBoat> boatService, ILogger<BoatController> logger)
+    public BoatController(IEquipmentService<BoatDto.ViewBoat, BoatDto.NewBoat, BoatDto.UpdateBoat> boatService,
+        ILogger<BoatController> logger)
     {
         _boatService = boatService;
         _logger = logger;
@@ -48,7 +48,6 @@ public class BoatController : ControllerBase
         }
     }
 
-
     /// <summary>
     /// Creates a new boat.
     /// </summary>
@@ -68,6 +67,7 @@ public class BoatController : ControllerBase
             _logger.LogWarning("Boat details cannot be null.");
             return BadRequest("Boat details can't be null");
         }
+
         try
         {
             var createdBoat = await _boatService.CreateAsync(boat);
@@ -112,18 +112,21 @@ public class BoatController : ControllerBase
 
         try
         {
-
             var updated = await _boatService.UpdateAsync(boat);
             _logger.LogInformation("Updating item with ID {Id}, New Name: {Name}", boat.id, boat.name);
             if (updated)
             {
-
                 _logger.LogInformation("Boat with ID {Boat} updated successfully.", id);
                 return NoContent(); // Explicitly return NoContentResult
             }
 
             _logger.LogWarning("Boat with ID {BoatId} update failed.", id);
             return NotFound($"Boat with ID '{id}' was not found.");
+        }
+        catch (NotFoundException ex)
+        {
+            _logger.LogError(ex, "Boat with ID {BoatId} not found.", id);
+            return StatusCode(NotFound().StatusCode, ex.Message);
         }
         catch (Exception ex)
         {
@@ -157,6 +160,11 @@ public class BoatController : ControllerBase
 
             _logger.LogWarning("Boat with ID {BoatId} deletion failed.", id);
             return NotFound($"Boat with ID '{id}' was not found.");
+        }
+        catch (NotFoundException ex)
+        {
+            _logger.LogError(ex, "Boat with ID {BoatId} not found.", id);
+            return StatusCode(NotFound().StatusCode, ex.Message);
         }
         catch (Exception ex)
         {
