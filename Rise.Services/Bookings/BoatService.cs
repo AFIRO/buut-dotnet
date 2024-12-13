@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Ardalis.GuardClauses;
 using Microsoft.EntityFrameworkCore;
 using Rise.Persistence;
 using Rise.Shared.Boats;
@@ -75,13 +76,18 @@ public class BoatService : IEquipmentService<BoatDto.ViewBoat, BoatDto.NewBoat, 
     {
         try
         {
-            var entity = await _dbContext.Boats.FindAsync(boat.id) ?? throw new Exception("Boat not found");
+            var entity = await _dbContext.Boats.FindAsync(boat.id) ?? throw new NotFoundException("Boat", boat.id);
             entity.Name = boat.name;
             _dbContext.Boats.Update(entity);
             int response = await _dbContext.SaveChangesAsync();
 
             _logger.LogInformation("Boat with ID {BoatId} updated successfully.", boat.id);
             return response > 0;
+        }
+        catch (NotFoundException ex)
+        {
+            _logger.LogError(ex, "Boat with ID {BoatId} not found.", boat.id);
+            throw;
         }
         catch (ArgumentException ex)
         {
@@ -126,13 +132,18 @@ public class BoatService : IEquipmentService<BoatDto.ViewBoat, BoatDto.NewBoat, 
     {
         try
         {
-            var entity = await _dbContext.Boats.FindAsync(equipmentId) ?? throw new Exception("Boat not found");
+            var entity = await _dbContext.Boats.FindAsync(equipmentId) ?? throw new NotFoundException("BoatId", equipmentId);
 
             entity.SoftDelete();
             _dbContext.Boats.Update(entity);
             int response = await _dbContext.SaveChangesAsync();
             _logger.LogInformation("Boat with ID {BoatId} deleted successfully.", equipmentId);
             return response > 0;
+        }
+        catch (NotFoundException ex)
+        {
+            _logger.LogError(ex, "Boat with ID {BoatId} not found.", equipmentId);
+            throw;
         }
         catch (ArgumentException ex)
         {

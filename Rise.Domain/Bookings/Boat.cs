@@ -34,6 +34,20 @@ public class Boat : Entity
         CountBookings = countBookings;
         ListComments = listComments;
     }
+    
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Boat"/> class with the specified details.
+    /// </summary>
+    /// <param name="boatId">The id of the boat</param>
+    /// <param name="name">The name of the boat.</param>
+    /// <param name="countBookings">The amount of bookings that has been done.</param>
+    /// <param name="listComments">A list with comments.</param>
+    public Boat(string boatId, string name, int countBookings, List<string> listComments) : this(name)
+    {
+        Id = boatId;
+        CountBookings = countBookings;
+        ListComments = listComments;
+    }
 
     #region Properties
 

@@ -45,6 +45,14 @@ public class Booking : Entity
         UserId = userId;
         AddTimeSlot(timeSlot);
     }
+    
+    public Booking(string id, DateTime bookingDate, string userId, TimeSlot timeSlot)
+    {
+        Id = id;
+        BookingDate = bookingDate;
+        UserId = userId;
+        AddTimeSlot(timeSlot);
+    }
 
     #endregion
 
