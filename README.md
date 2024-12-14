@@ -1,14 +1,10 @@
-# Rise - TIAO1
+## Buut-dotnet
 
-## Team Members
-- Glen Heyvaert - glen.heyvaert@student.hogent.be - glenHeyvaert
-- Andreeas Firoiu - andreeas.firoiu@student.hogent.be - AFIRO
-- Lorenz De Bie - lorenz.debie@student.hogent.be - Lorenzdebie
-- Fedor Danilov - fedor.danilov@student.hogent.be - FedDanPav
-- Keoma Plovie - keoma.plovie@student.hogent.be - kpHoGent
-- Robin Benoot - robin.benoot@student.hogent.be - BenootRobin
-- Robin Wyffels - robin.wyffels@student.hogent.be - WyffelsRobin
-- Andries Ulenaers - andries.Ulenaers@student.hogent.be - Andries-U
+.net and blazor application created during a school project in an internal repository in 2024. 
+
+Copied here for portfolio purposes.
+
+Many thanks to the various students who collaborated with me on this project.
 
 ## Technologies & Packages Used
 - [Blazor](https://dotnet.microsoft.com/en-us/apps/aspnet/web-apps/blazor) - Frontend
